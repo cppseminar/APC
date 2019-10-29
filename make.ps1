@@ -24,10 +24,6 @@ if (!$python_path) {
 
 if ($install) {
     & $python_path "-m" "pip" "install" "-r" "requirements.txt"
-    if ($?) {
-        Write-Error "Installation failed"
-        Exit 1
-    }
 }
 
 if ($update) {
@@ -39,4 +35,7 @@ if ($test) {
     & $python_path "-m" "pytest"
 }
 
-exit $?
+if ($?) {
+    Exit 0
+}
+Exit 1
