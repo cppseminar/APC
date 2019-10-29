@@ -6,10 +6,11 @@ param (
     [switch] $all = $false,
     [switch] $install = $false,
     [switch] $update = $false,
-    [switch] $force = $false
+    [switch] $force = $false,
+    [switch] $test = $false,
+    [string] $python_path = ""
 )
 
-$python_path = ""
 
 if (!$python_path) {
     if (!$env:VIRTUAL_ENV -and !$force) {
@@ -34,6 +35,8 @@ if ($update) {
     & $python_path "-m" "pip" "install" "--upgrade" pip $files
 }
 
-& $python_path "-m" "pytest"
+if ($test) {
+    & $python_path "-m" "pytest"
+}
 
 exit $?
