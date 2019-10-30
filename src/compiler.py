@@ -5,6 +5,7 @@ import subprocess
 import shutil
 import shlex
 import xml.etree.ElementTree as ET
+import time
 
 from typing import Dict, Iterable
 from enum import IntEnum, unique, auto
@@ -172,12 +173,14 @@ class TestRun:
         # Args
         self.expected_output = expected_output
         self.input_file = str(input_file)
-        self.path = exe_path
+        self.path = None
+        self.orig_exe = exe_path
         self.args = self.input_file_magic(input_file, args)
         self.id = str(id)
         # Executable
         self.exit_code = 0
         self._executed = False
+        self.run_time = None
         # Helpers
         self.folder = None
         self.parent_folder = folder
@@ -196,7 +199,17 @@ class TestRun:
             new[index] = self.INPUT_FILE_NAME
         return new
 
-    def run(self, max_time=None):
+    def run(self, max_time=None, test_runs=1):
+        assert test_runs > 0
+        time_sum = 0
+        for _ in range(int(test_runs)):
+            ret = self._run_internal(max_time=max_time)
+            time_sum += ret.run_time
+            if not ret:
+                return ret
+        self.run_time = time_sum / int(test_runs)
+
+    def _run_internal(self, max_time=None):
         self._cleanup()
         self._prepare_folder()
 
@@ -204,19 +217,25 @@ class TestRun:
             print("Running program")
 
         self.completed_process = None
-        with contextlib.suppress(subprocess.TimeoutExpired):
-            self.completed_process = subprocess.run([self.path] + self.args,
-                timeout=max_time,
-                text=True,
-                capture_output=True,
-                cwd=self.folder)
-        self._executed = True
+
+        def runProcess():
+            with contextlib.suppress(subprocess.TimeoutExpired):
+                self.completed_process = subprocess.run([self.path] + self.args,
+                    timeout=max_time,
+                    text=True,
+                    capture_output=True,
+                    cwd=self.folder)
+            self._executed = True
+
+        self.run_time = time.time()
+        runProcess()
+        self.run_time = time.time() - self.run_time
 
         if not self.completed_process: # Timeout errro
             self.exit_code = -1
             if settings.SETTINGS.verbose:
                 print("Timeout expired")
-            return
+            return self
         if settings.SETTINGS.verbose:
             print("Finished running")
         ## Program finished
@@ -239,7 +258,7 @@ class TestRun:
         self._cleanup()
 
     def __str__(self):
-        ret = f"Run {self.id} success {self.__bool__()}, exit {self.exit_code} (-1 for time)"
+        ret = f"Run {self.id} success {self.__bool__()}, exit {self.exit_code} (-1 for time) ({self.run_time})"
         return ret
 
     def save_logs(self) -> str:
@@ -269,9 +288,9 @@ class TestRun:
         if not os.path.exists(self.folder):
             raise OSError("Cannot create temp folder")
         shutil.copy2(self.input_file, os.path.join(self.folder, self.INPUT_FILE_NAME))
-        new_exe = os.path.join(self.folder, self.EXE_NAME)
-        shutil.copy2(self.path, new_exe)
-        self.path = new_exe
+        self.path = os.path.join(self.folder, self.EXE_NAME)
+        shutil.copy2(self.orig_exe, self.path)
+
 
 if __name__ == "__main__":
     pass
