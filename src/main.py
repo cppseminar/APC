@@ -139,12 +139,13 @@ if __name__ == "__main__":
                 runs_num = 0
                 if test_run(logger, c, input_file, output_file, args=["-i", input_file], id=str(idx) + "D", platform=compiler.Platform.x64_Debug, max_time=10, test_runs=1):
                     runs_num += 1
-                current_run = test_run(logger, c, input_file, output_file, args=["-i", input_file], id=str(idx) + "R", platform=compiler.Platform.x64_Release, max_time=120, test_runs=3)
+                current_run = test_run(logger, c, input_file, output_file, args=["-i", input_file], id=str(idx) + "R", platform=compiler.Platform.x64_Release, max_time=100, test_runs=3)
                 if current_run:
                    runs_num += 1
 
                 data[-1].append(runs_num)
-                data[-1].append(current_run.run_time)
+                run_time = current_run.run_time if current_run else 0
+                data[-1].append(run_time)
 
             global_logger.print(f"Successful runs: {runs_num}\n\n", logonly=True)
 
