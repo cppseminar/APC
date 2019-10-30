@@ -52,7 +52,7 @@ class SimpleLogger:
 def test_run(logger, compiler_, test_input, test_output, id="",
              platform=compiler.Platform.x64_Release, max_time=10, args=[], test_runs=3):
 
-    executable = compiler_.compile(platform_)
+    executable = compiler_.compile(platform)
     if not executable:
         logger.print(f"Cannot run for {logger.name}, {platform.name} compilation error")
         return False
