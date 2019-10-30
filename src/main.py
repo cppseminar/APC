@@ -7,6 +7,7 @@ import traceback
 import json
 
 from typing import Iterable, Dict
+from itertools import chain
 
 import compiler
 import settings
@@ -49,7 +50,7 @@ class SimpleLogger:
         self.file.close()
 
 def test_run(logger, compiler_, test_input, test_output, id="",
-             platform=compiler.Platform.x64_Release, max_time=10, args=[]):
+             platform=compiler.Platform.x64_Release, max_time=10, args=[], test_runs=3):
 
     executable = compiler_.compile(platform_)
     if not executable:
@@ -60,7 +61,7 @@ def test_run(logger, compiler_, test_input, test_output, id="",
                                    args=args, id=logger.name + "_" + id + "_",
                                    folder=SimpleLogger.FOLDER)
             logger.print(f"Running #{id}")
-            run.run(max_time=max_time)
+            run.run(max_time=max_time, test_runs=test_runs)
             logger.print("  " + str(run))
             if not run:
                 logger.print(f" Logs saved in {run.save_logs()}", logonly=True)
@@ -85,7 +86,9 @@ if __name__ == "__main__":
         with open(args.test, 'r') as f:
             test_cases = json.load(f)
 
-        header += ["Test" + str(i) for i in range(len(test_cases))]
+        # For each test case add 2 columns Test# and Time
+        header += list(chain.from_iterable(zip(["Test" + str(i) for i in range(len(test_cases))],
+                                               ["Time" for _ in range(len(test_cases))])))
 
     data = []
 
@@ -101,12 +104,9 @@ if __name__ == "__main__":
     for source in files:
         assert os.path.exists(source)
 
-        # extract student name (we have this agreement, that cpp file name 
-        # will be name of the student)
-        name = os.path.basename(source).split('.')[0]
-
         builds_num = 0
         logger = SimpleLogger(str(source))
+        name = logger.name
         global_logger.print(f"Student {logger.name}", logonly=True)
         c = compiler.Compiler(source, identificator=logger.name, folder=SimpleLogger.FOLDER)
         # Compile for all configs
@@ -137,12 +137,14 @@ if __name__ == "__main__":
                 output_file = os.path.join(args.test_data, test_case["output"])
 
                 runs_num = 0
-                if test_run(logger, c, input_file, output_file, args=["-i", input_file], id=str(idx) + "D", platform=compiler.Platform.x64_Debug):
-                    runs_num += 1 
-                if test_run(logger, c, input_file, output_file, args=["-i", input_file], id=str(idx) + "R", platform=compiler.Platform.x64_Release):
+                if test_run(logger, c, input_file, output_file, args=["-i", input_file], id=str(idx) + "D", platform=compiler.Platform.x64_Debug, max_time=10, test_runs=1):
                     runs_num += 1
+                current_run = test_run(logger, c, input_file, output_file, args=["-i", input_file], id=str(idx) + "R", platform=compiler.Platform.x64_Release, max_time=120, test_runs=3)
+                if current_run:
+                   runs_num += 1
 
                 data[-1].append(runs_num)
+                data[-1].append(current_run.run_time)
 
             global_logger.print(f"Successful runs: {runs_num}\n\n", logonly=True)
 
