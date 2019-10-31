@@ -4,7 +4,7 @@
 param (
     [Parameter(Mandatory = $false)][string] $build,
     [switch] $all = $false,
-    [switch] $install = $true,
+    [switch] $install = $false,
     [switch] $update = $false,
     [switch] $force = $false,
     [switch] $test = $false,
@@ -34,11 +34,11 @@ if ($install) {
 }
 
 if ($update) {
-    & $python_run "pipenv" "update"
+    $command += "pipenv update"
 }
 
 if ($test) {
-    & $python_run "pytest"
+    $command += "pipenv run pytest"
 }
 
 Invoke-Expression "& $command"
