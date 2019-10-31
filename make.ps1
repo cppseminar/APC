@@ -11,29 +11,37 @@ param (
     [string] $python_path = ""
 )
 
+$python_run = ''
 
-if (!$python_path) {
-    if (!$env:VIRTUAL_ENV -and !$force) {
-        Write-Error "Please activate virtualenv for python, or set python_path inside this script"
-        Exit 1
+if ((Get-Command "pipenv" -ErrorAction SilentlyContinue) -eq $null) {
+    if (!$python_path) {
+        if (!$env:VIRTUAL_ENV -and !$force) {
+            Write-Error "Please activate virtualenv for python, or set python_path inside this script"
+            Exit 1
+        }
+        else {
+            $python_path = get-command python.exe -ErrorAction stop |  ForEach-Object {$_.Path}
+        }
+
     }
-    else {
-        $python_path = get-command python.exe -ErrorAction stop |  ForEach-Object {$_.Path}
-    }
+    $python_run = '"' + $python_path + '" -m '
 }
 
+$command = $python_run
+
 if ($install) {
-    & $python_path "-m" "pip" "install" "-r" "requirements.txt"
+    $command += "pipenv install"
 }
 
 if ($update) {
-    $files = Get-Content .\requirements.txt 
-    & $python_path "-m" "pip" "install" "--upgrade" pip $files
+    $command += "pipenv update"
 }
 
 if ($test) {
-    & $python_path "-m" "pytest"
+    $command += "pipenv run pytest"
 }
+
+Invoke-Expression "& $command"
 
 if ($?) {
     Exit 0
