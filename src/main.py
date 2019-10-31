@@ -9,8 +9,9 @@ from typing import Iterable, Dict
 from itertools import chain
 
 import compiler
-from settings import SETTINGS
+import settings
 
+SETTINGS = settings.SETTINGS
 
 def get_vs_vars(build_type) -> Dict[str, str]:
     """Find and call vcvarsall and return environment set by this script"""
