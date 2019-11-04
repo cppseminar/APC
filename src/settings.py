@@ -3,6 +3,11 @@ able to parse arguments, and later config files.  Basically you will just ask
 this module for any setting you like"""
 
 import argparse
+import dataclasses
+
+import infrastructure
+from typing import List
+import enum
 
 SETTINGS = None
 
@@ -33,4 +38,22 @@ class Settings:
         else:
             return output
 
+
+
 SETTINGS = Settings()
+
+@enum.unique
+class Build(enum.IntEnum):
+    x64_Debug = enum.auto()
+    x64_Release = enum.auto()
+    x32_Debug = enum.auto()
+    x32_Release = enum.auto()
+
+@dataclasses.dataclass
+class CompilerEvent(infrastructure.Event):
+    success: bool = False
+    warnings: List[str] = []
+    errors:   List[str] = []
+    exe_path: str = None
+    build: Build
+
