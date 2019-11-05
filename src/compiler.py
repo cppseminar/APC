@@ -52,12 +52,12 @@ class Executable:
         return ret + f"   #errors {len(self.errors)} #warnings {len(self.warnings)}"
 
     def get_log(self):
-        ret  = "WARNINGS\n"
-        ret += "-----------\n"
-        ret += "     \n     ".join([str(i) for i in self.warnings])
-        ret += "\nERRORS\n"
-        ret += "-----------\n"
-        ret += "     \n     ".join([str(i) for i in self.errors])
+        ret  = "WARNINGS"
+        ret += "\n    "
+        ret += "\n    ".join([f"{i['file']}({i['line']}): warning {i['code']} {i['text']}" for i in self.warnings])
+        ret += "\nERRORS"
+        ret += "\n    "
+        ret += "\n    ".join([f"{i['file']}({i['line']}): error {i['code']} {i['text']}" for i in self.errors])
         return ret
 
 
@@ -122,7 +122,14 @@ class Compiler:
         with contextlib.suppress(FileNotFoundError):
             tree = ET.parse(xml_path)
             root = tree.getroot()
-        return [i.items() for i in root]
+
+        result = []
+        for i in root:
+            result.append({})
+            for j in i.items():
+                result[-1][j[0]] = j[1]
+
+        return result
 
 
 def compare_strings(input_string, output_string):
@@ -247,7 +254,7 @@ class TestRun:
         return self
 
     def __bool__(self):
-        return self._executed and self.exit_code is 0 and not self.diff
+        return self._executed and self.exit_code == 0 and not self.diff
 
     def _cleanup(self):
         if self._clean and self.folder:
