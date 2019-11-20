@@ -6,6 +6,8 @@ import shutil
 import shlex
 import xml.etree.ElementTree as ET
 import time
+import stat
+import operator
 
 from typing import Dict, Iterable
 from enum import IntEnum, unique, auto
@@ -136,9 +138,7 @@ def compare_strings(input_string, output_string):
     """Returns empty string, if strings match. Else returns complete diff"""
     inputs = input_string.split("\n")
     outputs = output_string.split("\n")
-    d = Differ()
-    ret = []
-    found_error = False
+
     # Don't bother with empty line in the end
     if outputs and not outputs[-1]:
         del outputs[-1]
@@ -146,15 +146,32 @@ def compare_strings(input_string, output_string):
     if inputs and not inputs[-1]:
         del inputs[-1]
 
-    for line in d.compare(outputs, inputs):
-        ret.append(line)
-        if line[0:2] != "  ":
-            found_error = True
+    if inputs == outputs:
+        return ''
 
-    if found_error:
-        return "\n".join(ret)
-    return ""
+    if len(outputs) < 100:
+        # create full diff for short sequences
+        d = Differ()
+        ret = []
+        found_error = False
 
+        for line in d.compare(outputs, inputs):
+            ret.append(line)
+            if line[0:2] != "  ":
+                found_error = True
+
+        if found_error:
+            return "\n".join(ret)
+        return ""
+    else:
+        # just first mismatch for larger lists
+        if len(inputs) < len(outputs):
+            return f'On line {len(inputs)} \ngot: <nothing>\nexpects: {outputs[len(inputs)]}\n'
+        elif len(inputs) > len(outputs):
+            return f'On line {len(inputs)} \ngot: {inputs[len(outputs)]}\nexpects: <end of file>\n'
+        else:
+            mismatch = list(map(operator.eq, inputs, outputs)).index(False)
+            return f'On line {mismatch} \ngot: {inputs[mismatch]}\nexpects: {outputs[mismatch]}\n'
 
 def transform_arg_to_str(something) -> str:
     """Converts something to str. Something is either None, or file path
@@ -294,7 +311,17 @@ class TestRun:
                                        dir=self.parent_folder)
         if not os.path.exists(self.folder):
             raise OSError("Cannot create temp folder")
-        shutil.copy2(self.input_file, os.path.join(self.folder, self.INPUT_FILE_NAME))
+
+        input_file_absolute = os.path.abspath(self.input_file)
+        temp_input_path = os.path.join(self.folder, self.INPUT_FILE_NAME)
+
+        try:
+            os.symlink(input_file_absolute, temp_input_path)
+            os.chmod(temp_input_path, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
+        except OSError:
+            # if not admin fallback to copy
+            shutil.copy2(input_file_absolute, temp_input_path)
+
         self.path = os.path.join(self.folder, self.EXE_NAME)
         shutil.copy2(self.orig_exe, self.path)
 

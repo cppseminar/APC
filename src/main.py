@@ -71,20 +71,21 @@ if __name__ == "__main__":
 
     # cvs header for build summary
     header = ["Name", "Build status", "Errors", "Warnings"]
+
     if SETTINGS.test:
-        with open(SETTINGS.test, 'r') as f:
-            test_cases = json.load(f) 
+        if SETTINGS.test == 'sudoku':
+            with open('test-data/sudoku.json', 'r') as f:
+                test_cases = json.load(f) 
+
+        if SETTINGS.test == 'search-substring':
+            with open('test-data/search_substring.json', 'r') as f:
+                test_cases = json.load(f) 
 
         # For each test case add 2 columns Test# and Time
-        header += list(chain.from_iterable(zip(["Test" + str(i) for i in range(len(test_cases))],
-                                               ["Time" for _ in range(len(test_cases))])))
+        header += list(chain.from_iterable(zip(["Test" + str(i) for i in range(len(test_cases))], 
+                                            ["Time" for _ in range(len(test_cases))])))
 
     data = []
-
-    try:
-        os.remove("builds.csv")
-    except FileNotFoundError:
-        pass  # ignore error, about file not found
 
     global_logger = SimpleLogger("Current run")
 
@@ -121,23 +122,42 @@ if __name__ == "__main__":
         if SETTINGS.test:
             assert test_cases
 
-            for idx, test_case in enumerate(test_cases):
-                input_file = os.path.join(SETTINGS.test_data, test_case["input"])
-                output_file = os.path.join(SETTINGS.test_data, test_case["output"])
+            if SETTINGS.test == 'sudoku':
+                for idx, test_case in enumerate(test_cases):
+                    input_file = os.path.join(SETTINGS.test_data, test_case["input"])
+                    output_file = os.path.join(SETTINGS.test_data, test_case["output"])
 
-                runs_num = 0
-                if test_run(logger, c, input_file, output_file, args=["-i", input_file], id=str(idx) + "D", platform=compiler.Platform.x64_Debug, max_time=10, test_runs=1):
-                    runs_num += 1
-                current_run = test_run(logger, c, input_file, output_file, args=[
-                                       "-i", input_file], id=str(idx) + "R", platform=compiler.Platform.x64_Release, max_time=100, test_runs=3)
-                if current_run:
-                    runs_num += 1
+                    runs_num = 0
+                    if test_run(logger, c, input_file, output_file, args=["-i", input_file], id=str(idx) + "D", platform=compiler.Platform.x64_Debug, max_time=10, test_runs=1):
+                        runs_num += 1
+                    current_run = test_run(logger, c, input_file, output_file, args=[
+                                            "-i", input_file], id=str(idx) + "R", platform=compiler.Platform.x64_Release, max_time=100, test_runs=3)
+                    if current_run:
+                        runs_num += 1
 
-                data[-1].append(runs_num)
-                run_time = current_run.run_time if current_run else 0
-                data[-1].append(run_time)
+                    data[-1].append(runs_num)
+                    run_time = current_run.run_time if current_run else 0
+                    data[-1].append(run_time)
 
-            global_logger.print(f"Successful runs: {runs_num}\n\n", logonly=True)
+                    global_logger.print(f"Successful runs: {runs_num}\n\n", logonly=True)
+            elif SETTINGS.test == 'search-substring':
+                for idx, test_case in enumerate(test_cases):
+                    input_file = os.path.join(SETTINGS.test_data, test_case["input"])
+                    output_file = os.path.join(SETTINGS.test_data, test_case["output"])
+                    to_search = test_case["search"]
+
+                    runs_num = 0
+                    if test_run(logger, c, input_file, output_file, args=[input_file, to_search], id=str(idx) + "D", platform=compiler.Platform.x64_Debug, max_time=10, test_runs=1):
+                        runs_num += 1
+                    current_run = test_run(logger, c, input_file, output_file, args=[input_file, to_search], id=str(idx) + "R", platform=compiler.Platform.x64_Release, max_time=100, test_runs=3)
+                    if current_run:
+                        runs_num += 1
+
+                    data[-1].append(runs_num)
+                    run_time = current_run.run_time if current_run else 0
+                    data[-1].append(run_time)
+
+                    global_logger.print(f"Successful runs: {runs_num}\n\n", logonly=True)                
 
     # create CSV file from summary data
     with open(os.path.join(SETTINGS.output, 'builds.csv'), mode='a', newline='') as summary_file:
