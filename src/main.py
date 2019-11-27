@@ -88,9 +88,7 @@ if __name__ == "__main__":
 
     global_logger = SimpleLogger("Current run")
 
-    files = SETTINGS.files if not SETTINGS.dir else [os.path.join(SETTINGS.files[0], x) for x in os.listdir(SETTINGS.files[0]) if x.endswith(".cpp")]
-
-    for source in files:
+    for source in SETTINGS.files:
         assert os.path.exists(source)
 
         builds_num = 0
