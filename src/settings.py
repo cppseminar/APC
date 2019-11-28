@@ -11,7 +11,7 @@ SETTINGS = None
 class Settings:
     def __init__(self):
         parser = argparse.ArgumentParser(description="Compile list of files and run tests")
-        parser.add_argument('--test', help="path to the json file with test cases")
+        parser.add_argument('--test', help="test cases, that should run", choices=['sudoku', 'search-substring'])
         parser.add_argument('--test-data', help="path to folder with test data", default='.')
         parser.add_argument('--output', help="path to otput directory")
         parser.add_argument('--verbose')
