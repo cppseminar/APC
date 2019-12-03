@@ -12,6 +12,7 @@ param (
     [string] $python_path = ""
 )
 
+$python_path = "C:\Users\lukas.manduch\source\virtualenvs\testscripts\Scripts\python.exe"
 
 if (!$python_path) {
     if (!$env:VIRTUAL_ENV -and !$force) {
@@ -33,10 +34,10 @@ if ($update) {
 }
 
 if ($test) {
-    & $python_path "-m" "pytest"
+    & $python_path "-m" "pytest" "-s" "-vv"
 }
 
-Function Lint-File
+Function LintFile
 {
      Param (
         [Parameter(mandatory=$true)]
@@ -44,12 +45,6 @@ Function Lint-File
         )
 
     Write-Output "Linting file " + $file
-    Write-Output "Running pylint"
-    & $python_path "-m" "pylint" $file
-
-    if ($LASTEXITCODE -ne 0) {
-        exit 1
-    }
     # mypy
     Write-Output "Running mypy"
     & $python_path "-m" "mypy" $file
@@ -57,8 +52,16 @@ Function Lint-File
     if ($LASTEXITCODE -ne 0) {
         exit 1
     }
+    # pyflakes
     Write-Output "Running pyflakes"
     & $python_path "-m" "pyflakes" $file
+    if ($LASTEXITCODE -ne 0) {
+        exit 1
+    }
+    # pylint
+    Write-Output "Running pylint"
+    & $python_path "-m" "pylint" $file
+
     if ($LASTEXITCODE -ne 0) {
         exit 1
     }
@@ -67,7 +70,7 @@ Function Lint-File
 }
 
 if ($lint) {
-    Lint-File(".\src\infrastructure.py")
+    LintFile(".\src\infrastructure.py")
 }
 
 if ($?) {

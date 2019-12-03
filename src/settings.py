@@ -4,6 +4,7 @@ this module for any setting you like"""
 
 import argparse
 import dataclasses
+import collections
 
 import infrastructure
 from typing import List
@@ -42,6 +43,19 @@ class Settings:
 
 SETTINGS = Settings()
 
+
+class Config:
+    def __init__(self):
+        self.class_chain = collections.deque()
+
+    def add_module(self, module_name):
+        self.class_chain.append(module_name)
+
+    def get_modules(self) -> List:
+        return [self.class_chain]
+
+
+
 @enum.unique
 class Build(enum.IntEnum):
     x64_Debug = enum.auto()
@@ -49,11 +63,10 @@ class Build(enum.IntEnum):
     x32_Debug = enum.auto()
     x32_Release = enum.auto()
 
-@dataclasses.dataclass
 class CompilerEvent(infrastructure.Event):
     success: bool = False
-    warnings: List[str] = []
-    errors:   List[str] = []
+    warnings: List[str] = dataclasses.field(default=[])
+    errors:   List[str] = dataclasses.field(default=[])
     exe_path: str = None
-    build: Build
+    build: Build = None
 
