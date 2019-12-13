@@ -90,6 +90,15 @@ class TestTestScripts():
         with pytest.raises(ValueError):
             script.load_ini_settings(fake_file)
 
+    @pytest.mark.skip
+    def test_parse_settings_from_dict(self):
+        pass 
+
+    @pytest.mark.skip
+    def test_run_notifications(self):
+        """Check whether notifications are run with high priority"""
+        pass
+
 
 class TestEvent:
     def test_all_mro(self):
@@ -102,6 +111,7 @@ class TestEvent:
     def test_name(self):
         event = infrastructure.Event()
         assert event.name == 'Event'
+
 
 class TestModule:
     @pytest.mark.skip
@@ -152,6 +162,7 @@ class TestModule:
         assert module.handle_event(MyTestEvent1())
         assert not module.handle_event(MyTestEvent2())
 
+
 class TestSettings:
     def test_one_option(self):
         settings = infrastructure.ModuleSettings()
@@ -168,7 +179,6 @@ class TestSettings:
             settings['key3']
         settings['key3'] = 'None'
         assert settings['key3'] == None
-
 
     def test_multiple_options(self):
         settings = infrastructure.ModuleSettings()
@@ -189,7 +199,6 @@ class TestSettings:
         with pytest.raises(ValueError):
             settings['key'] = 'ab'
 
-
     def test_default_parser(self):
         settings = infrastructure.ModuleSettings()
         settings.add_parser('key', MyDefaultParser())
@@ -206,6 +215,10 @@ class TestSettings:
         settings.add_options('key1', [False, True], default=True)
         settings.add_options('key2', ['False', 'True'])
         assert settings.get_ini_dict() == expect
+
+    @pytest.mark.skip
+    def test_ini_format_parser(self):
+        pass
 
     def test_bool(self):
         settings = infrastructure.ModuleSettings()
@@ -264,3 +277,11 @@ def test_get_event_name():
     assert name1 == 'MyTestEvent1'
     name2 = infrastructure._get_event_name('aa')
     assert name2 == 'aa'
+
+@pytest.mark.skip
+def test_get_valid_event(self):
+    pass
+
+@pytest.mark.skip
+def test_set_formatter(self):
+    pass

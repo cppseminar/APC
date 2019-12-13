@@ -1,4 +1,6 @@
-pylint
+colorama
 mypy
-pytest
 pyflakes
+pylint
+pytest
+python-language-server

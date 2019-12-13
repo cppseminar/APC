@@ -12,6 +12,7 @@ from enum import IntEnum, unique, auto
 from difflib import Differ
 
 import settings
+import infrastructure
 
 def parse_env(lines: Iterable[str]):
     environment = {}
@@ -60,6 +61,49 @@ class Executable:
         ret += "\n    ".join([f"{i['file']}({i['line']}): error {i['code']} {i['text']}" for i in self.errors])
         return ret
 
+class FilePathParser(infrastructure.SettingsParser):
+    def is_valid(self, value):
+        return value == 'None' or os.path.exists(value)
+
+    def get_options(self):
+        return ["<any file/folder or None>"]
+
+    @property
+    def default(self):
+        return infrastructure.MISSING
+
+class SourceFileEvent(infrastructure.Event):
+    FILE_NAMES = []
+
+
+class CppFinder(infrastructure.Module):
+    SETTINGS = {
+        "folder_path": FilePathParser(),
+        "file_path": FilePathParser(),
+    }
+
+    def __init__(self, name):
+        super().__init__(name)
+        self.register_event('start')
+        self.files = []
+
+    def _check_settings(self):
+        """Check whether user config is ok"""
+        if self.settings['folder_path'] != 'None':
+            raise NotImplementedError()
+        if self.settings['file_path'] != 'None':
+            notif = infrastructure.Notification()
+            notif.MESSAGE = f"Processing file/s {self.settings['file_path']}"
+            self.log(notif)
+
+
+        
+
+    def handle_internal(self, event):
+        self._check_settings()
+        event = SourceFileEvent()
+        event.FILE_NAMES = ['.\\test.cpp']
+        self.send(event)
 
 
 class Compiler:
@@ -68,10 +112,10 @@ class Compiler:
     WARNINGS = 'warnings.xml'
     ERRORS = 'errors.xml'
     BUILD_MAP = {
-        Platform.x64_Debug.value   : "Debug_x64",
-        Platform.x64_Release.value : "Release_x64",
-        Platform.x32_Debug.value   : "Debug_Win32",
-        Platform.x32_Release.value : "Release_Win32",
+        Platform.x64_Debug.value:   "Debug_x64",
+        Platform.x64_Release.value: "Release_x64",
+        Platform.x32_Debug.value:   "Debug_Win32",
+        Platform.x32_Release.value: "Release_Win32",
     }
 
     def __init__(self, file_names, folder=None, identificator=""):

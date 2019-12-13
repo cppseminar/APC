@@ -1,18 +1,22 @@
 """Module containing core infrastructure for testscripts."""
 
 import abc
+import collections
 import configparser
 import contextlib
 import dataclasses
-import re
-import itertools
-import collections
 import enum
+import itertools
 import os
-from typing import Deque, Iterable, List, Tuple
+import re
+import logging
+import sys
+
 from dataclasses import MISSING
+from typing import Any, Deque, Dict, Iterable, List, Tuple
 
 import constants
+
 
 def build_event_regex(pattern: str):
     """We want to support only asterix as wildcard, so this function builds
@@ -24,9 +28,11 @@ def build_event_regex(pattern: str):
     parts = ['^'] + parts + ['$']
     return re.compile(''.join(parts))
 
+
 def _map_to_strings(iterable: Iterable):
     """Transform values in ITER to strings"""
     return map(lambda x: str(x), iterable)
+
 
 def config_section_to_dict(parser: configparser.ConfigParser, section_name: str):
     values = dict()
@@ -34,10 +40,80 @@ def config_section_to_dict(parser: configparser.ConfigParser, section_name: str)
         values[option] = parser.get(section_name, option)
     return values
 
+
 def _get_event_name(event):
     if hasattr(event, '__name__'):
         return str(event.__name__)
     return str(event)
+
+
+def get_valid_event(event: Any):
+    """There might be a scenario, with event only as str having just a name"""
+    try:
+        event.name
+        return event
+    except AttributeError:
+        # We could instead set name attribute for event, but I think it's not
+        # wise to modify it here
+        return _NamedEvent(str(event))
+
+
+def set_loggger(name, console=True, filename=None):
+    """Retrieves from logging NAME logger and sets formats depending on
+    CONSOLE and FILENAME"""
+    logger = logging.getLogger(name)
+    if filename:
+        raise NotImplementedError("C'mon")
+    if console:
+        handler = logging.StreamHandler(sys.stdout)
+        formatter = logging.Formatter(constants.CONFIG.CONSOLE_LOG_FORMAT)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+    return logger
+
+
+_logger = set_loggger(__name__, console=True)
+_logger.setLevel(logging.DEBUG)
+
+
+######################################################
+#                   # EVENTS #                       #
+######################################################
+
+
+@dataclasses.dataclass
+class Event:
+    """Abstract class for representing an event."""
+    # Handled true/false # TestScript must know
+    # Return to ....
+    # For whom
+    # Payload
+    # Private data
+    # Response
+
+    def __init__(self, name=None):
+        self.name = name
+        self.names = []
+
+        if not self.name:  # Name will be name of class
+            self.names = list(map(lambda x: x.__name__, self.__class__.__mro__))
+            self.name = self.names[0]
+
+
+class _NamedEvent(Event):
+    """This class really shouldn't be used, it's here just in case someone
+    enters string instead of evnet"""
+    def __init__(self, name):
+        super().__init__(name=name)
+
+
+class Notification(Event):
+    MESSAGE: str
+    SEVERITY: int
+
+############################################
+#              # END EVENTS #              #
+############################################
 
 
 class ConfigError(ValueError):
@@ -46,6 +122,9 @@ class ConfigError(ValueError):
                          f"\n============\n\t\t{message}")
 
 class SettingsParser:
+    """Abstract class for parsing setting values.  If you don't know possible
+    values in advance (like file name), you must use parser"""
+
     @property
     def default(self):
         return MISSING
@@ -63,7 +142,7 @@ class SettingsParser:
 
     def __str__(self):
         return NotImplemented
-    
+
     def __repr__(self):
         return NotImplemented
 
@@ -86,9 +165,9 @@ class FileNameParser(SettingsParser):
 class ModuleSettings(collections.UserDict):
     def __init__(self):
         super().__init__()
-        self.settings = dict()
-        self._defaults = set() # keys with default options
-        self._parsers = set() # keys with parsers
+        self._settings = dict()
+        self._defaults = set()  # keys with default options
+        self._parsers = set()  # keys with parsers
 
     def add_options(self, key: str, values: List, default=MISSING):
         """Set possible options for KEY. VALUES must be iterable, with every
@@ -107,11 +186,16 @@ class ModuleSettings(collections.UserDict):
     def add_parser(self, key: str, parser: SettingsParser):
         """Register PARSER for KEY. If setting with key is present, PARSER
         methods will be called"""
-        assert key not in self.data, "Key already registered"
+        assert key not in self.data, f"Key already registered {key}"
         self.data[key] = parser
         self._parsers.add(key)
         if parser.default != MISSING:
-            assert parser.is_valid(parser.default), f"Parser default invalid {parser.default}"
+            try:  # This seems like common error to me
+                assert parser.is_valid(parser.default), \
+                       f"Parser default invalid {parser.default}"
+            except TypeError as e:
+                txt = f"Don't forget to instantiate parser {parser.__name__}!"
+                raise ConfigError(txt) from e
             self[key] = parser.default
 
     def __setitem__(self, key: str, value: str):
@@ -122,7 +206,7 @@ class ModuleSettings(collections.UserDict):
         if key in self._parsers:
             if not self.data[key].is_valid(value):
                 raise ConfigError(f"Invalid value {value} for parser {key}")
-            self.settings[key] = value
+            self._settings[key] = value
             return
         # Defined as options (no parser provided)
         index = -1
@@ -133,17 +217,17 @@ class ModuleSettings(collections.UserDict):
             raise ConfigError(f"Invalid value '{value}' for key '{key}'"
                               f"(also must be str)")
         # Use actual item, not given text representation
-        self.settings[key] = self.data[key][index]
+        self._settings[key] = self.data[key][index]
 
     def __getitem__(self, key):
         """Return value, if already set"""
         with contextlib.suppress(KeyError):
-            return self.settings[key]
+            return self._settings[key]
         raise ConfigError(f"No setting set for key {key}")
 
     def __bool__(self):
         """Check if all settings which class requires are already set"""
-        return set(self.settings.keys()) == set(self.data.keys())
+        return set(self._settings.keys()) == set(self.data.keys())
 
     def get_ini_dict(self):
         """Returns dictionary prepared to be inserted into standard
@@ -151,21 +235,22 @@ class ModuleSettings(collections.UserDict):
         shouldn't be used for anything else"""
         ret = {}
         for key, value in self.data.items():
-            value = _map_to_strings(value)
             # Parsers
             if key in self._parsers:
                 if self.data[key].default != MISSING:
-                    ret['#' + key] = self.data[key].get_options()
+                    ret['#' + key] = ' # '.join(self.data[key].get_options())
                 else:
-                    ret[key] = self.data[key].get_options()
+                    ret[key] = ' # '.join(self.data[key].get_options())
                 continue
             # Default options
+            value = _map_to_strings(value)
             if key in self._defaults:
                 ret['# ' + key] = ' # '.join(value)
             # Standard options
             else:
                 ret[key] = ' # '.join(value)
         return ret
+
 
 class TestScript:
     """Class representing current run of testscript"""
@@ -176,28 +261,53 @@ class TestScript:
     def __init__(self):
         self.modules: Iterable[Module] = collections.deque()
         self.event_stack: Deque[Event] = collections.deque()
+        self.notifications: Deque[Event] = collections.deque()
         self.module_classes = []
 
     def register(self, module):
         """Call to register module to this object. All events will be sent to
         the module.handle_event function."""
         assert module not in self.modules, f"Module already registered"
+        _logger.debug(f"Registering module {module.name} - "
+                      f"{module.__class__.__name__}")
         self.modules.append(module)
         module.register(self)
+        _logger.debug(f"Registered in {__class__}")
 
     def add_event(self, event, priority=EventPriority.LOW):
         """Adds event, wich will be processsed when run() function gets to
         it. Depending on priority, it might be last event in whole program"""
+        event = get_valid_event(event)
+        _logger.debug(f"{event.name}")
         if priority > TestScript.EventPriority.LOW:
             self.event_stack.append(event)
-        else:
+        else:  # This is only temporary solution, but who cares for now
             self.event_stack.appendleft(event)
+
+    def add_notification(self, event: Event):
+        """Notifications are events, which are not meant to trigger any other
+        events.  In other words, logging info.  They take precedence over
+        any other events that are in stack"""
+        _logger.debug(f"{event.name}")
+        self.notifications.append(event)
 
     def run(self):
         """Cycle which runs while there are still some events. This should be
         called only once per session"""
+        _logger.debug(f"run called size {len(self.event_stack)}")
         while self.event_stack:
             event = self.event_stack.pop()
+            _logger.debug(f"Event {event.name}")
+            for module in self.modules:
+                if module.handle_event(event):
+                    _logger.debug(f"{event.name} handled by {module.name}")
+                self._run_notifications()
+        self._run_notifications()
+        _logger.debug(f"run stopping size {len(self.event_stack)}")
+
+    def _run_notifications(self):
+        while self.notifications:
+            event = self.notifications.pop()
             for module in self.modules:
                 module.handle_event(event)
 
@@ -224,6 +334,8 @@ class TestScript:
         self.register(module)
 
     def load_ini_settings(self, open_file):
+        """Given ini file open for reading, loads all modules in file and tries
+        to set them up with given settings."""
         c = configparser.ConfigParser(inline_comment_prefixes=['#'])
         c.read_file(open_file)
         for module in c.sections():
@@ -231,9 +343,13 @@ class TestScript:
             self._add_module(module, module_settings)
 
     def dump_ini_settings(self, open_file):
+        """To OPEN_FILE, writes in ini format all modules, with all their
+        settings. This creates something like example config. Current 
+        onfiguration doesn't have any effect on format of settings."""
         c = configparser.ConfigParser()
+        temp_modules = [klass("fake name") for klass in self.module_classes]
         counter = 0
-        for module in self.modules:
+        for module in temp_modules:
             name = module.__class__.__name__
             counter += 1
 
@@ -254,6 +370,7 @@ class TestScript:
         # let's have nicer error
         raise ConfigError(f"No module named {name}")
 
+
 class Module(abc.ABC):
     """Class serving as module for TestScript class. All other modules shall
     inherit from this class.
@@ -263,7 +380,7 @@ class Module(abc.ABC):
     # TODO: Explain settings
 
     SETTINGS = {
-        'verbose' : [True, False]
+        'verbose': [True, False]
     }
 
     def __init__(self, name):
@@ -271,6 +388,7 @@ class Module(abc.ABC):
         self.owner = None
         self.events: Deque[Tuple[re.Pattern, callable]] = collections.deque()
         self.settings = ModuleSettings()
+        self.parse_settings_from_dict(self.SETTINGS)
 
     def register(self, parent_object: TestScript):
         """Registers parent, so module can send events to them"""
@@ -298,6 +416,13 @@ class Module(abc.ABC):
         if self.owner:
             self.owner.add_event(event)
 
+    def log(self, event):
+        """Send event to owner. Event shall be Notifiaction or derived"""
+        assert isinstance(event, Notification)
+        if self.owner:
+            self.owner.add_notification(event)
+
+
     def handle_event(self, event):
         """Given event, decides whether to process it or not. If event was
         registered via self.register_event, callback is called."""
@@ -316,31 +441,46 @@ class Module(abc.ABC):
         if values:
             self.settings.add_options(key, list(_map_to_strings(values)), default=default)
         else:
-            raise NotImplementedError("Parsers not yet implemented")
+            self.settings.add_parser(key, parser=parser)
 
     def set(self, key, value):
         """Set setting"""
         self.settings[key] = value
+
+    def parse_settings_from_dict(self, settings: Dict[str, Any]):
+        """Given settings in SETTINGS. Add them to this object via
+        REGISTER_SETTING. """
+        for key, value in settings.items():
+            try:
+                # If it's not iterable, it's parser
+                iter(value)
+                self.register_setting(key, values=value)
+            except TypeError:
+                self.register_setting(key, parser=value)
 
     @abc.abstractmethod
     def handle_internal(self, event):
         # This should be overridden
         return False
 
-@dataclasses.dataclass
-class Event:
-    """Abstract class for representing an event."""
-    # Handled true/false # TestScript must know
-    # Return to ....
-    # For whom
-    # Payload
-    # Private data
-    # Response
 
-    def __init__(self, name=None):
-        self.name = name
-        self.names = []
+class MessageSeverity(enum.IntEnum):
+    CRITICAL = 1
+    INFO = 3
+    DEBUG = 4
 
-        if not self.name: # Name will be name of class
-            self.names = list(map(lambda x: x.__name__, self.__class__.__mro__))
-            self.name = self.names[0]
+
+class ConsoleWriter(Module):
+    SETTINGS = {
+        'severity': [MessageSeverity.CRITICAL, MessageSeverity.INFO]
+    }
+
+    def __init__(self, name):
+        super().__init__(name)
+        self.register_event(Notification)
+
+    def handle_internal(self, event):
+        print(event.MESSAGE)
+        return True
+
+

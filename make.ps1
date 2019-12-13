@@ -34,7 +34,7 @@ if ($update) {
 }
 
 if ($test) {
-    & $python_path "-m" "pytest" "-s" "-vv"
+    & $python_path "-m" "pytest" "-s" "-vv" "--color=yes"
 }
 
 Function LintFile
@@ -60,7 +60,7 @@ Function LintFile
     }
     # pylint
     Write-Output "Running pylint"
-    & $python_path "-m" "pylint" $file
+    & $python_path "-m" "pylint" "--output-format=colorized" $file
 
     if ($LASTEXITCODE -ne 0) {
         exit 1

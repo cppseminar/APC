@@ -16,5 +16,6 @@ _CONFIG_TEXT = (
 
 CONFIG = types.SimpleNamespace(
     MODULE='module',
-    PROLOG=_CONFIG_TEXT
+    PROLOG=_CONFIG_TEXT,
+    CONSOLE_LOG_FORMAT='%(levelname)9s | %(name)10s | %(funcName)15s | %(message)s',
 )
