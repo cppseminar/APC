@@ -1,27 +1,22 @@
-import tempfile
 import contextlib
+import itertools
 import os
-import subprocess
-import shutil
+import re
 import shlex
-import xml.etree.ElementTree as ET
+import shutil
+import subprocess
+import tempfile
 import time
+import xml.etree.ElementTree as ET
 
-from typing import Dict, Iterable
+from typing import Iterable, List
 from enum import IntEnum, unique, auto
 from difflib import Differ
 
 import settings
 import infrastructure
 
-def parse_env(lines: Iterable[str]):
-    environment = {}
-    for line in lines.split("\n"):
-        if not line:
-            continue
-        keyword, entry = line.split("=", maxsplit=1)
-        environment[keyword] = entry
-    return environment
+
 
 @unique
 class Platform(IntEnum):
@@ -29,6 +24,7 @@ class Platform(IntEnum):
     x64_Release = auto()
     x32_Debug = auto()
     x32_Release = auto()
+
 
 class Executable:
     LOG = 'compilation.txt'
@@ -53,13 +49,14 @@ class Executable:
         return ret + f"   #errors {len(self.errors)} #warnings {len(self.warnings)}"
 
     def get_log(self):
-        ret  = "WARNINGS"
-        ret += "\n    "
-        ret += "\n    ".join([f"{i['file']}({i['line']}): warning {i['code']} {i['text']}" for i in self.warnings])
-        ret += "\nERRORS"
-        ret += "\n    "
-        ret += "\n    ".join([f"{i['file']}({i['line']}): error {i['code']} {i['text']}" for i in self.errors])
+        ret = "WARNINGS\n"
+        ret += "-----------\n"
+        ret += "     \n     ".join([str(i) for i in self.warnings])
+        ret += "\nERRORS\n"
+        ret += "-----------\n"
+        ret += "     \n     ".join([str(i) for i in self.errors])
         return ret
+
 
 class FilePathParser(infrastructure.SettingsParser):
     def is_valid(self, value):
@@ -70,7 +67,9 @@ class FilePathParser(infrastructure.SettingsParser):
 
     @property
     def default(self):
+        """This shall cause error"""
         return infrastructure.MISSING
+
 
 class SourceFileEvent(infrastructure.Event):
     FILE_NAMES = []
@@ -95,9 +94,6 @@ class CppFinder(infrastructure.Module):
             notif = infrastructure.Notification()
             notif.MESSAGE = f"Processing file/s {self.settings['file_path']}"
             self.log(notif)
-
-
-        
 
     def handle_internal(self, event):
         self._check_settings()
@@ -166,14 +162,7 @@ class Compiler:
         with contextlib.suppress(FileNotFoundError):
             tree = ET.parse(xml_path)
             root = tree.getroot()
-
-        result = []
-        for i in root:
-            result.append({})
-            for j in i.items():
-                result[-1][j[0]] = j[1]
-
-        return result
+        return [i.items() for i in root]
 
 
 def compare_strings(input_string, output_string):
@@ -298,7 +287,7 @@ class TestRun:
         return self
 
     def __bool__(self):
-        return self._executed and self.exit_code == 0 and not self.diff
+        return self._executed and self.exit_code is 0 and not self.diff
 
     def _cleanup(self):
         if self._clean and self.folder:

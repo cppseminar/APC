@@ -243,6 +243,10 @@ class TestSettings:
         settings['key2'] = 'f'
         assert settings['key2'] == 'f'
 
+@pytest.mark.skip
+class TestConsoleWriter:
+    def test_notification(self):
+        pass
 
 def test_file_name_parser():
     fp1 = infrastructure.FileNameParser()
@@ -255,21 +259,21 @@ def test_file_name_parser():
     assert list(fp1.get_options())
 
 def test_event_regex():
-    regex = infrastructure.build_event_regex("aa*bb")
+    regex = infrastructure.build_wildcard_regex("aa*bb")
     assert regex.match('aabb')
     assert regex.match('aa.bb')
     assert regex.match('aa.asdbb')
     assert regex.match('aa.asd.bb')
     assert not regex.match('ab.aa.bb')
-    regex = infrastructure.build_event_regex("*bb")
+    regex = infrastructure.build_wildcard_regex("*bb")
     assert regex.match('aabb')
     assert regex.match('ab.aa.bb')
     assert not regex.match("b")
-    regex = infrastructure.build_event_regex("*")
+    regex = infrastructure.build_wildcard_regex("*")
     assert regex.match('asd')
     assert regex.match('')
     assert not regex.match(' ')
-    regex = infrastructure.build_event_regex("")
+    regex = infrastructure.build_wildcard_regex("")
     assert not regex.match('a')
 
 def test_get_event_name():

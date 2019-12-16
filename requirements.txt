@@ -4,3 +4,4 @@ pyflakes
 pylint
 pytest
 python-language-server
+yapf

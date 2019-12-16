@@ -18,13 +18,14 @@ from typing import Any, Deque, Dict, Iterable, List, Tuple
 import constants
 
 
-def build_event_regex(pattern: str):
+
+def build_wildcard_regex(pattern: str):
     """We want to support only asterix as wildcard, so this function builds
     regex, from asterix only notation"""
     regex_parts: Iterable[Tuple[str, str]] = [(re.escape(part), r'\S*')
                                               for part in pattern.split('*')]
     parts: List[str] = list(itertools.chain.from_iterable(regex_parts))
-    parts.pop() # Last one is not asterix
+    parts.pop()  # Last one is not asterix
     parts = ['^'] + parts + ['$']
     return re.compile(''.join(parts))
 
@@ -34,7 +35,8 @@ def _map_to_strings(iterable: Iterable):
     return map(lambda x: str(x), iterable)
 
 
-def config_section_to_dict(parser: configparser.ConfigParser, section_name: str):
+def config_section_to_dict(parser: configparser.ConfigParser,
+                           section_name: str):
     values = dict()
     for option in parser.options(section_name):
         values[option] = parser.get(section_name, option)
@@ -404,7 +406,7 @@ class Module(abc.ABC):
         TODO: I'm wondering, maybe we could id classes with their memory
         addresses (id())"""
         event_name = _get_event_name(event)
-        regex = build_event_regex(event_name)
+        regex = build_wildcard_regex(event_name)
 
         if not callback:
             callback = self.handle_internal
@@ -434,12 +436,18 @@ class Module(abc.ABC):
                 return True
         return False
 
-    def register_setting(self, key: str, values: Iterable = None, parser=None, default=MISSING):
+    def register_setting(self,
+                         key: str,
+                         values: Iterable = None,
+                         parser=None,
+                         default=MISSING):
         """Register setting for this class. You must specify either values, or
         parser"""
         assert (values and not parser) or (not values and parser)
         if values:
-            self.settings.add_options(key, list(_map_to_strings(values)), default=default)
+            self.settings.add_options(key,
+                                      list(_map_to_strings(values)),
+                                      default=default)
         else:
             self.settings.add_parser(key, parser=parser)
 
@@ -482,5 +490,3 @@ class ConsoleWriter(Module):
     def handle_internal(self, event):
         print(event.MESSAGE)
         return True
-
-
