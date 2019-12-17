@@ -54,5 +54,19 @@ def iterate_files(directory, depth=0, include_dirs=True):
 
         # If there are no more directories
         if not seen_directories:
-            del directory
             return
+
+
+def filter_files(iterable: Iterable, wildcard: str = "*"):
+    """Given ITERABLE with file names, filter those that do not match
+    wildcard.
+
+    Wildcard is approximately something like unix shell expansion - asterix
+    means anything, rest are normal chars """
+    regex = build_file_regex(wildcard)
+
+    def _filter(filename):
+        name = pathlib.PurePath(filename).name
+        return bool(regex.fullmatch(name))
+
+    return filter(_filter, iterable)

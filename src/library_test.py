@@ -74,3 +74,21 @@ def test_iterate_files():
         assert set(files_and_dirs) == set(files) | set(dirs)
         assert list(library.iterate_files(
             tempfile.TemporaryDirectory().name)) == []
+
+
+def test_filter_files():
+    with tmp_dirs(levels=1) as (directory, files, dirs):
+        files2 = [
+            f for f in library.iterate_files(directory, include_dirs=False)
+        ]
+        assert set(library.filter_files(files2, wildcard='*')) == set(files)
+    path1 = pathlib.PurePath('/home/asdf/file1 .py')
+    path2 = pathlib.Path(__file__)
+    path3 = 'C:\\asd.py'
+    path4 = "file2.py"
+    array = [path1, path2, path3, path4]
+    assert array == list(library.filter_files(array, "*.py"))
+    assert array == list(library.filter_files(array, "*py"))
+    assert [] == list(library.filter_files(array, "*.cpp"))
+    assert array == list(
+        library.filter_files(array + ["filepy", "file.cpp"], "*.py"))

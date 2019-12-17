@@ -234,7 +234,7 @@ class TestSettings:
 
     @pytest.mark.skip
     def test_array_access(self):
-        settings = infrastructure.ModuleSettings()
+        pass
 
     def test_default_option(self):
         settings = infrastructure.ModuleSettings()
@@ -243,7 +243,6 @@ class TestSettings:
         settings['key2'] = 'f'
         assert settings['key2'] == 'f'
 
-@pytest.mark.skip
 class TestConsoleWriter:
     def test_notification(self):
         pass

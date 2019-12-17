@@ -17,6 +17,7 @@ from typing import Any, Deque, Dict, Iterable, List, Tuple
 
 import constants
 
+# pylint: disable=too-few-public-methods
 
 
 def build_wildcard_regex(pattern: str):
@@ -37,6 +38,7 @@ def _map_to_strings(iterable: Iterable):
 
 def config_section_to_dict(parser: configparser.ConfigParser,
                            section_name: str):
+    """Simply extracts section from ConfigParser (PARSER) as dictionary"""
     values = dict()
     for option in parser.options(section_name):
         values[option] = parser.get(section_name, option)
@@ -75,7 +77,7 @@ def set_loggger(name, console=True, filename=None):
 
 
 _logger = set_loggger(__name__, console=True)
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.INFO)
 
 
 ######################################################
@@ -196,7 +198,7 @@ class ModuleSettings(collections.UserDict):
                 assert parser.is_valid(parser.default), \
                        f"Parser default invalid {parser.default}"
             except TypeError as e:
-                txt = f"Don't forget to instantiate parser {parser.__name__}!"
+                txt = f"Don't forget to instantiate parser {parser}!"
                 raise ConfigError(txt) from e
             self[key] = parser.default
 
@@ -274,7 +276,7 @@ class TestScript:
                       f"{module.__class__.__name__}")
         self.modules.append(module)
         module.register(self)
-        _logger.debug(f"Registered in {__class__}")
+        _logger.debug(f"Registered in {self.__class__}")
 
     def add_event(self, event, priority=EventPriority.LOW):
         """Adds event, wich will be processsed when run() function gets to
@@ -338,15 +340,15 @@ class TestScript:
     def load_ini_settings(self, open_file):
         """Given ini file open for reading, loads all modules in file and tries
         to set them up with given settings."""
-        c = configparser.ConfigParser(inline_comment_prefixes=['#'])
-        c.read_file(open_file)
-        for module in c.sections():
-            module_settings = config_section_to_dict(c, module)
+        parser = configparser.ConfigParser(inline_comment_prefixes=['#'])
+        parser.read_file(open_file)
+        for module in parser.sections():
+            module_settings = config_section_to_dict(parser, module)
             self._add_module(module, module_settings)
 
     def dump_ini_settings(self, open_file):
         """To OPEN_FILE, writes in ini format all modules, with all their
-        settings. This creates something like example config. Current 
+        settings. This creates something like example config. Current
         onfiguration doesn't have any effect on format of settings."""
         c = configparser.ConfigParser()
         temp_modules = [klass("fake name") for klass in self.module_classes]
@@ -381,7 +383,7 @@ class Module(abc.ABC):
     overriding them, do neither or both"""
     # TODO: Explain settings
 
-    SETTINGS = {
+    SETTINGS: Dict[str, Any] = {
         'verbose': [True, False]
     }
 
@@ -418,7 +420,7 @@ class Module(abc.ABC):
         if self.owner:
             self.owner.add_event(event)
 
-    def log(self, event):
+    def notify(self, event):
         """Send event to owner. Event shall be Notifiaction or derived"""
         assert isinstance(event, Notification)
         if self.owner:

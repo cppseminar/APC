@@ -12,7 +12,6 @@ param (
     [string] $python_path = ""
 )
 
-$python_path = "C:\Users\lukas.manduch\source\virtualenvs\testscripts\Scripts\python.exe"
 
 if (!$python_path) {
     if (!$env:VIRTUAL_ENV -and !$force) {
@@ -35,6 +34,10 @@ if ($update) {
 
 if ($test) {
     & $python_path "-m" "pytest" "-s" "-vv" "--color=yes"
+    if ($LASTEXITCODE -ne 0) {
+        exit 1
+    }
+    
 }
 
 Function LintFile
@@ -44,10 +47,10 @@ Function LintFile
         [string]$file
         )
 
-    Write-Output "Linting file " + $file
+    Write-Output "Linting file  $file"
     # mypy
     Write-Output "Running mypy"
-    & $python_path "-m" "mypy" $file
+    & $python_path "-m" "mypy" "--ignore-missing-imports" $file
 
     if ($LASTEXITCODE -ne 0) {
         exit 1
@@ -58,22 +61,49 @@ Function LintFile
     if ($LASTEXITCODE -ne 0) {
         exit 1
     }
+
+    Write-Output "No errors found in file   $file"
+
+
     # pylint
     Write-Output "Running pylint"
     & $python_path "-m" "pylint" "--output-format=colorized" $file
 
-    if ($LASTEXITCODE -ne 0) {
-        exit 1
-    }
+    # pydocstyle
+    Write-Output "Running pycodestyle"
+    & $python_path "-m" "pycodestyle" $file
 
-    Write-Output "No errors found in file   $file"
+    # pycodestyle
+    Write-Output "Running pydocstyle"
+    & $python_path "-m" "pydocstyle"  $file
+
+    Write-Output "please fix your pylint, code&doc style  $file"
+
+
+
+	
 }
 
+$lint_files = New-Object System.Collections.ArrayList
+$lint_files.Add(".\src\infrastructure.py")
+$lint_files.Add(".\src\infrastructure_test.py")
+$lint_files.Add(".\src\library.py")
+$lint_files.Add(".\src\library_test.py")
+
+
 if ($lint) {
-    LintFile(".\src\infrastructure.py")
+    foreach($file in $lint_files) {
+        LintFile($file)
+    }
+    
 }
 
 if ($?) {
+    Write-Host ""
+    Write-Host ""
+    Write-Host "SUCCESS" -ForegroundColor 'Green'
+    Write-Host ""
+    Write-Host ""
     Exit 0
 }
 Exit 1

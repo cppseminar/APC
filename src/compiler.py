@@ -13,8 +13,9 @@ from typing import Iterable, List
 from enum import IntEnum, unique, auto
 from difflib import Differ
 
-import settings
 import infrastructure
+import library
+import settings
 
 
 
@@ -81,22 +82,32 @@ class CppFinder(infrastructure.Module):
         "file_path": FilePathParser(),
     }
 
+    @staticmethod
+    def _filter_cpp_files(files: Iterable):
+        return library.filter_files(files, wildcard='*.c*')
+
     def __init__(self, name):
         super().__init__(name)
         self.register_event('start')
-        self.files = []
+        self.files = None
 
-    def _check_settings(self):
+    def _process_settings(self):
         """Check whether user config is ok"""
         if self.settings['folder_path'] != 'None':
-            raise NotImplementedError()
+            all_files = library.iterate_files(self.settings['folder_path'],
+                                              include_dirs=False)
+            self.files = list(self._filter_cpp_files(all_files))
         if self.settings['file_path'] != 'None':
-            notif = infrastructure.Notification()
-            notif.MESSAGE = f"Processing file/s {self.settings['file_path']}"
-            self.log(notif)
+            if self.files != None:
+                raise infrastructure.ConfigError(f"In {self.__class__.__name__} specify only one path")
+            self.files = [self.settings['file_path']]
+
+        notif = infrastructure.Notification()
+        notif.MESSAGE = f"Processing file/s {self.settings['file_path']}"
+        self.notify(notif)
 
     def handle_internal(self, event):
-        self._check_settings()
+        self._process_settings()
         event = SourceFileEvent()
         event.FILE_NAMES = ['.\\test.cpp']
         self.send(event)
