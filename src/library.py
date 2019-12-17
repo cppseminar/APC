@@ -1,6 +1,4 @@
-"""Module containing useful functions used across testscripts
-
-   All functions here are all asumed to be well tested!!!!!"""
+"""Module containing useful functions used across testscripts."""
 import re
 import itertools
 import pathlib
@@ -20,11 +18,17 @@ def build_file_regex(pattern: str):
     return re.compile(''.join(parts))
 
 
-def iterate_files(directory, depth=20, include_dirs=True):
-    """Get all files
+def iterate_files(directory, depth=0, include_dirs=True):
+    """Iterator returning all files in directory as pathlib.Path. Traverses
+    also subdirectories up to depth=DEPTH.
 
-    DEPTH set to 0 means get all files"""
-    dept = int(depth)
+    If DEPTH is 0, then goes as far as possible.
+
+    INCLUDE DIRS specifies if directories should also be returned.  Even if
+    INCLUDE_DIRS is false, directories and their files are iterated - but
+    directory names are not returned (yielded)
+    """
+    depth = int(depth)
     directory = pathlib.Path(directory)
     assert depth >= 0
     assert directory.exists() and directory.is_dir()
@@ -32,7 +36,6 @@ def iterate_files(directory, depth=20, include_dirs=True):
     directories = collections.deque()
     directories.append(directory)
     seen_directories = collections.deque()  # Next level of directories
-
     current_level = 0
 
     while depth == 0 or current_level < depth:
@@ -51,6 +54,5 @@ def iterate_files(directory, depth=20, include_dirs=True):
 
         # If there are no more directories
         if not seen_directories:
+            del directory
             return
-
-
