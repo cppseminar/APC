@@ -10,4 +10,4 @@ install:
         - powershell /C ".\make.ps1 -python_path '%PYTHON%\\python.exe' -install"
 
 test_script:
-        - powershell /C ".\make.ps1 -python_path '%PYTHON%\\python.exe' -test"
+        - powershell /C ".\make.ps1 -python_path '%PYTHON%\\python.exe' -test -lint"
