@@ -103,6 +103,7 @@ if __name__ == "__main__":
     script.add_class(MyModule)
     script.add_class(WeirdLogger)
     script.add_class(compiler.CppFinder)
+    script.add_class(compiler.Compiler)
     script.add_class(infrastructure.ConsoleWriter)
 
     with open("./config.ini", "r") as f:

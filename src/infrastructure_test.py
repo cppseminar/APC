@@ -120,7 +120,7 @@ class TestModule:
 
     def test_add_event_from_module(self):
         main = infrastructure.TestScript()
-        event1 = MyTestEvent1('compiler')
+        event1 = infrastructure._NamedEvent('compiler')
         module1 = MyTestModule()
         mock = unittest.mock.Mock()
         module1.register_event('MyTestEvent*', callback=mock)
@@ -132,7 +132,7 @@ class TestModule:
 
     def test_event_call_custom_name(self):
         main = infrastructure.TestScript()
-        event1 = MyTestEvent1('compiler')
+        event1 = infrastructure._NamedEvent('compiler')
         event2 = MyTestEvent1()
         event3 = MyTestEvent2()
         module1 = MyTestModule()

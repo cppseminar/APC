@@ -62,10 +62,11 @@ def get_valid_event(event: Any):
         return _NamedEvent(str(event))
 
 
-def set_loggger(name, console=True, filename=None):
+def set_logger(name, console=True, filename=None):
     """Retrieves from logging NAME logger and sets formats depending on
     CONSOLE and FILENAME"""
     logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
     if filename:
         raise NotImplementedError("C'mon")
     if console:
@@ -76,8 +77,7 @@ def set_loggger(name, console=True, filename=None):
     return logger
 
 
-_logger = set_loggger(__name__, console=True)
-_logger.setLevel(logging.INFO)
+_logger = set_logger(__name__, console=True)
 
 
 ######################################################
@@ -85,7 +85,7 @@ _logger.setLevel(logging.INFO)
 ######################################################
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass()
 class Event:
     """Abstract class for representing an event."""
     # Handled true/false # TestScript must know
@@ -95,25 +95,24 @@ class Event:
     # Private data
     # Response
 
-    def __init__(self, name=None):
-        self.name = name
-        self.names = []
-
-        if not self.name:  # Name will be name of class
-            self.names = list(map(lambda x: x.__name__, self.__class__.__mro__))
-            self.name = self.names[0]
+    def __post_init__(self):
+        self.names = list(map(lambda x: x.__name__, self.__class__.__mro__))
+        self.name = self.names[0]
 
 
 class _NamedEvent(Event):
     """This class really shouldn't be used, it's here just in case someone
     enters string instead of evnet"""
     def __init__(self, name):
-        super().__init__(name=name)
+        super().__init__()
+        self.name = name
 
 
+@dataclasses.dataclass
 class Notification(Event):
-    MESSAGE: str
-    SEVERITY: int
+    message: str = ''
+    severity: int = logging.INFO
+    payload: str = ''
 
 ############################################
 #              # END EVENTS #              #
@@ -426,12 +425,13 @@ class Module(abc.ABC):
         if self.owner:
             self.owner.add_notification(event)
 
-
     def handle_event(self, event):
         """Given event, decides whether to process it or not. If event was
         registered via self.register_event, callback is called."""
+        _logger.debug(f"{self.__class__.__name__} - event {event.name}")
         for regex, callback in self.events:
             if regex.fullmatch(event.name):
+                _logger.debug(f"Event accepted")
                 ret = callback(event)
                 if ret is not None:
                     return ret
@@ -475,9 +475,11 @@ class Module(abc.ABC):
 
 
 class MessageSeverity(enum.IntEnum):
-    CRITICAL = 1
-    INFO = 3
-    DEBUG = 4
+    CRITICAL = logging.CRITICAL
+    ERROR = logging.ERROR
+    WARNING = logging.WARNING
+    INFO = logging.INFO
+    DEBUG = logging.DEBUG
 
 
 class ConsoleWriter(Module):
@@ -490,5 +492,8 @@ class ConsoleWriter(Module):
         self.register_event(Notification)
 
     def handle_internal(self, event):
-        print(event.MESSAGE)
+        if event.severity == MessageSeverity.INFO:
+            print(constants.KEYWORDS.OK + " " + event.message)
+        else:
+            print(event.message)
         return True

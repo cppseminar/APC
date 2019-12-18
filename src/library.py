@@ -7,9 +7,12 @@ from typing import List, Iterable
 
 
 def build_file_regex(pattern: str):
-    """We want to support only asterix as wildcard, so this function builds
+    """Create regex from unix like pattern.
+
+    We want to support only asterix as wildcard, so this function builds
     regex, from asterix only notation.  Will match only file names (no / in
-    names...)"""
+    names...)
+    """
     regex_parts: List[Iterable[str]] = [(re.escape(part), r'[^<>:"/\\|?*]*')
                                         for part in pattern.split('*')]
     parts: List[str] = list(itertools.chain.from_iterable(regex_parts))
@@ -19,8 +22,9 @@ def build_file_regex(pattern: str):
 
 
 def iterate_files(directory, depth=0, include_dirs=True):
-    """Iterator returning all files in directory as pathlib.Path. Traverses
-    also subdirectories up to depth=DEPTH.
+    """Iterate files in DIRECTORY and return as pathlib.Path.
+
+    Traverses also subdirectories up to depth=DEPTH.
 
     If DEPTH is 0, then goes as far as possible.
 
@@ -58,11 +62,12 @@ def iterate_files(directory, depth=0, include_dirs=True):
 
 
 def filter_files(iterable: Iterable, wildcard: str = "*"):
-    """Given ITERABLE with file names, filter those that do not match
-    wildcard.
+    """Filter ITERABLE with file names, return those matching wildcard.
 
     Wildcard is approximately something like unix shell expansion - asterix
-    means anything, rest are normal chars """
+    means anything, rest are normal chars. For more info check function
+    build_file_regex.
+    """
     regex = build_file_regex(wildcard)
 
     def _filter(filename):

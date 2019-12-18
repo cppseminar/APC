@@ -1,22 +1,25 @@
 import contextlib
-import itertools
+import dataclasses
 import os
-import re
 import shlex
 import shutil
 import subprocess
 import tempfile
 import time
 import xml.etree.ElementTree as ET
+import weakref
 
 from typing import Iterable, List
 from enum import IntEnum, unique, auto
 from difflib import Differ
 
+import constants
 import infrastructure
 import library
 import settings
 
+
+_logger = infrastructure.set_logger(__name__)
 
 
 @unique
@@ -72,8 +75,9 @@ class FilePathParser(infrastructure.SettingsParser):
         return infrastructure.MISSING
 
 
+@dataclasses.dataclass
 class SourceFileEvent(infrastructure.Event):
-    FILE_NAMES = []
+    file_names: List[str]
 
 
 class CppFinder(infrastructure.Module):
@@ -98,22 +102,35 @@ class CppFinder(infrastructure.Module):
                                               include_dirs=False)
             self.files = list(self._filter_cpp_files(all_files))
         if self.settings['file_path'] != 'None':
-            if self.files != None:
-                raise infrastructure.ConfigError(f"In {self.__class__.__name__} specify only one path")
+            if self.files is not None:
+                raise infrastructure.ConfigError(
+                    f"In {self.__class__.__name__} specify only one path")
             self.files = [self.settings['file_path']]
 
-        notif = infrastructure.Notification()
-        notif.MESSAGE = f"Processing file/s {self.settings['file_path']}"
-        self.notify(notif)
 
     def handle_internal(self, event):
         self._process_settings()
-        event = SourceFileEvent()
-        event.FILE_NAMES = ['.\\test.cpp']
-        self.send(event)
+        self.files = list(map(lambda x: x.resolve(), self.files))
+        for file_name in self.files:
+            notif = infrastructure.Notification(f"Found file/s {file_name}")
+            self.notify(notif)
+            event = SourceFileEvent([file_name])
+            self.send(event)
+
+@dataclasses.dataclass
+class CompilerEvent(infrastructure.Event):
+    exe_path: str
+    platform: Platform
+    warnings: List[str]
+    errors: List[str]
 
 
-class Compiler:
+
+class Compiler(infrastructure.Module):
+    SETTINGS = {
+        'folder_path': FilePathParser(),
+        # cleanup - in init
+    }
     BAT_PATH = r'..\msbuild\run.bat'
     EXE_NAME = 'main.exe'
     WARNINGS = 'warnings.xml'
@@ -125,55 +142,105 @@ class Compiler:
         Platform.x32_Release.value: "Release_Win32",
     }
 
-    def __init__(self, file_names, folder=None, identificator=""):
-        if not file_names:
-            raise ValueError("At least one file for compilation is necessary")
-        self.file_names = file_names
-        if isinstance(file_names, str):
-            self.file_names = [file_names]
-        self.file_names = [os.path.abspath(name) for name in self.file_names]
-
-        self.directory = tempfile.mkdtemp(prefix="compiler_" + identificator + "_",
-                                          dir=folder)
+    def __init__(self, name):
+        super().__init__(name)
+        self.register_event(SourceFileEvent)
+        self.register_setting('cleanup', values=[True, False], default='True')
+        self.file_names = []
         self.compiled = False
-        self._clean = True
+
+    def handle_internal(self, event: SourceFileEvent):
+        self.directory = tempfile.mkdtemp(prefix="compiler_",
+                                          dir=self.settings['folder_path'])
+        if self.settings['cleanup']:
+            weakref.finalize(self, shutil.rmtree, self.directory)
+
+        self.file_names = list(map(str, event.file_names))
+        self.handle_new_event(self.compile(Platform.x64_Debug))
+        self.handle_new_event(self.compile(Platform.x64_Release))
+        self.handle_new_event(self.compile(Platform.x32_Debug))
+        self.handle_new_event(self.compile(Platform.x32_Release))
+        self.compiled = False
 
     def _srsly_compile(self):
         args = [self.directory] + self.file_names
-        compiler = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.BAT_PATH)
-        if settings.SETTINGS.verbose:
-            print(f"Starting compilation, args {compiler} {args}")
+        compiler = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                self.BAT_PATH)
         completed_process = subprocess.run([compiler] + args,
-            capture_output=True,
-            cwd=self.directory)
+                                           capture_output=True,
+                                           cwd=str(self.directory))
         if completed_process.returncode != 0:
             self._clean = False
-            raise RuntimeError("Compiler failed!! :(")
+            _logger.info(f'Compilation failed - {self.file_names}')
+            n = infrastructure.Notification()
+            n.MESSAGE(f'Failed compilation {self.file_names}')
+            self.notify(n)
+            return False
+        return True
 
     def compile(self, platform):
         if not self.compiled:
-            self._srsly_compile()
+            if not self._srsly_compile():
+                return Executable('', ['fail'], [])
             self.compiled = True
         # Let's find and parse files for this build
         folder_path = os.path.join(self.directory, self.BUILD_MAP[platform])
         if not os.path.exists(folder_path):
             self._clean = False
-            raise FileNotFoundError(f"Compiler fail {self.directory} {platform}")
+            _logger.warning(f"Compiler fail {self.directory} {platform}")
+            return infrastructure.Notification(
+                f'Compiler fail {self.files}',
+                infrastructure.MessageSeverity.ERROR)
         exe_path = os.path.join(folder_path, self.EXE_NAME)
         warnings_path = os.path.join(folder_path, self.WARNINGS)
         errors_path = os.path.join(folder_path, self.ERRORS)
         warnings = self.get_xml_entries(warnings_path)
         errors = self.get_xml_entries(errors_path)
         exe_exists = os.path.exists(exe_path)
+
         assert bool(exe_exists) != bool(errors)
-        return Executable(exe_path, warnings, errors)
+        if exe_exists:
+            return CompilerEvent(exe_path,
+                                 warnings=warnings,
+                                 errors=errors,
+                                 platform=platform)
+        return CompilerEvent(None,
+                             warnings=warnings,
+                             errors=errors,
+                             platform=platform)
 
     def get_xml_entries(self, xml_path):
-        root = [{}] # Fix for FileNotFound
+        root = [{}]  # Fix for FileNotFound
         with contextlib.suppress(FileNotFoundError):
             tree = ET.parse(xml_path)
             root = tree.getroot()
         return [i.items() for i in root]
+
+    def handle_new_event(self, event: CompilerEvent):
+        if not event.exe_path:
+            self.notify(
+                infrastructure.Notification(
+                    f"Compilation failed for {self.file_names}, "
+                    f"platform {event.platform.name}",
+                    infrastructure.MessageSeverity.ERROR,
+                    payload=event.errors))
+            return  # Don't send event furhter
+
+        if event.warnings:
+            self.notify(
+                infrastructure.Notification(
+                    f"Compilation with warnings for {self.file_names} "
+                    f"{event.platform.name}",
+                    infrastructure.MessageSeverity.WARNING,
+                    payload=event.warnings))
+        else:
+            self.notify(
+                infrastructure.Notification(
+                    f"Compilation success for {self.file_names} "
+                    f"{event.platform.name}",
+                    infrastructure.MessageSeverity.INFO))
+
+        self.send(event)
 
 
 def compare_strings(input_string, output_string):

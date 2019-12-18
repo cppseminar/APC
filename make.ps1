@@ -47,7 +47,8 @@ Function LintFile
         [string]$file
         )
 
-    Write-Output "Linting file  $file"
+    Write-Host  "-----------------------------------------------" -ForegroundColor white -BackgroundColor black
+    Write-Host "Linting file  $file" -BackgroundColor Blue -ForegroundColor Yellow
     # mypy
     Write-Output "Running mypy"
     & $python_path "-m" "mypy" "--ignore-missing-imports" $file
@@ -79,6 +80,7 @@ Function LintFile
 
     Write-Output "please fix your pylint, code&doc style  $file"
 
+    Write-Host  "===============================================" -ForegroundColor white -BackgroundColor black
 
 
 	
@@ -101,7 +103,7 @@ if ($lint) {
 if ($?) {
     Write-Host ""
     Write-Host ""
-    Write-Host "SUCCESS" -ForegroundColor 'Green'
+    Write-Host "SUCCESS Congratulations you da best ;)" -ForegroundColor 'Green'
     Write-Host ""
     Write-Host ""
     Exit 0
