@@ -10,9 +10,9 @@ import configparser
 from typing import Iterable, Dict
 from itertools import chain
 
-import yaml
 
 import compiler
+import runner
 import settings
 import infrastructure
 
@@ -80,7 +80,7 @@ class MyModule(infrastructure.Module):
         super().__init__(name)
         self.register_setting('comment', values=['ka', 'ra', 'mba'])
         self.register_setting('comment2', values=['ka', 'ra', 'mba'], default='ka')
-        self.register_setting('comment3', values=[True, False], default='True')
+        self.register_setting('comment3', values=[True, False], default=True)
 
     def handle_internal(self):
         return False
@@ -105,6 +105,7 @@ if __name__ == "__main__":
     script.add_class(compiler.CppFinder)
     script.add_class(compiler.Compiler)
     script.add_class(infrastructure.ConsoleWriter)
+    script.add_class(runner.CompilerFilter)
 
     with open("./config.ini", "r") as f:
         script.load_ini_settings(f)

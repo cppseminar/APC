@@ -66,7 +66,7 @@ def set_logger(name, console=True, filename=None):
     """Retrieves from logging NAME logger and sets formats depending on
     CONSOLE and FILENAME"""
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     if filename:
         raise NotImplementedError("C'mon")
     if console:
@@ -124,6 +124,11 @@ class ConfigError(ValueError):
         super().__init__(f"\nCONFIG ERROR:"
                          f"\n============\n\t\t{message}")
 
+############################################
+#               # PARSERS #                #
+############################################
+
+
 class SettingsParser:
     """Abstract class for parsing setting values.  If you don't know possible
     values in advance (like file name), you must use parser"""
@@ -163,6 +168,23 @@ class FileNameParser(SettingsParser):
 
     def get_options(self):
         return ["<file name>"]
+
+
+class AnyStringParser(SettingsParser):
+    """Accept any one word string as valid"""
+
+    def is_valid(self, value:str) -> bool:
+        """Return true if value is only one word"""
+        if value and value.split()[0] == value:
+            return True
+        return False
+
+    def get_options(self):
+        return ["<any one word answer>"]
+
+############################################
+#             # END PARSERS #              #
+############################################
 
 
 class ModuleSettings(collections.UserDict):
@@ -291,7 +313,7 @@ class TestScript:
         """Notifications are events, which are not meant to trigger any other
         events.  In other words, logging info.  They take precedence over
         any other events that are in stack"""
-        _logger.debug(f"{event.name}")
+        _logger.debug(f"{event.__repr__()}")
         self.notifications.append(event)
 
     def run(self):
@@ -416,6 +438,7 @@ class Module(abc.ABC):
 
     def send(self, event):
         """Send event to owner (testscripts), if any."""
+        _logger.debug(f"Sending event {self.__class__} - {event.__repr__()}")
         if self.owner:
             self.owner.add_event(event)
 
@@ -431,7 +454,7 @@ class Module(abc.ABC):
         _logger.debug(f"{self.__class__.__name__} - event {event.name}")
         for regex, callback in self.events:
             if regex.fullmatch(event.name):
-                _logger.debug(f"Event accepted")
+                _logger.debug(f"Event accepted {event.__repr__()}")
                 ret = callback(event)
                 if ret is not None:
                     return ret
@@ -448,7 +471,7 @@ class Module(abc.ABC):
         assert (values and not parser) or (not values and parser)
         if values:
             self.settings.add_options(key,
-                                      list(_map_to_strings(values)),
+                                      list((values)),
                                       default=default)
         else:
             self.settings.add_parser(key, parser=parser)
@@ -474,6 +497,7 @@ class Module(abc.ABC):
         return False
 
 
+@enum.unique
 class MessageSeverity(enum.IntEnum):
     CRITICAL = logging.CRITICAL
     ERROR = logging.ERROR
@@ -483,9 +507,7 @@ class MessageSeverity(enum.IntEnum):
 
 
 class ConsoleWriter(Module):
-    SETTINGS = {
-        'severity': [MessageSeverity.CRITICAL, MessageSeverity.INFO]
-    }
+    SETTINGS = {'severity': [MessageSeverity.CRITICAL, MessageSeverity.INFO]}
 
     def __init__(self, name):
         super().__init__(name)
@@ -494,6 +516,12 @@ class ConsoleWriter(Module):
     def handle_internal(self, event):
         if event.severity == MessageSeverity.INFO:
             print(constants.KEYWORDS.OK + " " + event.message)
+        elif event.severity == MessageSeverity.WARNING:
+            print(constants.KEYWORDS.WARNING + " " + event.message)
+        elif event.severity in [
+                MessageSeverity.ERROR, MessageSeverity.CRITICAL
+        ]:
+            print(constants.KEYWORDS.ERROR + " " + event.message)
         else:
             print(event.message)
         return True

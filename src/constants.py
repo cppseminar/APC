@@ -19,7 +19,7 @@ CONFIG = types.SimpleNamespace(
     MODULE='module',
     PROLOG=_CONFIG_TEXT,
     CONSOLE_LOG_FORMAT=
-    '%(levelname)19s | %(name)10s | %(funcName)15s | %(message)s',
+    '%(levelname)12s | %(name)18s | %(funcName)15s | %(message)s',
 )
 
 KEYWORDS = types.SimpleNamespace(

@@ -11,17 +11,22 @@ import infrastructure
 # pylint: disable=no-self-use
 # pylint: disable=too-few-public-methods
 
+
 class MyTestEvent1(infrastructure.Event):
     pass
+
 
 class MyTestEvent2(infrastructure.Event):
     pass
 
+
 class MySubEvent(MyTestEvent1):
     pass
 
+
 class MySubSubEvent(MySubEvent):
     pass
+
 
 class MyTestModule(infrastructure.Module):
     def __init__(self, name=None):
@@ -37,9 +42,11 @@ class MyTestModule(infrastructure.Module):
         self.send(MyTestEvent2())
         return True
 
+
 @pytest.fixture
 def settings():
     return infrastructure.ModuleSettings()
+
 
 class MyParser1(infrastructure.SettingsParser):
     def is_valid(self, value):
@@ -50,14 +57,16 @@ class MyParser1(infrastructure.SettingsParser):
     def get_options(self):
         return ['aa', 'bb', True]
 
+
 class MyDefaultParser(MyParser1):
     @property
     def default(self):
         return 'abc'
 
 ######################################
-############## TESTS #################
+#            # TESTS #               #
 ######################################
+
 
 class TestTestScripts():
     INI1 = (
@@ -243,9 +252,11 @@ class TestSettings:
         settings['key2'] = 'f'
         assert settings['key2'] == 'f'
 
+
 class TestConsoleWriter:
     def test_notification(self):
         pass
+
 
 def test_file_name_parser():
     fp1 = infrastructure.FileNameParser()
@@ -256,6 +267,14 @@ def test_file_name_parser():
         assert fp2.is_valid(f.name + "a")
         assert fp1.is_valid(f.name)
     assert list(fp1.get_options())
+
+
+def test_any_string_parser():
+    parser = infrastructure.AnyStringParser()
+    assert parser.is_valid("abc")
+    assert not parser.is_valid("abc def")
+    assert not parser.is_valid("")
+
 
 def test_event_regex():
     regex = infrastructure.build_wildcard_regex("aa*bb")
@@ -275,15 +294,18 @@ def test_event_regex():
     regex = infrastructure.build_wildcard_regex("")
     assert not regex.match('a')
 
+
 def test_get_event_name():
     name1 = infrastructure._get_event_name(MyTestEvent1)
     assert name1 == 'MyTestEvent1'
     name2 = infrastructure._get_event_name('aa')
     assert name2 == 'aa'
 
+
 @pytest.mark.skip
 def test_get_valid_event(self):
     pass
+
 
 @pytest.mark.skip
 def test_set_formatter(self):

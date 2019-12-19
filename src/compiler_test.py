@@ -1,32 +1,23 @@
 import compiler
 import infrastructure
 import pytest
-import pathlib
 import tempfile
 
 
-class TestCompareStrings:
-    def test_diff1(self):
-        line1 = "aaa"
-        line2 = "aab"
-        assert compiler.compare_strings(line1, line2)
 
-    def test_diff2(self):
-        line1 = "aaa"
-        line2 = "aaa"
-        assert len(compiler.compare_strings(line1, line2)) == 0
-
-    def test_diff3(self):
-        line1 = "\n".join(("aaa", "b bc"))
-        line2 = "\n".join(("aaa", "b bc\n"))
-        assert len(compiler.compare_strings(line1, line2)) == 0
-
-    def test_diff4(self):
-        line1 = "\n".join(("aaa", "b bc"))
-        line2 = "\n".join(("aaa", "b b c\n"))
-        assert len(compiler.compare_strings(line1, line2)) != 0
-
-
+def test_compare_strings():
+    line1 = "aaa"
+    line2 = "aab"
+    assert compiler.compare_strings(line1, line2)
+    line1 = "aaa"
+    line2 = "aaa"
+    assert len(compiler.compare_strings(line1, line2)) == 0
+    line1 = "\n".join(("aaa", "b bc"))
+    line2 = "\n".join(("aaa", "b bc\n"))
+    assert len(compiler.compare_strings(line1, line2)) == 0
+    line1 = "\n".join(("aaa", "b bc"))
+    line2 = "\n".join(("aaa", "b b c\n"))
+    assert len(compiler.compare_strings(line1, line2)) != 0
 
 
 @pytest.fixture
@@ -52,5 +43,3 @@ class TestCppFinder:
         with pytest.raises(infrastructure.ConfigError):
             finder.handle_event(infrastructure.get_valid_event('start'))
 
-    def test_none_settings(self):
-        pass
