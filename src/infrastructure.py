@@ -7,6 +7,7 @@ import contextlib
 import dataclasses
 import enum
 import itertools
+import json
 import os
 import re
 import logging
@@ -173,7 +174,7 @@ class FileNameParser(SettingsParser):
 class AnyStringParser(SettingsParser):
     """Accept any one word string as valid"""
 
-    def is_valid(self, value:str) -> bool:
+    def is_valid(self, value: str) -> bool:
         """Return true if value is only one word"""
         if value and value.split()[0] == value:
             return True
@@ -182,6 +183,41 @@ class AnyStringParser(SettingsParser):
     def get_options(self):
         return ["<any one word answer>"]
 
+
+class JsonParser(SettingsParser):
+    """Accept string that contains json."""
+
+    def is_valid(self, value: str) -> bool:
+        """Check if value is convertible to json"""
+        return bool(self._json_to_dict(value))
+
+    def get_options(self):
+        """Any json really"""
+        return ["<any json string>"]
+
+    def _json_to_dict(self, value: str) -> dict:
+        """Convert json str to dict. Raises ConfigError"""
+        try:
+            return dict(json.loads(value))
+        except json.decoder.JSONDecodeError as e:
+            raise ConfigError(f'{self.__class__} - {str(e)}')
+
+
+class SpecificJsonParser(JsonParser):
+    """Check if required fields are present in json"""
+
+    def __init__(self, required: Iterable[str]):
+        self.required = set(map(str, required))
+        if not self.required:
+            raise ConfigError('{self.__class__} - required is empty')
+
+    def is_valid(self, value: str) -> bool:
+        content = self._json_to_dict(value)
+        return set(self.required).issubset(set(content.keys()))
+
+    def get_options(self):
+        """Return all keys from required"""
+        return ['<Json with keys: ' + ', '.join(self.required) + '>']
 ############################################
 #             # END PARSERS #              #
 ############################################

@@ -310,3 +310,18 @@ def test_get_valid_event(self):
 @pytest.mark.skip
 def test_set_formatter(self):
     pass
+
+
+def test_json_parser():
+    parser = infrastructure.JsonParser()
+    with pytest.raises(ValueError):
+        parser.is_valid("{'aa': 1, 'bb': 'asd ff '}")
+    assert parser.is_valid('{"aa": 1, "bb": "asd ff "}')
+
+def test_specific_json_parser():
+    with pytest.raises(infrastructure.ConfigError):
+        parser = infrastructure.SpecificJsonParser([])
+    parser = infrastructure.SpecificJsonParser(['aaa', 'bb'])
+    assert parser.is_valid('{"aaa": 1, "bb": 2, "c" : "d"}')
+    assert not parser.is_valid('{"aa": 1, "bb": 2, "c" : "d"}')
+
