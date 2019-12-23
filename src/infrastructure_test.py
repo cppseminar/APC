@@ -302,9 +302,11 @@ def test_get_event_name():
     assert name2 == 'aa'
 
 
-@pytest.mark.skip
-def test_get_valid_event(self):
-    pass
+def test_get_valid_event():
+    event = infrastructure.Notification(message='Hello')
+    assert event is infrastructure.get_valid_event(event)
+    event2 = infrastructure.get_valid_event("Abc")
+    assert event2.name == "Abc"
 
 
 @pytest.mark.skip
@@ -318,10 +320,10 @@ def test_json_parser():
         parser.is_valid("{'aa': 1, 'bb': 'asd ff '}")
     assert parser.is_valid('{"aa": 1, "bb": "asd ff "}')
 
+
 def test_specific_json_parser():
     with pytest.raises(infrastructure.ConfigError):
         parser = infrastructure.SpecificJsonParser([])
     parser = infrastructure.SpecificJsonParser(['aaa', 'bb'])
     assert parser.is_valid('{"aaa": 1, "bb": 2, "c" : "d"}')
     assert not parser.is_valid('{"aa": 1, "bb": 2, "c" : "d"}')
-

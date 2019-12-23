@@ -1,8 +1,8 @@
 """Module containing useful functions used across testscripts."""
-import re
+import collections
 import itertools
 import pathlib
-import collections
+import re
 from typing import List, Iterable
 
 

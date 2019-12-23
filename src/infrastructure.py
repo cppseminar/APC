@@ -22,8 +22,11 @@ import constants
 
 
 def build_wildcard_regex(pattern: str):
-    """We want to support only asterix as wildcard, so this function builds
-    regex, from asterix only notation"""
+    """Create regex representing old unix shell wildcard.
+
+    We want to support only asterix as wildcard, so this function builds
+    regex, from asterix only notation. Names may not have spaces.
+    """
     regex_parts: Iterable[Tuple[str, str]] = [(re.escape(part), r'\S*')
                                               for part in pattern.split('*')]
     parts: List[str] = list(itertools.chain.from_iterable(regex_parts))
@@ -33,13 +36,13 @@ def build_wildcard_regex(pattern: str):
 
 
 def _map_to_strings(iterable: Iterable):
-    """Transform values in ITER to strings"""
-    return map(lambda x: str(x), iterable)
+    """Transform values in ITER to strings."""
+    return map(str, iterable)
 
 
 def config_section_to_dict(parser: configparser.ConfigParser,
                            section_name: str):
-    """Simply extracts section from ConfigParser (PARSER) as dictionary"""
+    """Simply extracts section from ConfigParser (PARSER) as dictionary."""
     values = dict()
     for option in parser.options(section_name):
         values[option] = parser.get(section_name, option)
@@ -53,19 +56,16 @@ def _get_event_name(event):
 
 
 def get_valid_event(event: Any):
-    """There might be a scenario, with event only as str having just a name"""
-    try:
-        event.name
+    """There might be a scenario, with event only as str having just a name."""
+    if hasattr(event, 'name'):
         return event
-    except AttributeError:
-        # We could instead set name attribute for event, but I think it's not
-        # wise to modify it here
-        return _NamedEvent(str(event))
+    # We could instead set name attribute for event, but I think it's not
+    # wise to modify it here
+    return _NamedEvent(str(event))
 
 
 def set_logger(name, console=True, filename=None):
-    """Retrieves from logging NAME logger and sets formats depending on
-    CONSOLE and FILENAME"""
+    """Retrieve from logging NAME logger and set it appropriately."""
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     if filename:
@@ -78,7 +78,7 @@ def set_logger(name, console=True, filename=None):
     return logger
 
 
-_logger = set_logger(__name__, console=True)
+_LOGGER = set_logger(__name__, console=True)
 
 
 ######################################################
@@ -88,7 +88,12 @@ _logger = set_logger(__name__, console=True)
 
 @dataclasses.dataclass()
 class Event:
-    """Abstract class for representing an event."""
+    """Abstract class for representing an event.
+
+    Every event must have names and name set, so we can search if they match
+    prefernces specified by modules.
+    """
+
     # Handled true/false # TestScript must know
     # Return to ....
     # For whom
@@ -97,13 +102,17 @@ class Event:
     # Response
 
     def __post_init__(self):
+        """Set names and name members."""
         self.names = list(map(lambda x: x.__name__, self.__class__.__mro__))
         self.name = self.names[0]
 
 
 class _NamedEvent(Event):
-    """This class really shouldn't be used, it's here just in case someone
+    """Represent event with no data.
+
+    This class really shouldn't be used, it's here just in case someone
     enters string instead of evnet"""
+
     def __init__(self, name):
         super().__init__()
         self.name = name
@@ -111,6 +120,12 @@ class _NamedEvent(Event):
 
 @dataclasses.dataclass
 class Notification(Event):
+    """Basic event representing message for console (or file).
+
+    This event is usually caught by printers and loggers.
+    You really shouldn't react to this in any way (like creating new events)
+    """
+
     message: str = ''
     severity: int = logging.INFO
     payload: str = ''
@@ -121,6 +136,7 @@ class Notification(Event):
 
 
 class ConfigError(ValueError):
+    """Error raised by this module to represent configuration mistakes"""
     def __init__(self, message):
         super().__init__(f"\nCONFIG ERROR:"
                          f"\n============\n\t\t{message}")
@@ -132,16 +148,24 @@ class ConfigError(ValueError):
 
 class SettingsParser:
     """Abstract class for parsing setting values.  If you don't know possible
-    values in advance (like file name), you must use parser"""
+    values in advance (like file name), you must use parser.
+    """
 
     @property
     def default(self):
+        """If parser has default value, return it
+
+        MISSING value means, that parser has no default value
+        """
         return MISSING
 
     @abc.abstractmethod
     def is_valid(self, value: str) -> bool:
-        """Returns True if value is valid. False otherwise, or raise config
-        error"""
+        """ Check if value is valid for this parser.
+
+        Returns True if value is valid. False otherwise, or raise config
+        error.
+        """
         raise ConfigError(f"Default parser doesn't accept anything ({value})")
 
     @abc.abstractmethod
@@ -157,6 +181,8 @@ class SettingsParser:
 
 
 class FileNameParser(SettingsParser):
+    """Accept file or folder path.  If accept_ne is set, accepts anything"""
+
     def __init__(self, accept_ne=False):
         super().__init__()
         self.check_exist = not accept_ne
@@ -199,8 +225,8 @@ class JsonParser(SettingsParser):
         """Convert json str to dict. Raises ConfigError"""
         try:
             return dict(json.loads(value))
-        except json.decoder.JSONDecodeError as e:
-            raise ConfigError(f'{self.__class__} - {str(e)}')
+        except json.decoder.JSONDecodeError as error:
+            raise ConfigError(f'{self.__class__} - {str(error)}')
 
 
 class SpecificJsonParser(JsonParser):
@@ -218,12 +244,26 @@ class SpecificJsonParser(JsonParser):
     def get_options(self):
         """Return all keys from required"""
         return ['<Json with keys: ' + ', '.join(self.required) + '>']
+
+
 ############################################
 #             # END PARSERS #              #
 ############################################
 
 
+# What a bullshit
+# pylint: disable=too-many-ancestors
 class ModuleSettings(collections.UserDict):
+    """Clever dictionary, accepting only allowed values.
+
+    After creating ModuleSettings, you shall use add_options or add_parser, to
+    specify which keys may be set. Then set or access you value like classic
+    dictionary.
+
+    Settings __bool__ is true, if all keys added by add_options/parser are set.
+    If you provided default values or your parser has default value, settings
+    are already set.
+    """
     def __init__(self):
         super().__init__()
         self._settings = dict()
@@ -234,7 +274,7 @@ class ModuleSettings(collections.UserDict):
         """Set possible options for KEY. VALUES must be iterable, with every
         member having __str__ implemented"""
         assert key not in self.data, "Key already registered"
-        assert len(values)
+        assert len(values) > 0
         key = str(key)
         self.data[key] = list(values)
         if default != dataclasses.MISSING:
@@ -254,9 +294,9 @@ class ModuleSettings(collections.UserDict):
             try:  # This seems like common error to me
                 assert parser.is_valid(parser.default), \
                        f"Parser default invalid {parser.default}"
-            except TypeError as e:
+            except TypeError as error:
                 txt = f"Don't forget to instantiate parser {parser}!"
-                raise ConfigError(txt) from e
+                raise ConfigError(txt) from error
             self[key] = parser.default
 
     def __setitem__(self, key: str, value: str):
@@ -316,6 +356,7 @@ class ModuleSettings(collections.UserDict):
 class TestScript:
     """Class representing current run of testscript"""
     class EventPriority(enum.IntEnum):
+        """Priority of event - unused for now"""
         LOW = 0
         HIGH = 10
 
@@ -329,17 +370,17 @@ class TestScript:
         """Call to register module to this object. All events will be sent to
         the module.handle_event function."""
         assert module not in self.modules, f"Module already registered"
-        _logger.debug(f"Registering module {module.name} - "
-                      f"{module.__class__.__name__}")
+        _LOGGER.debug("Registering module %s - %s", module.name,
+                      module.__class__.__name__)
         self.modules.append(module)
         module.register(self)
-        _logger.debug(f"Registered in {self.__class__}")
+        _LOGGER.debug("Registered in %s", self.__class__)
 
     def add_event(self, event, priority=EventPriority.LOW):
         """Adds event, wich will be processsed when run() function gets to
         it. Depending on priority, it might be last event in whole program"""
         event = get_valid_event(event)
-        _logger.debug(f"{event.name}")
+        _LOGGER.debug("%s", event.name)
         if priority > TestScript.EventPriority.LOW:
             self.event_stack.append(event)
         else:  # This is only temporary solution, but who cares for now
@@ -349,22 +390,22 @@ class TestScript:
         """Notifications are events, which are not meant to trigger any other
         events.  In other words, logging info.  They take precedence over
         any other events that are in stack"""
-        _logger.debug(f"{event.__repr__()}")
+        _LOGGER.debug("%s", event.__repr__())
         self.notifications.append(event)
 
     def run(self):
         """Cycle which runs while there are still some events. This should be
         called only once per session"""
-        _logger.debug(f"run called size {len(self.event_stack)}")
+        _LOGGER.debug("run called size {len(self.event_stack)}")
         while self.event_stack:
             event = self.event_stack.pop()
-            _logger.debug(f"Event {event.name}")
+            _LOGGER.debug("Event %s", event.name)
             for module in self.modules:
                 if module.handle_event(event):
-                    _logger.debug(f"{event.name} handled by {module.name}")
+                    _LOGGER.debug("%s handled by %s", event.name, module.name)
                 self._run_notifications()
         self._run_notifications()
-        _logger.debug(f"run stopping size {len(self.event_stack)}")
+        _LOGGER.debug("run stopping size %s", len(self.event_stack))
 
     def _run_notifications(self):
         while self.notifications:
@@ -382,8 +423,8 @@ class TestScript:
         with contextlib.suppress(KeyError):
             module_name = settings[constants.CONFIG.MODULE]
         if not module_name:
-            raise ConfigError(f"\n\tIn '{unique_name}' define module with "
-                              f"'{constants.CONFIG.MODULE}'")
+            raise ConfigError(f"\n\tIn {unique_name} define module "
+                              f"with '{constants.CONFIG.MODULE}'")
         module_class = self.find_module_by_name(module_name)
         module: Module = module_class(unique_name)
 
@@ -407,20 +448,20 @@ class TestScript:
         """To OPEN_FILE, writes in ini format all modules, with all their
         settings. This creates something like example config. Current
         onfiguration doesn't have any effect on format of settings."""
-        c = configparser.ConfigParser()
+        parser = configparser.ConfigParser()
         temp_modules = [klass("fake name") for klass in self.module_classes]
         counter = 0
         for module in temp_modules:
             name = module.__class__.__name__
             counter += 1
 
-            c.add_section(str(counter))
+            parser.add_section(str(counter))
             for key, value in module.settings.get_ini_dict().items():
-                c.set(str(counter), key, value)
+                parser.set(str(counter), key, value)
             # Set also module name
-            c.set(str(counter), constants.CONFIG.MODULE, name)
+            parser.set(str(counter), constants.CONFIG.MODULE, name)
         open_file.write(constants.CONFIG.PROLOG)
-        c.write(open_file)
+        parser.write(open_file)
 
     def find_module_by_name(self, name: str):
         """Given module name, returns class with same name if registered
@@ -474,7 +515,8 @@ class Module(abc.ABC):
 
     def send(self, event):
         """Send event to owner (testscripts), if any."""
-        _logger.debug(f"Sending event {self.__class__} - {event.__repr__()}")
+        _LOGGER.debug("Sending event %s - %s", self.__class__,
+                      event.__repr__())
         if self.owner:
             self.owner.add_event(event)
 
@@ -487,10 +529,10 @@ class Module(abc.ABC):
     def handle_event(self, event):
         """Given event, decides whether to process it or not. If event was
         registered via self.register_event, callback is called."""
-        _logger.debug(f"{self.__class__.__name__} - event {event.name}")
+        _LOGGER.debug("%s - event %s", self.__class__.__name__, event.name)
         for regex, callback in self.events:
             if regex.fullmatch(event.name):
-                _logger.debug(f"Event accepted {event.__repr__()}")
+                _LOGGER.debug("Event accepted %s", event.__repr__())
                 ret = callback(event)
                 if ret is not None:
                     return ret
@@ -529,12 +571,21 @@ class Module(abc.ABC):
 
     @abc.abstractmethod
     def handle_internal(self, event):
-        # This should be overridden
+        """Method called when no callback was defined for event.
+
+        Every module must override this method.  If you have your own callbacks
+        just return false
+        """
         return False
 
 
 @enum.unique
 class MessageSeverity(enum.IntEnum):
+    """Message severity represents... well message severity
+
+    Depending on this value, logger or console printer may decide to filter
+    message out or print it with different color etc.
+    """
     CRITICAL = logging.CRITICAL
     ERROR = logging.ERROR
     WARNING = logging.WARNING
@@ -543,6 +594,10 @@ class MessageSeverity(enum.IntEnum):
 
 
 class ConsoleWriter(Module):
+    """Writes notifications to stdout. Adds color depending on message
+    severity
+    """
+
     SETTINGS = {'severity': [MessageSeverity.CRITICAL, MessageSeverity.INFO]}
 
     def __init__(self, name):
