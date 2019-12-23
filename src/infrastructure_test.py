@@ -320,6 +320,9 @@ def test_json_parser():
     assert parser.is_valid('{"aa": 1, "bb": "asd ff "}')
     assert parser.is_valid('["aaa", 123]')
     assert not parser.is_valid('["aaa". 123]')
+    assert parser.get_options()
+    parser = infrastructure.JsonParser(message='Heyy')
+    assert parser.get_options() == ['Heyy']
 
 
 def test_specific_json_parser():
@@ -329,3 +332,4 @@ def test_specific_json_parser():
     assert parser.is_valid('{"aaa": 1, "bb": 2, "c" : "d"}')
     with pytest.raises(infrastructure.ConfigError):
         parser.is_valid('{"aa": 1, "bb": 2, "c" : "d"}')
+    assert parser.get_options()

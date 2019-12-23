@@ -218,6 +218,12 @@ class AnyStringParser(SettingsParser):
 class JsonParser(SettingsParser):
     """Accept string that contains json."""
 
+    def __init__(self, message=None):
+        """Set info output to message if possible."""
+        self.message = message
+        if not self.message:
+            self.message = "<any json string>"
+
     def is_valid(self, value: str) -> bool:
         """Check if value is convertible to json"""
         with contextlib.suppress(ValueError):
@@ -228,7 +234,7 @@ class JsonParser(SettingsParser):
 
     def get_options(self):
         """Any json really"""
-        return ["<any json string>"]
+        return [self.message]
 
     def _json_to_dict(self, value: str) -> dict:
         """Convert json str to dict. Raises ConfigError"""

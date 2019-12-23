@@ -16,6 +16,14 @@ class Runnable(infrastructure.Event):
     platform: compiler.Platform
 
 
+@dataclasses.dataclass
+class RunOutput(infrastructure.Event):
+    identification: str
+    output_file: str
+    error_file: str
+    exit_code: int
+
+
 class CompilerFilter(infrastructure.Module):
     """Catch all events from compiler and transform some into runnables"""
     SETTINGS = {
