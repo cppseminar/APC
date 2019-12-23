@@ -111,7 +111,8 @@ class _NamedEvent(Event):
     """Represent event with no data.
 
     This class really shouldn't be used, it's here just in case someone
-    enters string instead of evnet"""
+    enters string instead of evnet
+    """
 
     def __init__(self, name):
         super().__init__()
@@ -136,8 +137,10 @@ class Notification(Event):
 
 
 class ConfigError(ValueError):
-    """Error raised by this module to represent configuration mistakes"""
+    """Error raised by this module to represent configuration mistakes."""
+
     def __init__(self, message):
+        """Add little bit of formatting to parent."""
         super().__init__(f"\nCONFIG ERROR:"
                          f"\n============\n\t\t{message}")
 
@@ -147,8 +150,10 @@ class ConfigError(ValueError):
 
 
 class SettingsParser:
-    """Abstract class for parsing setting values.  If you don't know possible
-    values in advance (like file name), you must use parser.
+    """Abstract class for parsing setting values.
+
+    If you don't know possible values in advance (like file name), you must use
+    parser.
     """
 
     @property
@@ -215,7 +220,11 @@ class JsonParser(SettingsParser):
 
     def is_valid(self, value: str) -> bool:
         """Check if value is convertible to json"""
-        return bool(self._json_to_dict(value))
+        with contextlib.suppress(ValueError):
+            return bool(self._json_to_dict(value))
+        with contextlib.suppress(ValueError):
+            return bool(self._json_to_list(value))
+        return False
 
     def get_options(self):
         """Any json really"""
@@ -225,6 +234,13 @@ class JsonParser(SettingsParser):
         """Convert json str to dict. Raises ConfigError"""
         try:
             return dict(json.loads(value))
+        except json.decoder.JSONDecodeError as error:
+            raise ConfigError(f'{self.__class__} - {str(error)}')
+
+    def _json_to_list(self, value: str) -> list:
+        """Convert json to list."""
+        try:
+            return list(json.loads(value))
         except json.decoder.JSONDecodeError as error:
             raise ConfigError(f'{self.__class__} - {str(error)}')
 
@@ -239,7 +255,9 @@ class SpecificJsonParser(JsonParser):
 
     def is_valid(self, value: str) -> bool:
         content = self._json_to_dict(value)
-        return set(self.required).issubset(set(content.keys()))
+        if set(self.required).issubset(set(content.keys())):
+            return True
+        raise ConfigError(f'Missing args {self.required - set(content)}')
 
     def get_options(self):
         """Return all keys from required"""
@@ -271,8 +289,10 @@ class ModuleSettings(collections.UserDict):
         self._parsers = set()  # keys with parsers
 
     def add_options(self, key: str, values: List, default=MISSING):
-        """Set possible options for KEY. VALUES must be iterable, with every
-        member having __str__ implemented"""
+        """Set possible options for KEY.
+
+        VALUES must be iterable, with every member having __str__ implemented
+        """
         assert key not in self.data, "Key already registered"
         assert len(values) > 0
         key = str(key)
@@ -281,12 +301,16 @@ class ModuleSettings(collections.UserDict):
             self[key] = str(default)
             i = self.data[key].index(default)
             # Move default parameter to position 0, for better ini output
-            self.data[key][i], self.data[key][0] = self.data[key][0], self.data[key][i]
+            self.data[key][i], self.data[key][0] = self.data[key][
+                0], self.data[key][i]
             self._defaults.add(key)
 
     def add_parser(self, key: str, parser: SettingsParser):
-        """Register PARSER for KEY. If setting with key is present, PARSER
-        methods will be called"""
+        """Register PARSER for KEY.
+
+        If setting with key is present, PARSER methods will be called.  Check
+        SettingsParser class for understanding on how to implement them.
+        """
         assert key not in self.data, f"Key already registered {key}"
         self.data[key] = parser
         self._parsers.add(key)
