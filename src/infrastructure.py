@@ -203,16 +203,45 @@ class FileNameParser(SettingsParser):
 
 
 class AnyStringParser(SettingsParser):
-    """Accept any one word string as valid"""
+    """Accept any one word string as valid."""
 
     def is_valid(self, value: str) -> bool:
-        """Return true if value is only one word"""
+        """Return true if value is only one word."""
         if value and value.split()[0] == value:
             return True
         return False
 
     def get_options(self):
+        """Anything with one word."""
         return ["<any one word answer>"]
+
+
+class AnyIntParser(SettingsParser):
+    """Accept any non negative integer."""
+
+    def __init__(self, default=MISSING):
+        """Set default value."""
+        super().__init__()
+        self._default = default
+
+    def is_valid(self, value: str) -> bool:
+        """Check whether value is positive int."""
+        try:
+            result = int(value)
+            if result > 0:
+                return True
+        except TypeError:
+            pass
+        return False
+
+    @property
+    def default(self):
+        """Return default value."""
+        return self._default
+
+    def get_options(self):
+        """Any int bigger than 0."""
+        return [f"<Any positive number (non 0), default {self._default}>"]
 
 
 class JsonParser(SettingsParser):

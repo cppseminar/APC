@@ -353,3 +353,18 @@ def test_json_list_parser():
     assert parser.is_valid('["aa", 1]')
     assert parser.is_valid('["aa", "l1"]')
     assert not parser.is_valid('[]')
+
+def test_any_int_parser():
+    """Test behaviour of AnyIntParser."""
+    parser = infrastructure.AnyIntParser()
+    assert parser.is_valid(10)
+    assert parser.is_valid("10")
+    assert parser.is_valid("100")
+    assert parser.is_valid("1")
+    assert not parser.is_valid("0")
+    assert not parser.is_valid("-0")
+    assert not parser.is_valid("-1")
+    assert parser.get_options()
+    assert not parser.is_valid(parser.get_options())
+    parser = infrastructure.AnyIntParser(default=10)
+    assert parser.default == 10
