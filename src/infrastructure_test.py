@@ -274,6 +274,8 @@ def test_any_string_parser():
     assert parser.is_valid("abc")
     assert not parser.is_valid("abc def")
     assert not parser.is_valid("")
+    assert parser.get_options()
+    assert not parser.is_valid(parser.get_options()[0])
 
 
 def test_event_regex():
@@ -333,3 +335,21 @@ def test_specific_json_parser():
     with pytest.raises(infrastructure.ConfigError):
         parser.is_valid('{"aa": 1, "bb": 2, "c" : "d"}')
     assert parser.get_options()
+
+
+def test_json_list_parser():
+    """Test basic behavior of JsonListParser."""
+    parser = infrastructure.JsonListParser()
+    with pytest.raises(infrastructure.ConfigError):
+        parser.is_valid("abc")
+    with pytest.raises(infrastructure.ConfigError):
+        parser.is_valid("abc, def")
+    with pytest.raises(infrastructure.ConfigError):
+        parser.is_valid("")
+    assert parser.get_options()
+    with pytest.raises(infrastructure.ConfigError):
+        parser.is_valid(parser.get_options()[0])
+    assert parser.is_valid('["aa"]')
+    assert parser.is_valid('["aa", 1]')
+    assert parser.is_valid('["aa", "l1"]')
+    assert not parser.is_valid('[]')

@@ -220,6 +220,7 @@ class JsonParser(SettingsParser):
 
     def __init__(self, message=None):
         """Set info output to message if possible."""
+        super().__init__()
         self.message = message
         if not self.message:
             self.message = "<any json string>"
@@ -252,28 +253,45 @@ class JsonParser(SettingsParser):
 
 
 class SpecificJsonParser(JsonParser):
-    """Check if required fields are present in json"""
+    """Check if required fields are present in json."""
 
     def __init__(self, required: Iterable[str]):
+        """Check if REQUIRED is not empty.
+
+        REQUIRED contains required fields for json.
+        """
+        super().__init__()
         self.required = set(map(str, required))
         if not self.required:
             raise ConfigError('{self.__class__} - required is empty')
 
     def is_valid(self, value: str) -> bool:
+        """Check if all fields are exclusively present."""
         content = self._json_to_dict(value)
         if set(self.required).issubset(set(content.keys())):
             return True
         raise ConfigError(f'Missing args {self.required - set(content)}')
 
     def get_options(self):
-        """Return all keys from required"""
+        """Return all keys from required."""
         return ['<Json with keys: ' + ', '.join(self.required) + '>']
+
+
+class JsonListParser(JsonParser):
+    """Check if given value can be interpreted as json array."""
+
+    def is_valid(self, value: str) -> bool:
+        """If nonempty array specified - return True. Else exception/False."""
+        return bool(self._json_to_list(value))
+
+    def get_options(self):
+        """Info about possible format."""
+        return ['<Json array [...]>']
 
 
 ############################################
 #             # END PARSERS #              #
 ############################################
-
 
 # What a bullshit
 # pylint: disable=too-many-ancestors
@@ -288,7 +306,9 @@ class ModuleSettings(collections.UserDict):
     If you provided default values or your parser has default value, settings
     are already set.
     """
+
     def __init__(self):
+        """Nothing special.  Set necessary variables."""
         super().__init__()
         self._settings = dict()
         self._defaults = set()  # keys with default options
@@ -384,7 +404,13 @@ class ModuleSettings(collections.UserDict):
 
 
 class TestScript:
-    """Class representing current run of testscript"""
+    """Class representing current run of testscript.
+
+    TODO: each event should be sorted by distance from beginning. In other
+    words, events from file picker and compiler should have lowest priority, so
+    that outputs make more sense, ie. processing students one by one
+    """
+
     class EventPriority(enum.IntEnum):
         """Priority of event - unused for now"""
         LOW = 0
@@ -504,18 +530,22 @@ class TestScript:
 
 
 class Module(abc.ABC):
-    """Class serving as module for TestScript class. All other modules shall
-    inherit from this class.
+    """Prototype module for TestScript class.
+
+    All other modules shall inherit from this class.
 
     Note: handle_event and register_event are tied together, so in case of
-    overriding them, do neither or both"""
-    # TODO: Explain settings
+    overriding them, do neither or both
 
-    SETTINGS: Dict[str, Any] = {
-        'verbose': [True, False]
-    }
+    Each module has settings, which it communicates outside via several
+    methods.  Easiest way to set some settings is to set dict SETTINGS in your
+    subclass.
+    """
+
+    SETTINGS: Dict[str, Any] = {}
 
     def __init__(self, name):
+        """Set necesary  variables for proper handling by TestScript."""
         self.name = name
         self.owner = None
         self.events: Deque[Tuple[re.Pattern, callable]] = collections.deque()
@@ -523,18 +553,21 @@ class Module(abc.ABC):
         self.parse_settings_from_dict(self.SETTINGS)
 
     def register(self, parent_object: TestScript):
-        """Registers parent, so module can send events to them"""
+        """Register parent, so module can send events to them."""
         assert not self.owner
         self.owner = parent_object
 
     def register_event(self, event, callback=None):
-        """Given EVENT name, or wildcard string, or normal string, if
+        """Register given even, so it is accepted by self.handle_event.
+
+        Given EVENT name, or wildcard string, or normal string, if
         matching event ever comes to handle_event, callback will be called,
         with event as its only argument. If you want to override this method,
         override also handle_event
 
         TODO: I'm wondering, maybe we could id classes with their memory
-        addresses (id())"""
+        addresses (id())
+        """
         event_name = _get_event_name(event)
         regex = build_wildcard_regex(event_name)
 
@@ -551,7 +584,7 @@ class Module(abc.ABC):
             self.owner.add_event(event)
 
     def notify(self, event):
-        """Send event to owner. Event shall be Notifiaction or derived"""
+        """Send event to owner. Event shall be Notifiaction or derived."""
         assert isinstance(event, Notification)
         if self.owner:
             self.owner.add_notification(event)
