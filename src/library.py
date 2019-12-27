@@ -75,3 +75,24 @@ def filter_files(iterable: Iterable, wildcard: str = "*"):
         return bool(regex.fullmatch(name))
 
     return filter(_filter, iterable)
+
+
+def str_to_valid_file_name(supposed_name: str) -> str:
+    """Cut from SUPPOSED_NAME all invalid characters.
+
+    Characters invalid for for windows. (Pretty much superset of everythin
+    else).  Unfortunately we are not checking here everything, and invalid
+    names still can happen on occasion. :(
+    """
+    mapping = {
+        ord('<'): '',
+        ord('>'): '',
+        ord(':'): '',
+        ord('"'): '',
+        ord('/'): '',
+        ord('\\'): '',
+        ord('|'): '',
+        ord('?'): '',
+        ord('*'): ''
+    }
+    return str(supposed_name).translate(mapping).strip()
