@@ -106,6 +106,7 @@ if __name__ == "__main__":
     script.add_class(compiler.Compiler)
     script.add_class(infrastructure.ConsoleWriter)
     script.add_class(runner.CompilerFilter)
+    script.add_class(runner.RunnerModule)
 
     with open("./config.ini", "r") as f:
         script.load_ini_settings(f)

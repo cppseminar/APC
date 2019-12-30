@@ -1,7 +1,9 @@
-"""Tests for infrastructure module"""
-import unittest.mock
-import tempfile
+"""Tests for infrastructure module."""
+
 import io
+import os
+import tempfile
+import unittest.mock
 
 import pytest
 
@@ -101,7 +103,7 @@ class TestTestScripts():
 
     @pytest.mark.skip
     def test_parse_settings_from_dict(self):
-        pass 
+        pass
 
     @pytest.mark.skip
     def test_run_notifications(self):
@@ -328,6 +330,7 @@ def test_json_parser():
 
 
 def test_specific_json_parser():
+    """Test behavior of SpecificJsonParser."""
     with pytest.raises(infrastructure.ConfigError):
         parser = infrastructure.SpecificJsonParser([])
     parser = infrastructure.SpecificJsonParser(['aaa', 'bb'])
@@ -354,6 +357,7 @@ def test_json_list_parser():
     assert parser.is_valid('["aa", "l1"]')
     assert not parser.is_valid('[]')
 
+
 def test_any_int_parser():
     """Test behaviour of AnyIntParser."""
     parser = infrastructure.AnyIntParser()
@@ -368,3 +372,11 @@ def test_any_int_parser():
     assert not parser.is_valid(parser.get_options())
     parser = infrastructure.AnyIntParser(default=10)
     assert parser.default == 10
+
+
+class TestTmpFolderCreator:
+    """Test functionality of TmpFolderCreator."""
+
+    def test_global_folder_creation(self):
+        creator = infrastructure.TmpFolderCreator(global_folder=True)
+        assert os.path.exists(creator.default)

@@ -9,8 +9,16 @@ param (
     [switch] $force = $false,
     [switch] $test = $false,
     [switch] $lint = $false,
+    [switch] $tags = $false,
     [string] $python_path = ""
 )
+
+$python_path="C:\Users\mandu\source\virtualenvs\testscript\Scripts\python.exe"
+
+
+if ($tags) {
+    & "ctags" "--kinds-python=+cfm-vxiIzl" "--maxdepth=1" "-R" "src"
+}
 
 
 if (!$python_path) {
@@ -27,13 +35,15 @@ if ($install) {
     & $python_path "-m" "pip" "install" "-r" "requirements.txt"
 }
 
+
+
 if ($update) {
     $files = Get-Content .\requirements.txt 
     & $python_path "-m" "pip" "install" "--upgrade" pip $files
 }
 
 if ($test) {
-    & $python_path "-m" "pytest" "-s" "-vv" "--color=yes"
+    & $python_path "-m" "pytest" "-s" "-vv" "--color=yes" "src"
     if ($LASTEXITCODE -ne 0) {
         exit 1
     }
@@ -78,6 +88,8 @@ Function LintFile
     Write-Output "Running pydocstyle"
     & $python_path "-m" "pydocstyle"  $file
 
+    # flake8 - bugbear
+    # mccabe??
     Write-Output "please fix your pylint, code&doc style  $file"
 
     Write-Host  "===============================================" -ForegroundColor white -BackgroundColor black

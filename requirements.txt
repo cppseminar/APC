@@ -1,7 +1,14 @@
+autopep8
 colorama
+flake8
+flake8-bugbear
+mccabe
 mypy
+pycodestyle
+pydocstyle
 pyflakes
 pylint
 pytest
 python-language-server
+rope
 yapf

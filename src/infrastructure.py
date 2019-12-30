@@ -8,15 +8,15 @@ import dataclasses
 import enum
 import itertools
 import json
+import logging
 import os
 import re
-import logging
 import sys
-
 from dataclasses import MISSING
 from typing import Any, Deque, Dict, Iterable, List, Tuple
 
 import constants
+
 
 # pylint: disable=too-few-public-methods
 
@@ -316,6 +316,44 @@ class JsonListParser(JsonParser):
     def get_options(self):
         """Info about possible format."""
         return ['<Json array [...]>']
+
+
+class TmpFolderCreator(JsonParser):
+    """Create and manage tmp folders.
+
+    This is special kind of parser, settings are not really taken from users,
+    but for sake of consistency, this thing goes to settings.  As default value
+    is returned tmp directory created using instructions provided to init.
+    This parser doesn't accept any value, except of the one it created.
+
+    Point is, you get tmp folder specific for your module in settings.  And if
+    you don't leave any mess behind, it will be deleted.
+
+    Folder will be deleted, only if it is empty on destruction.
+    """
+
+    def __init__(self, name_parts: Iterable = None, global_folder=False):
+        """Construct name from name_parts.
+
+        If global_folder is set, name_parts are ignored and global_folder is
+        used instead.
+        """
+        super().__init__()
+        self.work_folder = None
+
+    @property
+    def default(self):
+        """Return tmp folder."""
+        return str(self.work_folder)
+
+    def is_valid(self, value: str) -> bool:
+        """Only accept what we created."""
+        return str(value) == str(self.work_folder)
+
+    def get_options(self):
+        """Warning to not set this value."""
+        return ["Don't set this value by hand",
+                "Leave this line commented out"]
 
 
 ############################################
