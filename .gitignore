@@ -133,3 +133,4 @@ msbuild.binlog
 tags
 *.sublime*
 *.code*
+*pyls*

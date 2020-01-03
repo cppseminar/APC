@@ -255,7 +255,7 @@ class JsonParser(SettingsParser):
             self.message = "<any json string>"
 
     def is_valid(self, value: str) -> bool:
-        """Check if value is convertible to json"""
+        """Check if value is convertible to json."""
         with contextlib.suppress(ValueError):
             return bool(self._json_to_dict(value))
         with contextlib.suppress(ValueError):
@@ -263,11 +263,11 @@ class JsonParser(SettingsParser):
         return False
 
     def get_options(self):
-        """Any json really"""
+        """Any json really."""
         return [self.message]
 
     def _json_to_dict(self, value: str) -> dict:
-        """Convert json str to dict. Raises ConfigError"""
+        """Convert json str to dict. Raises ConfigError."""
         try:
             return dict(json.loads(value))
         except json.decoder.JSONDecodeError as error:
@@ -711,11 +711,12 @@ class Module(abc.ABC):
 
 @enum.unique
 class MessageSeverity(enum.IntEnum):
-    """Message severity represents... well message severity
+    """Message severity represents... well message severity.
 
     Depending on this value, logger or console printer may decide to filter
     message out or print it with different color etc.
     """
+
     CRITICAL = logging.CRITICAL
     ERROR = logging.ERROR
     WARNING = logging.WARNING

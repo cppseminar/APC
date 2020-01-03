@@ -182,14 +182,14 @@ class TestSettings:
         settings.add_options('key3', [None])
         settings['key'] = 'True'
         settings['key2'] = 'asd'
-        assert settings['key'] == True
+        assert settings['key'] is True
         assert settings['key2'] == 'asd'
         with pytest.raises(ValueError):
             settings['key3'] = None
         with pytest.raises(ValueError):
             settings['key3']
         settings['key3'] = 'None'
-        assert settings['key3'] == None
+        assert settings['key3'] is None
 
     def test_multiple_options(self):
         settings = infrastructure.ModuleSettings()

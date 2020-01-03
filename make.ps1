@@ -21,6 +21,11 @@ if ($tags) {
 }
 
 
+
+if ($tags) {
+    & "ctags" "--kinds-python=+cfm-vxiIzl" "--maxdepth=1" "-R" "src"
+}
+
 if (!$python_path) {
     if (!$env:VIRTUAL_ENV -and !$force) {
         Write-Error "Please activate virtualenv for python, or set python_path inside this script"

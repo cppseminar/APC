@@ -1,5 +1,6 @@
 autopep8
 colorama
+coverage
 flake8
 flake8-bugbear
 mccabe
