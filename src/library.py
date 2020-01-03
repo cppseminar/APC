@@ -1,13 +1,16 @@
 """Module containing useful functions used across testscripts."""
 import collections
+import contextlib
 import itertools
 import pathlib
 import re
 import tempfile
-from typing import Any, Dict, List, Iterable, Optional
+import weakref
+from typing import List, Iterable, Optional, Tuple
 
 # pylint: disable=no-self-use
 # pylint: disable=too-few-public-methods
+
 
 def build_file_regex(pattern: str):
     """Create regex from unix like pattern.
@@ -102,35 +105,52 @@ def str_to_valid_file_name(supposed_name: str) -> str:
 
 
 class GlobalTmpFolder:
-    """Wrapper around TemporaryDirectory, always returns same directory.
+    """Class resembling TemporaryDirectory, but always returns same directory.
 
-    Class has same methods and attributes as TemporaryDirectory.
+    Class has same methods and attributes as TemporaryDirectory.  BUT, only
+    cleans directory, if it is empty.
 
     This is also sooo bad for mutlithreading, but who cares ;)
     """
 
-    _NAMED_FOLDERS: Optional[tempfile.TemporaryDirectory] = None
-    _FIRST_DICT: Optional[Dict[str, Any]] = None
+    _NAME: Optional[pathlib.Path] = None
+    _FIRST_ARGS: Optional[Tuple[str, str, str]] = None
+    _DELETER = None
 
-    def __init__(self, **kwargs):
-        """Initilize internal TemporaryDirectory.
+    class ScopeGuard:
+        """When instance of this class is deleted, function is called."""
+
+        def __init__(self, func):
+            """Call func on self destruction."""
+            weakref.finalize(self, func)
+
+    def __init__(self, *, prefix=None, suffix=None, directory=None):
+        """Initialize internal variables.
 
         Check whether GlobalTmpFolder was in this program run created with same
         parameters.  If not throw ValueError.
         """
-        if GlobalTmpFolder._FIRST_DICT is None:  # This is first invocation
-            GlobalTmpFolder._FIRST_DICT = kwargs
-            GlobalTmpFolder._NAMED_FOLDERS = tempfile.TemporaryDirectory(
-                **kwargs)
+        args = (suffix, prefix, directory)
+        if GlobalTmpFolder._FIRST_ARGS is None:  # This is first invocation
+            GlobalTmpFolder._FIRST_ARGS = args
+            GlobalTmpFolder._NAME = pathlib.Path(tempfile.mkdtemp(*args))
+            GlobalTmpFolder._DELETER = GlobalTmpFolder.ScopeGuard(
+                lambda: self.cleanup(self._NAME))
 
-        if GlobalTmpFolder._FIRST_DICT != kwargs:
+        self.name = str(self._NAME)
+
+        if GlobalTmpFolder._FIRST_ARGS != args:
             raise ValueError(f"Currently you must call {self.__class__} "
                              f"always with same arguments")
 
-    def __getattribute__(self, name):
-        """Forward all calls to internal TemporaryDirectory."""
-        return GlobalTmpFolder._NAMED_FOLDERS.__getattribute__(name)
+    @staticmethod
+    def cleanup(directory_name: pathlib.Path):
+        """Delete directory if it is empty, swallows os exception."""
+        with contextlib.suppress(OSError):
+            directory_name.rmdir()
+            GlobalTmpFolder._FIRST_ARGS = None
+            GlobalTmpFolder._NAME = None
 
-
-if __name__ == '__main__':
-    GlobalTmpFolder()
+    def __str__(self):
+        """Behave as mkdtemp result, ie. return file path."""
+        return self.name

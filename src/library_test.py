@@ -3,10 +3,34 @@
 import contextlib
 import pathlib
 import tempfile
+import os
+import unittest.mock
 
 import pytest
 
 import library
+
+# pylint: disable=no-self-use
+
+# Those fixtures ...
+# pylint: disable=unused-argument
+# pylint: disable=redefined-outer-name
+
+###############################
+#        # FIXTURES #         #
+###############################
+
+
+@pytest.fixture
+def patch_gtf(monkeypatch):
+    """Act as if this is first instantiation of class GlobalTmpFolder."""
+    monkeypatch.setattr(library.GlobalTmpFolder, '_NAME', None)
+    monkeypatch.setattr(library.GlobalTmpFolder, '_FIRST_ARGS', None)
+    monkeypatch.setattr(library.GlobalTmpFolder, '_DELETER', None)
+
+###############################
+#      # END FIXTURES #       #
+###############################
 
 
 def test_build_file_regex():
@@ -105,10 +129,62 @@ def test_str_to_valid_file_name():
     assert func('file .e xe  ') == 'file .e xe'
 
 
-def test_global_tmp_folder():
-    """Test if global tmp folder behaves as standard temporary directory."""
-    global1 = library.GlobalTmpFolder()
-    global2 = library.GlobalTmpFolder()
-    assert global1.name == global2.name
-    with pytest.raises(ValueError):
-        library.GlobalTmpFolder(prefix="a")
+class TestGlobalTmpFolder:
+    """Test behavior of GlobalTmpFolder."""
+
+    def test_creation(self, patch_gtf):
+        """Test whether class behaves properly.
+
+        Check if name member is accessible and if class is convertible to str.
+        Also check whether both objects returned same folder.
+        """
+        global1 = library.GlobalTmpFolder()
+        global2 = library.GlobalTmpFolder()
+        assert global1.name == global2.name
+        assert str(global1) == global1.name
+        with pytest.raises(ValueError):
+            library.GlobalTmpFolder(prefix="a")
+
+    def test_arguments(self, patch_gtf):
+        """Test whether mkdtemp is called with proper args.
+
+        Important also for order of args.
+        """
+        mock_mkdtemp = unittest.mock.MagicMock(return_value=tempfile.mkdtemp())
+        with unittest.mock.patch('tempfile.mkdtemp', new=mock_mkdtemp):
+            library.GlobalTmpFolder(prefix='asf', suffix='123', directory='aa')
+            mock_mkdtemp.assert_called_once_with('123', 'asf', 'aa')
+        # Let's try to do cleanup
+        with contextlib.suppress(OSError):
+            os.rmdir(mock_mkdtemp())
+
+    def test_cleanup_empty(self, patch_gtf):
+        """Test whether cleanup works properly."""
+        global1 = library.GlobalTmpFolder()
+        folder = global1.name
+        del global1
+        del library.GlobalTmpFolder._DELETER
+        assert not os.path.exists(folder)
+
+    def test_cleanup_non_empty(self, patch_gtf):
+        """Test whether cleanup works properly."""
+        global1 = library.GlobalTmpFolder()
+        folder = global1.name
+        tmp_file = tempfile.NamedTemporaryFile(dir=folder, suffix='.py')
+        del global1
+        del library.GlobalTmpFolder._DELETER
+        assert os.path.exists(folder)
+        del tmp_file
+        os.rmdir(folder)
+
+    def test_access_after_deletion(self, patch_gtf):
+        """Folder cannot be deleted before last instance."""
+        global1 = library.GlobalTmpFolder()
+        global2 = library.GlobalTmpFolder()
+        folder = global1.name
+        del global1
+        assert os.path.exists(folder)
+        del global2
+        assert os.path.exists(folder)
+        del library.GlobalTmpFolder._DELETER
+        assert not os.path.exists(folder)
