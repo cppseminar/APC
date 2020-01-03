@@ -3,8 +3,11 @@ import collections
 import itertools
 import pathlib
 import re
-from typing import List, Iterable
+import tempfile
+from typing import Any, Dict, List, Iterable, Optional
 
+# pylint: disable=no-self-use
+# pylint: disable=too-few-public-methods
 
 def build_file_regex(pattern: str):
     """Create regex from unix like pattern.
@@ -96,3 +99,38 @@ def str_to_valid_file_name(supposed_name: str) -> str:
         ord('*'): ''
     }
     return str(supposed_name).translate(mapping).strip()
+
+
+class GlobalTmpFolder:
+    """Wrapper around TemporaryDirectory, always returns same directory.
+
+    Class has same methods and attributes as TemporaryDirectory.
+
+    This is also sooo bad for mutlithreading, but who cares ;)
+    """
+
+    _NAMED_FOLDERS: Optional[tempfile.TemporaryDirectory] = None
+    _FIRST_DICT: Optional[Dict[str, Any]] = None
+
+    def __init__(self, **kwargs):
+        """Initilize internal TemporaryDirectory.
+
+        Check whether GlobalTmpFolder was in this program run created with same
+        parameters.  If not throw ValueError.
+        """
+        if GlobalTmpFolder._FIRST_DICT is None:  # This is first invocation
+            GlobalTmpFolder._FIRST_DICT = kwargs
+            GlobalTmpFolder._NAMED_FOLDERS = tempfile.TemporaryDirectory(
+                **kwargs)
+
+        if GlobalTmpFolder._FIRST_DICT != kwargs:
+            raise ValueError(f"Currently you must call {self.__class__} "
+                             f"always with same arguments")
+
+    def __getattribute__(self, name):
+        """Forward all calls to internal TemporaryDirectory."""
+        return GlobalTmpFolder._NAMED_FOLDERS.__getattribute__(name)
+
+
+if __name__ == '__main__':
+    GlobalTmpFolder()

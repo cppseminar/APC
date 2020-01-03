@@ -4,6 +4,8 @@ import contextlib
 import pathlib
 import tempfile
 
+import pytest
+
 import library
 
 
@@ -101,3 +103,12 @@ def test_str_to_valid_file_name():
     assert func('file/.exe') == 'file.exe'
     assert func('<>:"/|\\/?*') == ''
     assert func('file .e xe  ') == 'file .e xe'
+
+
+def test_global_tmp_folder():
+    """Test if global tmp folder behaves as standard temporary directory."""
+    global1 = library.GlobalTmpFolder()
+    global2 = library.GlobalTmpFolder()
+    assert global1.name == global2.name
+    with pytest.raises(ValueError):
+        library.GlobalTmpFolder(prefix="a")
