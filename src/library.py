@@ -104,13 +104,18 @@ def str_to_valid_file_name(supposed_name: str) -> str:
     return str(supposed_name).translate(mapping).strip()
 
 
+# pylint: disable=unused-argument
+def noop(*args, **kwargs):
+    """Do NOTHING."""
+    return None
+# pylint: enable=unused-argument
+
+
 class GlobalTmpFolder:
     """Class resembling TemporaryDirectory, but always returns same directory.
 
     Class has same methods and attributes as TemporaryDirectory.  BUT, only
     cleans directory, if it is empty.
-
-    This is also sooo bad for mutlithreading, but who cares ;)
     """
 
     _NAME: Optional[pathlib.Path] = None

@@ -1,5 +1,6 @@
 """Tests for infrastructure module."""
 
+import contextlib
 import io
 import os
 import tempfile
@@ -378,5 +379,52 @@ class TestTmpFolderCreator:
     """Test functionality of TmpFolderCreator."""
 
     def test_global_folder_creation(self):
-        creator = infrastructure.TmpFolderCreator(global_folder=True)
-        assert os.path.exists(creator.default)
+        creator1 = infrastructure.TmpFolderCreator(return_global=True,
+                                                   cleanup=False)
+        creator2 = infrastructure.TmpFolderCreator(return_global=True,
+                                                   cleanup=False)
+        assert os.path.exists(creator1.default)
+        assert creator1.default == creator2.default
+
+    def test_valid(self):
+        """Test whether returned values pass is_valid check."""
+        creator = infrastructure.TmpFolderCreator(return_global=True, cleanup=False)
+        assert creator.is_valid(creator.default)
+        creator = infrastructure.TmpFolderCreator(return_global=False,
+                                                  cleanup=False)
+        assert creator.is_valid(creator.default)
+        creator = infrastructure.TmpFolderCreator(name_parts=['aa', '123'])
+        assert creator.is_valid(creator.default)
+
+    def test_name_parts(self):
+        """Test if name parts are present in file name."""
+        value1 = 'aabasdf'
+        value2 = 'aa ss dd'
+        creator = infrastructure.TmpFolderCreator(name_parts=[value1, value2])
+        assert str(creator.default).find(value1) != -1
+        assert str(creator.default).find(value2) != -1
+
+    def test_cleanup(self):
+        """Test whether cleanup happens."""
+        creator = infrastructure.TmpFolderCreator()
+        path = creator.default
+        assert os.path.exists(path)
+        del creator
+        assert not os.path.exists(path)
+
+    def test_cleanup_files(self):
+        """Test cleanup parameter."""
+        creator1 = infrastructure.TmpFolderCreator(cleanup=False)
+        creator2 = infrastructure.TmpFolderCreator(cleanup=True)
+        handle1, path1 = tempfile.mkstemp(dir=creator1.default)
+        handle2, path2 = tempfile.mkstemp(dir=creator2.default)
+        os.close(handle1)
+        os.close(handle2)
+        # End setup
+        del creator1
+        del creator2
+        assert os.path.exists(path1)
+        assert not os.path.exists(path2)
+        with contextlib.suppress(OSError):
+            os.unlink(path1)
+            os.unlink(path2)

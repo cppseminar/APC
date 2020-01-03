@@ -6,16 +6,23 @@ import configparser
 import contextlib
 import dataclasses
 import enum
+import functools
 import itertools
 import json
 import logging
 import os
 import re
+import shutil
 import sys
+import tempfile
+import weakref
+
 from dataclasses import MISSING
 from typing import Any, Deque, Dict, Iterable, List, Tuple
 
 import constants
+import library
+
 
 
 # pylint: disable=too-few-public-methods
@@ -329,17 +336,42 @@ class TmpFolderCreator(JsonParser):
     Point is, you get tmp folder specific for your module in settings.  And if
     you don't leave any mess behind, it will be deleted.
 
-    Folder will be deleted, only if it is empty on destruction.
-    """
+    Folder will be deleted, if it is empty on destruction. Alternatively, you
+    can specify cleanup to be true and all contents of folder will be deleted.
+    This option is incompatible with return_global, since global is same for
+    everyone and we cannot clean it.
 
-    def __init__(self, name_parts: Iterable = None, global_folder=False):
+    When global folder is left empty, it will be deleted in the end.
+    """
+    def __init__(self,
+                 *,
+                 name_parts: Iterable[str] = None,
+                 return_global=False,
+                 cleanup=True):
         """Construct name from name_parts.
 
-        If global_folder is set, name_parts are ignored and global_folder is
+        If return_global is set, name_parts are ignored and global folder is
         used instead.
         """
         super().__init__()
-        self.work_folder = None
+        self._cleanup_method = os.rmdir
+        if return_global and any([name_parts, cleanup]):
+            raise ConfigError("Return_global requires cleanup false.")
+        global_folder = library.GlobalTmpFolder().name
+        if return_global:
+            self._cleanup_method = library.noop
+            self.work_folder = global_folder
+            return
+
+        prefix = ""
+        if name_parts:
+            prefix = library.str_to_valid_file_name('_'.join(name_parts))
+        self.work_folder = tempfile.mkdtemp(prefix=prefix, dir=global_folder)
+        if cleanup:
+            self._cleanup_method = functools.partial(shutil.rmtree,
+                                                     ignore_errors=False,
+                                                     onerror=None)
+        weakref.finalize(self, self._cleanup_method, self.work_folder)
 
     @property
     def default(self):
@@ -352,13 +384,14 @@ class TmpFolderCreator(JsonParser):
 
     def get_options(self):
         """Warning to not set this value."""
-        return ["Don't set this value by hand",
-                "Leave this line commented out"]
-
+        return [
+            "Don't set this value by hand", "Leave this line commented out"
+        ]
 
 ############################################
 #             # END PARSERS #              #
 ############################################
+
 
 # What a bullshit
 # pylint: disable=too-many-ancestors
@@ -417,7 +450,7 @@ class ModuleSettings(collections.UserDict):
             self[key] = parser.default
 
     def __setitem__(self, key: str, value: str):
-        """Check whether value is registered and save it"""
+        """Check whether value is registered and save it."""
         if key not in self.data:
             raise ConfigError(f"Invalid key '{key}'")
         # Parser
@@ -438,19 +471,21 @@ class ModuleSettings(collections.UserDict):
         self._settings[key] = self.data[key][index]
 
     def __getitem__(self, key):
-        """Return value, if already set"""
+        """Return value, if already set."""
         with contextlib.suppress(KeyError):
             return self._settings[key]
         raise ConfigError(f"No setting set for key {key}")
 
     def __bool__(self):
-        """Check if all settings which class requires are already set"""
+        """Check if all settings which class requires are already set."""
         return set(self._settings.keys()) == set(self.data.keys())
 
     def get_ini_dict(self):
-        """Returns dictionary prepared to be inserted into standard
-        ConfigParser. Dictionary has specific format for documentation and
-        shouldn't be used for anything else"""
+        """Return dictionary in specific TestScript format.
+
+        Dictionary has specific format for documentation and shouldn't be used
+        for anything else.
+        """
         ret = {}
         for key, value in self.data.items():
             # Parsers
