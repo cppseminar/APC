@@ -18,7 +18,7 @@ import tempfile
 import weakref
 
 from dataclasses import MISSING
-from typing import Any, Deque, Dict, Iterable, List, Tuple
+from typing import Any, Callable, Deque, Dict, Iterable, List, Tuple
 
 import constants
 import library
@@ -371,7 +371,8 @@ class TmpFolderCreator(JsonParser):
             self._cleanup_method = functools.partial(shutil.rmtree,
                                                      ignore_errors=False,
                                                      onerror=None)
-        weakref.finalize(self, self._cleanup_method, self.work_folder)
+        weakref.finalize(self, self.cleanup,
+                         self._cleanup_method, self.work_folder)
 
     @property
     def default(self):
@@ -387,6 +388,12 @@ class TmpFolderCreator(JsonParser):
         return [
             "Don't set this value by hand", "Leave this line commented out"
         ]
+
+    @staticmethod
+    def cleanup(func: Callable, folder: str):
+        """Calls cleanup method (func) on folder. Ignores OSError."""
+        with contextlib.suppress(OSError):
+            func(folder)
 
 ############################################
 #             # END PARSERS #              #
@@ -491,7 +498,7 @@ class ModuleSettings(collections.UserDict):
             # Parsers
             if key in self._parsers:
                 if self.data[key].default != MISSING:
-                    ret['#' + key] = ' # '.join(self.data[key].get_options())
+                    ret['# ' + key] = ' # '.join(self.data[key].get_options())
                 else:
                     ret[key] = ' # '.join(self.data[key].get_options())
                 continue

@@ -379,6 +379,7 @@ class TestTmpFolderCreator:
     """Test functionality of TmpFolderCreator."""
 
     def test_global_folder_creation(self):
+        """Test if global folder is same for different instances."""
         creator1 = infrastructure.TmpFolderCreator(return_global=True,
                                                    cleanup=False)
         creator2 = infrastructure.TmpFolderCreator(return_global=True,
@@ -388,7 +389,8 @@ class TestTmpFolderCreator:
 
     def test_valid(self):
         """Test whether returned values pass is_valid check."""
-        creator = infrastructure.TmpFolderCreator(return_global=True, cleanup=False)
+        creator = infrastructure.TmpFolderCreator(return_global=True,
+                                                  cleanup=False)
         assert creator.is_valid(creator.default)
         creator = infrastructure.TmpFolderCreator(return_global=False,
                                                   cleanup=False)
