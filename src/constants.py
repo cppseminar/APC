@@ -1,4 +1,5 @@
 """Just constants for testscripts"""
+
 import types
 import colorama
 
@@ -16,17 +17,26 @@ _CONFIG_TEXT = (f"# This is config file (ini format) for testscripts\n"
                 f"\n")
 
 CONFIG = types.SimpleNamespace(
-    MODULE='module',
+    MODULE="module",
     PROLOG=_CONFIG_TEXT,
     CONSOLE_LOG_FORMAT=
-    '%(levelname)12s | %(name)18s | %(funcName)15s | %(message)s',
+    "%(levelname)12s | %(name)18s | %(funcName)15s | %(message)s",
+    HTML_HEADER="<html>\n<head>\n</head>\n<body>\n"
+    '<div style="background-color: #494478;">\n',
+    HTML_INFO='\t<h4 style="color: #00ff00;">\n\t\t{}\n\t</h4>\n'
+    '<p><span style="color: white;">{}</span></p>\n',
+    HTML_WARNING='\t<h4 style="color: #ff6600;">\n\t\t{}\n\t</h4>\n'
+    '\t<p>\n\t\t<span style="color: white;">{}</span>\n\t</p>\n',
+    HTML_ERROR='\t<h4 style="color: #ff0000;">\n\t\t{}\n\t</h4>\n'
+    '\t<p>\n\t\t<span style="color: white;">{}</span>\n\t</p>\n',
+    HTML_FOOTER="\n</div>\n</body>\n</html>",
 )
 
 KEYWORDS = types.SimpleNamespace(
-    WARNING='[' + colorama.Fore.LIGHTYELLOW_EX + "WARNING" +
-    colorama.Style.RESET_ALL + ']',
-    OK='[' + colorama.Fore.LIGHTGREEN_EX + "OK" + colorama.Style.RESET_ALL +
-    ']',
-    ERROR='[' + colorama.Fore.LIGHTRED_EX + "ERROR" +
-    colorama.Style.RESET_ALL + ']',
+    WARNING="[" + colorama.Fore.LIGHTYELLOW_EX + "WARNING" +
+    colorama.Style.RESET_ALL + "]",
+    OK="[" + colorama.Fore.LIGHTGREEN_EX + "OK" + colorama.Style.RESET_ALL +
+    "]",
+    ERROR="[" + colorama.Fore.LIGHTRED_EX + "ERROR" +
+    colorama.Style.RESET_ALL + "]",
 )

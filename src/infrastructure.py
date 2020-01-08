@@ -74,7 +74,7 @@ def get_valid_event(event: Any):
 def set_logger(name, console=True, filename=None):
     """Retrieve from logging NAME logger and set it appropriately."""
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     if filename:
         raise NotImplementedError("C'mon")
     if console:
@@ -804,3 +804,30 @@ class ConsoleWriter(Module):
         else:
             print(event.message)
         return True
+
+class HTMLWriter(ConsoleWriter):
+    """Logs notifications to html file."""
+
+    def __init__(self, name):
+        """Create global html file."""
+        super().__init__(name)
+        self.handle = open("log.html", "w")
+        self.handle.write(constants.CONFIG.HTML_HEADER)
+
+
+    def handle_internal(self, event):
+        """Handle."""
+        payload = str(event.payload).replace("\n", "\n<br/>")
+        if event.severity == MessageSeverity.INFO:
+            self.handle.write(
+                constants.CONFIG.HTML_INFO.format(event.message, payload))
+        if event.severity == MessageSeverity.WARNING:
+            self.handle.write(
+                constants.CONFIG.HTML_WARNING.format(event.message, payload))
+        if event.severity == MessageSeverity.ERROR:
+            self.handle.write(
+                constants.CONFIG.HTML_ERROR.format(event.message, payload))
+
+    def __del__(self):
+        self.handle.write(constants.CONFIG.HTML_FOOTER)
+        self.handle.close()
