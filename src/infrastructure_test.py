@@ -3,6 +3,7 @@
 import contextlib
 import io
 import os
+import pathlib
 import tempfile
 import unittest.mock
 
@@ -344,19 +345,16 @@ def test_specific_json_parser():
 def test_json_list_parser():
     """Test basic behavior of JsonListParser."""
     parser = infrastructure.JsonListParser()
-    with pytest.raises(infrastructure.ConfigError):
-        parser.is_valid("abc")
-    with pytest.raises(infrastructure.ConfigError):
-        parser.is_valid("abc, def")
-    with pytest.raises(infrastructure.ConfigError):
-        parser.is_valid("")
+    assert not parser.is_valid("abc")
+    assert not parser.is_valid("abc, def")
+    assert not parser.is_valid("")
     assert parser.get_options()
-    with pytest.raises(infrastructure.ConfigError):
-        parser.is_valid(parser.get_options()[0])
+    assert not parser.is_valid(parser.get_options()[0])
     assert parser.is_valid('["aa"]')
     assert parser.is_valid('["aa", 1]')
     assert parser.is_valid('["aa", "l1"]')
-    assert not parser.is_valid('[]')
+    assert parser.is_valid(r'["aa", "c:\\users\\asdf"]')
+    assert parser.is_valid('[]')
 
 
 def test_any_int_parser():
@@ -430,3 +428,12 @@ class TestTmpFolderCreator:
         with contextlib.suppress(OSError):
             os.unlink(path1)
             os.unlink(path2)
+
+    def test_custom_directory(self):
+        """Test whether directory is created in correct place."""
+        temp_dir = tempfile.TemporaryDirectory()
+        creator = infrastructure.TmpFolderCreator(directory=temp_dir.name)
+        assert os.path.exists(creator.default)
+        real_folder = pathlib.PurePath(creator.default).parent
+        expected_folder = pathlib.PurePath(temp_dir.name)
+        assert real_folder == expected_folder

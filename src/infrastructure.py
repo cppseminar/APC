@@ -317,8 +317,11 @@ class JsonListParser(JsonParser):
     """Check if given value can be interpreted as json array."""
 
     def is_valid(self, value: str) -> bool:
-        """If nonempty array specified - return True. Else exception/False."""
-        return bool(self._json_to_list(value))
+        """If array is specified - return True. Else exception/False."""
+        with contextlib.suppress(ConfigError):
+            self._json_to_list(value)
+            return True
+        return False
 
     def get_options(self):
         """Info about possible format."""
@@ -342,16 +345,23 @@ class TmpFolderCreator(JsonParser):
     everyone and we cannot clean it.
 
     When global folder is left empty, it will be deleted in the end.
+
+    You can specify in directory, where you want your folder to be created.
+    Default is using GlobalTmpFolder.
     """
+
     def __init__(self,
                  *,
                  name_parts: Iterable[str] = None,
                  return_global=False,
-                 cleanup=True):
+                 cleanup=True,
+                 directory=None):
         """Construct name from name_parts.
 
         If return_global is set, name_parts are ignored and global folder is
         used instead.
+
+        When directory is set, folder is created in directory.
         """
         super().__init__()
         self._cleanup_method = os.rmdir
@@ -362,6 +372,9 @@ class TmpFolderCreator(JsonParser):
             self._cleanup_method = library.noop
             self.work_folder = global_folder
             return
+        if directory:
+            assert os.path.exists(directory), "Invalid directory in init"
+            global_folder = directory
 
         prefix = ""
         if name_parts:
@@ -392,8 +405,10 @@ class TmpFolderCreator(JsonParser):
     @staticmethod
     def cleanup(func: Callable, folder: str):
         """Calls cleanup method (func) on folder. Ignores OSError."""
-        with contextlib.suppress(OSError):
+        try:
             func(folder)
+        except OSError as error:
+            _LOGGER.warning("Exception raised during cleanup %s", str(error))
 
 ############################################
 #             # END PARSERS #              #
