@@ -1,6 +1,7 @@
 """Tests for infrastructure module."""
 
 import contextlib
+import gc
 import io
 import os
 import pathlib
@@ -66,6 +67,13 @@ class MyDefaultParser(MyParser1):
     @property
     def default(self):
         return 'abc'
+
+@pytest.fixture(autouse=True)
+def default_fixture():
+    """We are often playing with waekrefs, so make it more clear."""
+    gc.collect()
+    yield
+    gc.collect()
 
 ######################################
 #            # TESTS #               #
@@ -391,7 +399,7 @@ class TestTmpFolderCreator:
                                                   cleanup=False)
         assert creator.is_valid(creator.default)
         creator = infrastructure.TmpFolderCreator(return_global=False,
-                                                  cleanup=False)
+                                                  cleanup=True)
         assert creator.is_valid(creator.default)
         creator = infrastructure.TmpFolderCreator(name_parts=['aa', '123'])
         assert creator.is_valid(creator.default)
@@ -420,6 +428,7 @@ class TestTmpFolderCreator:
         handle2, path2 = tempfile.mkstemp(dir=creator2.default)
         os.close(handle1)
         os.close(handle2)
+        dir1 = creator1.default
         # End setup
         del creator1
         del creator2
@@ -427,7 +436,10 @@ class TestTmpFolderCreator:
         assert not os.path.exists(path2)
         with contextlib.suppress(OSError):
             os.unlink(path1)
+        with contextlib.suppress(OSError):
             os.unlink(path2)
+        with contextlib.suppress(OSError):
+            os.rmdir(dir1)
 
     def test_custom_directory(self):
         """Test whether directory is created in correct place."""

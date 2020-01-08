@@ -408,7 +408,7 @@ class TmpFolderCreator(JsonParser):
         try:
             func(folder)
         except OSError as error:
-            _LOGGER.warning("Exception raised during cleanup %s", str(error))
+            _LOGGER.debug("Exception raised during %s %s", func, str(error))
 
 ############################################
 #             # END PARSERS #              #
