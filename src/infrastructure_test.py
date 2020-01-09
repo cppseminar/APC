@@ -124,14 +124,14 @@ class TestTestScripts():
 class TestEvent:
     def test_all_mro(self):
         event = MySubSubEvent()
-        names = set(event.names)
+        names = set(event._names)
         expected = ['MySubSubEvent', 'MySubEvent',
                     'MyTestEvent1', 'Event', 'object']
         assert set(expected) == names
 
     def test_name(self):
         event = infrastructure.Event()
-        assert event.name == 'Event'
+        assert event._name == 'Event'
 
 
 class TestModule:
@@ -320,7 +320,7 @@ def test_get_valid_event():
     event = infrastructure.Notification(message='Hello')
     assert event is infrastructure.get_valid_event(event)
     event2 = infrastructure.get_valid_event("Abc")
-    assert event2.name == "Abc"
+    assert event2._name == "Abc"
 
 
 @pytest.mark.skip

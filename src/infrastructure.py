@@ -64,7 +64,7 @@ def _get_event_name(event):
 
 def get_valid_event(event: Any):
     """There might be a scenario, with event only as str having just a name."""
-    if hasattr(event, 'name'):
+    if hasattr(event, '_name'):
         return event
     # We could instead set name attribute for event, but I think it's not
     # wise to modify it here
@@ -110,8 +110,8 @@ class Event:
 
     def __post_init__(self):
         """Set names and name members."""
-        self.names = list(map(lambda x: x.__name__, self.__class__.__mro__))
-        self.name = self.names[0]
+        self._names = list(map(lambda x: x.__name__, self.__class__.__mro__))
+        self._name = self._names[0]
 
 
 class _NamedEvent(Event):
@@ -123,7 +123,7 @@ class _NamedEvent(Event):
 
     def __init__(self, name):
         super().__init__()
-        self.name = name
+        self._name = name
 
 
 @dataclasses.dataclass
@@ -557,10 +557,12 @@ class TestScript:
         _LOGGER.debug("Registered in %s", self.__class__)
 
     def add_event(self, event, priority=EventPriority.LOW):
-        """Adds event, wich will be processsed when run() function gets to
-        it. Depending on priority, it might be last event in whole program"""
+        """Add event, wich will be processsed when run().
+
+        Depending on priority, it might be last event in whole program.
+        """
         event = get_valid_event(event)
-        _LOGGER.debug("%s", event.name)
+        _LOGGER.debug("New event %s", event._name)
         if priority > TestScript.EventPriority.LOW:
             self.event_stack.append(event)
         else:  # This is only temporary solution, but who cares for now
@@ -574,15 +576,18 @@ class TestScript:
         self.notifications.append(event)
 
     def run(self):
-        """Cycle which runs while there are still some events. This should be
-        called only once per session"""
+        """Cycle which runs while there are still some events.
+
+        This should be called only once although nothing bad happens when
+        called again.
+        """
         _LOGGER.debug("run called size {len(self.event_stack)}")
         while self.event_stack:
             event = self.event_stack.pop()
-            _LOGGER.debug("Event %s", event.name)
+            _LOGGER.debug("Running event %s", event._name)
             for module in self.modules:
                 if module.handle_event(event):
-                    _LOGGER.debug("%s handled by %s", event.name, module.name)
+                    _LOGGER.debug("%s handled by %s", event._name, module.name)
                 self._run_notifications()
         self._run_notifications()
         _LOGGER.debug("run stopping size %s", len(self.event_stack))
@@ -716,9 +721,8 @@ class Module(abc.ABC):
     def handle_event(self, event):
         """Given event, decides whether to process it or not. If event was
         registered via self.register_event, callback is called."""
-        _LOGGER.debug("%s - event %s", self.__class__.__name__, event.name)
         for regex, callback in self.events:
-            if regex.fullmatch(event.name):
+            if regex.fullmatch(event._name):
                 _LOGGER.debug("Event accepted %s", event.__repr__())
                 ret = callback(event)
                 if ret is not None:

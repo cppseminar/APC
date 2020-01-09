@@ -167,15 +167,15 @@ class Compiler(infrastructure.Module):
         args = [self.directory] + self.file_names
         compiler = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 self.BAT_PATH)
+        _logger.debug("Compiling cwd %s %s", self.directory, [compiler] + args)
         completed_process = subprocess.run([compiler] + args,
                                            capture_output=True,
                                            cwd=str(self.directory))
         if completed_process.returncode != 0:
-            self._clean = False
-            _logger.info(f'Compilation failed - {self.file_names}')
-            n = infrastructure.Notification()
-            n.MESSAGE(f'Failed compilation {self.file_names}')
-            self.notify(n)
+            logger.info(f'Compilation failed - {self.file_names}')
+            self.notify(infrastructure.Notification(
+                               message=f'Failed compilation{self.file_names}'))
+
             return False
         return True
 
@@ -187,16 +187,12 @@ class Compiler(infrastructure.Module):
         # Let's find and parse files for this build
         folder_path = os.path.join(self.directory, self.BUILD_MAP[platform])
         if not os.path.exists(folder_path):
-            self._clean = False
             _logger.warning(f"Compiler fail {self.directory} {platform}")
-            return infrastructure.Notification(
-                f'Compiler fail {self.files}',
-                infrastructure.MessageSeverity.ERROR)
         exe_path = os.path.join(folder_path, self.EXE_NAME)
         warnings_path = os.path.join(folder_path, self.WARNINGS)
         errors_path = os.path.join(folder_path, self.ERRORS)
-        warnings = self.get_xml_entries(warnings_path)
-        errors = self.get_xml_entries(errors_path)
+        warnings = '\n'.join(map(str, self.get_xml_entries(warnings_path)))
+        errors = '\n'.join(map(str, self.get_xml_entries(errors_path)))
         exe_exists = os.path.exists(exe_path)
 
         assert bool(exe_exists) != bool(errors)
