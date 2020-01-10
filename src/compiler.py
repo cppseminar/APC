@@ -15,7 +15,6 @@ from difflib import Differ
 import constants
 import infrastructure
 import library
-import settings
 
 
 _logger = infrastructure.set_logger(__name__)
@@ -191,8 +190,8 @@ class Compiler(infrastructure.Module):
         exe_path = os.path.join(folder_path, self.EXE_NAME)
         warnings_path = os.path.join(folder_path, self.WARNINGS)
         errors_path = os.path.join(folder_path, self.ERRORS)
-        warnings = '\n'.join(map(str, self.get_xml_entries(warnings_path)))
-        errors = '\n'.join(map(str, self.get_xml_entries(errors_path)))
+        warnings = self.get_xml_entries(warnings_path)
+        errors = self.get_xml_entries(errors_path)
         exe_exists = os.path.exists(exe_path)
 
         assert bool(exe_exists) != bool(errors)
@@ -219,21 +218,22 @@ class Compiler(infrastructure.Module):
 
     def handle_new_event(self, event: CompilerEvent):
         if not event.exe_path:
+            errors = '\n'.join(map(str, event.errors))
             self.notify(
                 infrastructure.Notification(
                     f"Compilation failed for {self.file_names}, "
                     f"platform {event.platform.name}",
                     infrastructure.MessageSeverity.ERROR,
-                    payload=event.errors))
+                    payload=errors))
             return  # Don't send event furhter
 
         if event.warnings:
-            self.notify(
-                infrastructure.Notification(
-                    f"Compilation with warnings for {self.file_names} "
-                    f"{event.platform.name}",
-                    infrastructure.MessageSeverity.WARNING,
-                    payload=event.warnings))
+            warnings = '\n'.join(map(str, event.warnings))
+            self.notify(infrastructure.Notification(
+                        f"Compilation with warnings for {self.file_names} "
+                        f"{event.platform.name}",
+                        infrastructure.MessageSeverity.WARNING,
+                        payload=warnings))
         else:
             self.notify(
                 infrastructure.Notification(
