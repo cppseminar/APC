@@ -76,12 +76,11 @@ class HuffmanEvaluator(infrastructure.Module):
         """Return frequency map for file file_name."""
         with contextlib.suppress(FileNotFoundError):
             with open(file_name, "br") as f:
-                content = f.read()
-                frequency: Dict[int, int] = collections.defaultdict(lambda: 0)
-                for byte in content:
-                    index = int(byte)
-                    frequency[index] = frequency[index] + 1
-                return frequency
+                # frequency = collections.defaultdict(int)
+                frequency = collections.Counter()
+                while content := f.read(4096):
+                    frequency.update(content)
+                return dict(frequency)
         return {}
 
     @staticmethod
