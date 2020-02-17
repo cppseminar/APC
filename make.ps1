@@ -13,14 +13,7 @@ param (
     [string] $python_path = ""
 )
 
-$python_path="C:\Users\mandu\source\virtualenvs\testscript\Scripts\python.exe"
-
-
-if ($tags) {
-    & "ctags" "--kinds-python=+cfm-vxiIzl" "--maxdepth=1" "-R" "src"
-}
-
-
+# $python_path = 
 
 if ($tags) {
     & "ctags" "--kinds-python=+cfm-vxiIzl" "--maxdepth=1" "-R" "src"
@@ -39,7 +32,6 @@ if (!$python_path) {
 if ($install) {
     & $python_path "-m" "pip" "install" "-r" "requirements.txt"
 }
-
 
 
 if ($update) {
