@@ -126,3 +126,11 @@ dmypy.json
 
 # VS Code settings dir
 .vscode/
+
+# Project specific
+msbuild.binlog
+*.ini
+tags
+*.sublime*
+*.code*
+*pyls*
