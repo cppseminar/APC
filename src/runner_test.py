@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import compiler
 import runner
 
 # pylint: disable=missing-docstring
