@@ -2,7 +2,6 @@
 import argparse
 import collections
 import contextlib
-import functools
 import os
 import re
 
@@ -29,18 +28,21 @@ class HuffmanEvaluator(infrastructure.Module):
         """Check if run output is correct."""
         if event.identification != self.settings['input_identification']:
             return False
-        identification = (event.identification + " " + event.name + " "
-                          + self.name + " " + self.__class__.__name__ + " ")
+        identification = ('[' + self.__class__.__name__ + '] ' + self.name +
+                          "  -  " + event.identification + " " + event.name +
+                          " " + self.name + " ")
         # First let's check if there are only required bytes
         file_bytes = self.get_byte_frequency(self.settings['source_file'])
         student_output = self.parse_output(event.output_file)
-        if (len1 := len(file_bytes)) != (len2 := len(student_output)):
+        #if (len1 := len(file_bytes)) != (len2 := len(student_output)):
+        if ((set1 := set(file_bytes.keys())) !=
+            (set2 := set(student_output.keys()))):
             self.notify(infrastructure.Notification(
-                            message=f'Bad byte count for {identification}.'
-                                    f' Diff unique bytes {len1} {len2}',
+                            message=f'{identification} Bad byte count.'
+                                    f' Diff unique bytes exp {len(set1)} s {len(set2)}',
                             severity=infrastructure.MessageSeverity.ERROR,
                             payload=str(set(file_bytes.keys())
-                                        - set(student_output.keys()))))
+                                        ^ set(student_output.keys()))))
             # Maybe log
             return True
         # Let's check proposed file size by student implementation
@@ -76,8 +78,7 @@ class HuffmanEvaluator(infrastructure.Module):
         """Return frequency map for file file_name."""
         with contextlib.suppress(FileNotFoundError):
             with open(file_name, "br") as f:
-                # frequency = collections.defaultdict(int)
-                frequency = collections.Counter()
+                frequency: collections.Counter = collections.Counter()
                 while content := f.read(4096):
                     frequency.update(content)
                 return dict(frequency)
@@ -103,7 +104,7 @@ class HuffmanEvaluator(infrastructure.Module):
                    r'\s*$'
                    )
         with contextlib.suppress(FileNotFoundError):
-            values: Dict[int, int] = {}
+            values: Dict[int, str] = {}
             with open(file_name, "r") as file_:
                 while line := file_.readline():
                     if not (match := re.match(pattern, line)):

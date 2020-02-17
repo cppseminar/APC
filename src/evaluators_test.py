@@ -60,6 +60,10 @@ class TestHuffmanEvaluator:
             file_.write('2: 10\n')
         output = evaluators.HuffmanEvaluator.parse_output(temp_file.name)
         assert output == {}
+        with open(temp_file.name, "w") as file_:
+            file_.write('nespravny pocet argumentov\n')
+        output = evaluators.HuffmanEvaluator.parse_output(temp_file.name)
+        assert output == {}
 
     def test_bad_count(self, monkeypatch):
         """Test if byte count is checked properly."""
