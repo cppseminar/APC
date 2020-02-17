@@ -1,7 +1,6 @@
 import os
 import sys
 import csv
-import subprocess
 import argparse
 import traceback
 import json
@@ -13,20 +12,10 @@ from itertools import chain
 
 import compiler
 import runner
-import settings
+import evaluators
 import infrastructure
 
 
-def get_vs_vars(build_type) -> Dict[str, str]:
-    """Find and call vcvarsall and return environment set by this script"""
-    params = [
-        "cmd",
-        "/c",
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Auxiliary\\Build\\vcvarsall.bat"
-        + " x64" + " & " + " set ",
-    ]
-    process = subprocess.run(params, capture_output=True, text=True)
-    return compiler.parse_env(process.stdout)
 
 
 class SimpleLogger:
@@ -104,9 +93,11 @@ if __name__ == "__main__":
     script.add_class(WeirdLogger)
     script.add_class(compiler.CppFinder)
     script.add_class(compiler.Compiler)
+    script.add_class(infrastructure.HTMLWriter)
     script.add_class(infrastructure.ConsoleWriter)
     script.add_class(runner.CompilerFilter)
     script.add_class(runner.RunnerModule)
+    script.add_class(evaluators.HuffmanEvaluator)
 
     with open("./config.ini", "r") as f:
         script.load_ini_settings(f)
