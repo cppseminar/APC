@@ -1,13 +1,14 @@
 autopep8
+bandit
 colorama
 coverage
 flake8
 flake8-bugbear
+https://github.com/PyCQA/pyflakes/archive/master.zip
 mccabe
 mypy
 pycodestyle
 pydocstyle
-pyflakes
 pylint
 pytest
 python-language-server

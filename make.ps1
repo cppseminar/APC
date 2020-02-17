@@ -48,7 +48,7 @@ if ($update) {
 }
 
 if ($test) {
-    & $python_path "-m" "pytest" "-s" "-vv" "--color=yes" "src"
+    & $python_path "-m" "pytest" "-s" "-vv" "--tb=long" "--color=yes" "src"
     if ($LASTEXITCODE -ne 0) {
         exit 1
     }
@@ -93,9 +93,15 @@ Function LintFile
     Write-Output "Running pydocstyle"
     & $python_path "-m" "pydocstyle"  $file
 
-    # flake8 - bugbear
-    # mccabe??
-    Write-Output "please fix your pylint, code&doc style  $file"
+    # flake8
+    Write-Output "Running flake8"
+    & $python_path "-m" "flake8"  $file
+
+    # flake8
+    Write-Output "Running flake8"
+    & $python_path "-m" "bandit"  $file
+    
+    Write-Output "please fix your pylint, code&doc style and bandit  $file"
 
     Write-Host  "===============================================" -ForegroundColor white -BackgroundColor black
 
@@ -108,6 +114,10 @@ $lint_files.Add(".\src\infrastructure.py")
 $lint_files.Add(".\src\infrastructure_test.py")
 $lint_files.Add(".\src\library.py")
 $lint_files.Add(".\src\library_test.py")
+$lint_files.Add(".\src\runner.py")
+$lint_files.Add(".\src\runner_test.py")
+$lint_files.Add(".\src\evaluators.py")
+$lint_files.Add(".\src\evaluators_test.py")
 
 
 if ($lint) {
