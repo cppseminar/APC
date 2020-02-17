@@ -83,8 +83,9 @@ class RunnerModule(infrastructure.Module):
         'input_identification': infrastructure.AnyStringParser(),
         'output_identification': infrastructure.AnyStringParser(),
         'args': infrastructure.JsonListParser(),
-        # 'run_times': [1, 3, 5],
+        # 'run_times': [1, 3, 5],  # in init
         'max_time': infrastructure.AnyIntParser(default=10),
+        # 'cleanup' = [True, False],  # In init
     }
 
     def __init__(self, name):
@@ -102,7 +103,7 @@ class RunnerModule(infrastructure.Module):
             self.register_setting(
                 "folder",
                 parser=infrastructure.TmpFolderCreator(
-                    cleanup=True,
+                    cleanup=self.settings['cleanup'],
                     name_parts=[
                         self.__class__.__name__,
                         self.settings["input_identification"],
@@ -138,51 +139,55 @@ class RunnerModule(infrastructure.Module):
                                                   delete=False)
 
         ret = None
-        try:
+        try:  # Try - exception on timeout
             run_time = time.time()
-            subprocess.run([event.exe_path] + arguments,
-                           timeout=int(self.settings['max_time']),
-                           text=True,
-                           cwd=folder,
-                           stdout=stdout_file,
-                           stderr=stderr_file,
-                           check=False)
+            process = subprocess.run([event.exe_path] + arguments,
+                                     timeout=int(self.settings['max_time']),
+                                     text=True,
+                                     cwd=folder,
+                                     stdout=stdout_file,
+                                     stderr=stderr_file,
+                                     check=False)
             run_time = time.time() - run_time
             ret = RunOutput(output_file=stdout_file.name,
                             error_file=stderr_file.name,
                             run_time=run_time,
                             timeout=False,
+                            exit_code=process.returncode,
                             identification=self.settings['output_identification'],
                             name=event.name)
             return ret
 
         except subprocess.TimeoutExpired:
-            ret = RunOutput(timeout=True, identification=self.settings['output_identification'], name=event.name)
+            ret = RunOutput(timeout=True,
+                        identification=self.settings['output_identification'],
+                        name=event.name)
             return ret
         finally:
             stdout_file.close()
             stderr_file.close()
-            if self.settings['cleanup']:
+            if self.settings['cleanup'] is True:
                 weakref.finalize(ret, ret.cleanup,
                                  str(stdout_file.name), str(stderr_file.name))
 
     def _create_notification(self, event):
         """Given event RunOutput, create notification for loggers."""
-        identificator = event.name + "_" + event.identification + "_"
+        identificator = ('[' + self.__class__.__name__ + '] ' + self.name +
+                        ' - ' +  event.name + "_" + event.identification + "_")
         if event.timeout:
             return infrastructure.Notification(
-                message=f'{self.name} {identificator} '
+                message=f'{identificator} '
                         f'failed on time',
-                severity=infrastructure.MessageSeverity.WARNING)
+                severity=infrastructure.MessageSeverity.ERROR)
 
         if event.exit_code != 0:
             return infrastructure.Notification(
-                message=f'{self.name} {identificator} '
+                message=f'{identificator} '
                         f'exit code {event.exit_code}. Run {event.run_time}s',
                 severity=infrastructure.MessageSeverity.WARNING)
 
         return infrastructure.Notification(
-            message=f'{self.name} {identificator} '
+            message=f'{identificator} '
                     f'run time {event.run_time}s',
             severity=infrastructure.MessageSeverity.INFO)
 

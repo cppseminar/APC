@@ -161,6 +161,7 @@ class TestRunnerModule:
         assert os.path.exists(file1)
         assert os.path.exists(file2)
         del mock
+        del module
         gc.collect()
         assert os.path.exists(file1)
         assert os.path.exists(file2)
