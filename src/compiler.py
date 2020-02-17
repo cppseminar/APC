@@ -1,3 +1,4 @@
+"""Module containing compilers..."""
 import contextlib
 import dataclasses
 import os
@@ -10,9 +11,7 @@ import xml.etree.ElementTree as ET
 
 from typing import Iterable, List
 from enum import IntEnum, unique, auto
-from difflib import Differ
 
-import constants
 import infrastructure
 import library
 
@@ -26,39 +25,6 @@ class Platform(IntEnum):
     x64_Release = auto()
     x32_Debug = auto()
     x32_Release = auto()
-
-
-class Executable:
-    LOG = 'compilation.txt'
-
-    def __init__(self, file_name, warnings=[], errors=[]):
-        self.file = file_name
-        self.warnings = warnings
-        self.errors = errors
-
-    def __bool__(self):
-        return self.file and os.path.exists(self.file) and not self.errors
-
-    def __str__(self):
-        ret = ""
-        if not self.__bool__():
-            ret += "[FAIL]\n"
-        elif len(self.warnings):
-            ret += "[WARNINGS]\n"
-        else:
-            return "[OK]"
-
-        return ret + f"   #errors {len(self.errors)} #warnings {len(self.warnings)}"
-
-    def get_log(self):
-        ret = "WARNINGS\n"
-        ret += "-----------\n"
-        ret += "     \n     ".join([str(i) for i in self.warnings])
-        ret += "\nERRORS\n"
-        ret += "-----------\n"
-        ret += "     \n     ".join([str(i) for i in self.errors])
-        return ret
-
 
 class FilePathParser(infrastructure.SettingsParser):
     def is_valid(self, value):
@@ -79,6 +45,8 @@ class SourceFileEvent(infrastructure.Event):
 
 
 class CppFinder(infrastructure.Module):
+    """Given start event, finds cpp files."""
+
     SETTINGS = {
         "folder_path": FilePathParser(),
         "file_path": FilePathParser(),
@@ -103,16 +71,17 @@ class CppFinder(infrastructure.Module):
             if self.files is not None:
                 raise infrastructure.ConfigError(
                     f"In {self.__class__.__name__} specify only one path")
-            self.files = [self.settings['file_path']]
+            self.files = [pathlib.Path(self.settings['file_path'])]
 
     def handle_internal(self, event):
         self._process_settings()
         self.files = list(map(lambda x: x.resolve(), self.files))
         for file_name in self.files:
-            notif = infrastructure.Notification(f"Found file/s {file_name}")
-            self.notify(notif)
             event = SourceFileEvent([file_name])
             self.send(event)
+            notif = infrastructure.Notification(f"Found file/s {file_name}")
+            self.send(notif)
+            self.send(infrastructure.Notification('------------'))
 
 def file_name_to_identifier(file_name):
     return pathlib.PurePath(file_name).stem
@@ -127,10 +96,6 @@ class CompilerEvent(infrastructure.Event):
 
 
 class Compiler(infrastructure.Module):
-    SETTINGS = {
-        'folder_path': FilePathParser(),
-        # cleanup - in init
-    }
     BAT_PATH = r'..\msbuild\run.bat'
     EXE_NAME = 'main.exe'
     WARNINGS = 'warnings.xml'
@@ -150,11 +115,13 @@ class Compiler(infrastructure.Module):
         self.compiled = False
 
     def handle_internal(self, event: SourceFileEvent):
-        self.directory = tempfile.mkdtemp(prefix="compiler_",
-                                          dir=self.settings['folder_path'])
-        if self.settings['cleanup']:
-            weakref.finalize(self, shutil.rmtree, self.directory)
-
+        try:
+            self.settings['folder']
+        except infrastructure.ConfigError:
+            self.register_setting('folder',
+                                  parser=infrastructure.TmpFolderCreator(
+                                      name_parts=['compiler'],
+                                      cleanup=self.settings['cleanup']))
         self.file_names = list(map(str, event.file_names))
         self.handle_new_event(self.compile(Platform.x64_Debug))
         self.handle_new_event(self.compile(Platform.x64_Release))
@@ -171,17 +138,25 @@ class Compiler(infrastructure.Module):
                                            capture_output=True,
                                            cwd=str(self.directory))
         if completed_process.returncode != 0:
-            logger.info(f'Compilation failed - {self.file_names}')
-            self.notify(infrastructure.Notification(
-                               message=f'Failed compilation{self.file_names}'))
+            _logger.info(f'Compilation failed - {self.file_names}')
+            self.notify(
+                infrastructure.Notification(
+                    message=f'Failed compilation{self.file_names}'))
 
             return False
         return True
 
     def compile(self, platform):
         if not self.compiled:
+            folder_creator = infrastructure.TmpFolderCreator(
+                            name_parts=[
+                                    file_name_to_identifier(self.file_names[0])],
+                            cleanup=False,
+                            directory=self.settings['folder'])
+            self.directory = folder_creator.default
+
             if not self._srsly_compile():
-                return Executable('', ['fail'], [])
+                return CompilerEvent(None, errors=["Compiler fail"])
             self.compiled = True
         # Let's find and parse files for this build
         folder_path = os.path.join(self.directory, self.BUILD_MAP[platform])
@@ -242,45 +217,3 @@ class Compiler(infrastructure.Module):
                     infrastructure.MessageSeverity.INFO))
 
         self.send(event)
-
-
-def compare_strings(input_string, output_string):
-    """Returns empty string, if strings match. Else returns complete diff"""
-    inputs = input_string.split("\n")
-    outputs = output_string.split("\n")
-    d = Differ()
-    ret = []
-    found_error = False
-    # Don't bother with empty line in the end
-    if outputs and not outputs[-1]:
-        del outputs[-1]
-
-    if inputs and not inputs[-1]:
-        del inputs[-1]
-
-    for line in d.compare(outputs, inputs):
-        ret.append(line)
-        if line[0:2] != "  ":
-            found_error = True
-
-    if found_error:
-        return "\n".join(ret)
-    return ""
-
-
-def transform_arg_to_str(something) -> str:
-    """Converts something to str. Something is either None, or file path
-    or string"""
-    if not something:
-        return ""
-    if os.path.exists(something):
-        with open(something, "r") as f:
-            return f.read()
-    # TODO: Support for string
-    raise ValueError(f"Arg cannot be converted {str(something)}")
-
-
-
-
-if __name__ == "__main__":
-    pass

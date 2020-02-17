@@ -4,22 +4,6 @@ import pytest
 import tempfile
 
 
-
-def test_compare_strings():
-    line1 = "aaa"
-    line2 = "aab"
-    assert compiler.compare_strings(line1, line2)
-    line1 = "aaa"
-    line2 = "aaa"
-    assert len(compiler.compare_strings(line1, line2)) == 0
-    line1 = "\n".join(("aaa", "b bc"))
-    line2 = "\n".join(("aaa", "b bc\n"))
-    assert len(compiler.compare_strings(line1, line2)) == 0
-    line1 = "\n".join(("aaa", "b bc"))
-    line2 = "\n".join(("aaa", "b b c\n"))
-    assert len(compiler.compare_strings(line1, line2)) != 0
-
-
 @pytest.fixture
 def tmp_file():
     t = tempfile.NamedTemporaryFile()
@@ -42,4 +26,7 @@ class TestCppFinder:
         assert finder.settings
         with pytest.raises(infrastructure.ConfigError):
             finder.handle_event(infrastructure.get_valid_event('start'))
+
+
+
 
