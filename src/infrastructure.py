@@ -549,14 +549,14 @@ class TestScript:
     def register(self, module):
         """Call to register module to this object. All events will be sent to
         the module.handle_event function."""
-        assert module not in self.modules, f"Module already registered"
+        assert module not in self.modules, "Module already registered"
         _LOGGER.debug("Registering module %s - %s", module.name,
                       module.__class__.__name__)
         self.modules.append(module)
         module.register(self)
         _LOGGER.debug("Registered in %s", self.__class__)
 
-    def add_event(self, event, priority=EventPriority.LOW):
+    def add_event(self, event, priority=EventPriority.HIGH):
         """Add event, wich will be processsed when run().
 
         Depending on priority, it might be last event in whole program.
@@ -815,7 +815,9 @@ class HTMLWriter(ConsoleWriter):
     def __init__(self, name):
         """Create global html file."""
         super().__init__(name)
-        self.handle = open("log.html", "w")
+        file_name = self.__class__.__name__ + "_" + self.name
+        file_name = library.str_to_valid_file_name(file_name)
+        self.handle = open(file_name + ".html", "w")
         self.handle.write(constants.CONFIG.HTML_HEADER)
 
 

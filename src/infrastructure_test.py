@@ -82,13 +82,13 @@ def default_fixture():
 
 class TestTestScripts():
     INI1 = (
-        f"[1]\n"
-        f"module = MyTestModule\n"
+        "[1]\n"
+        "module = MyTestModule\n"
     )
 
     INI2 = (
-        f"[2]\n"
-        f"module = WeirdLogger\n"
+        "[2]\n"
+        "module = WeirdLogger\n"
     )
 
     def test_non_exist_module_creation(self):
