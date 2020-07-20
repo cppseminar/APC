@@ -6,8 +6,8 @@ init:
         - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%"
 install:
         - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%"
-        - "%PYTHON%\\python.exe -m pip install -r tester\requirements.txt"
-        - powershell /C ".\tester\make.ps1 -python_path '%PYTHON%\\python.exe' -install"
+        - "%PYTHON%\\python.exe -m pip install -r tester\\requirements.txt"
+        - powershell /C ".\\tester\\make.ps1 -python_path '%PYTHON%\\python.exe' -install"
 
 test_script:
-        - powershell /C ".\tester\make.ps1 -python_path '%PYTHON%\\python.exe' -test -lint"
+        - powershell /C ".\\tester\\make.ps1 -python_path '%PYTHON%\\python.exe' -test -lint"
