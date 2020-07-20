@@ -40,11 +40,13 @@ if ($update) {
 }
 
 if ($test) {
-    & $python_path "-m" "pytest" "-s" "-vv" "--tb=long" "--color=yes" "src"
+    push-location src
+    & $python_path "-m" "pytest" "-s" "-vv" "--tb=long" "--color=yes" "."
     if ($LASTEXITCODE -ne 0) {
+        pop-location
         exit 1
     }
-    
+        pop-location    
 }
 
 Function LintFile
