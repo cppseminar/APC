@@ -21,4 +21,4 @@ jobs:
         # Path to package or folder. *.zip or a folder to deploy
         package: functions/
         # Publish profile (*.publishsettings) file contents with web deploy secrets
-        publish-profile: ${{ secrets.FUNCTION_PROFILE }}
+        publish-profile: ${{ secrets.MANDUCH_FUNCTION }}
