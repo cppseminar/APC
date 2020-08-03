@@ -6,7 +6,7 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "route" : "message",
+      "route" : "submissions/{id:int?}/",
       "methods": [
         "get",
         "post"
