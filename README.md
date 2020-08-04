@@ -1,5 +1,8 @@
-# testscripts
+# Apc portal
 
-[![Build status](https://ci.appveyor.com/api/projects/status/27t01kr642i35vro/branch/master?svg=true)](https://ci.appveyor.com/project/cppseminar/testscripts/branch/master)
+| App name  |  Status |
+| ---------------| ------------------------------------------------------------------------------------------------------- |
+| React frontend | ![Publish new frontend](https://github.com/cppseminar/APC/workflows/Publish%20new%20frontend/badge.svg) |
+| Azure functions  | ![Publish new api](https://github.com/cppseminar/APC/workflows/Publish%20new%20api/badge.svg)           |
 
-Scripts for compile and test excersises on course APC
+Portal for students.
