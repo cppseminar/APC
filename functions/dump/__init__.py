@@ -7,17 +7,27 @@ import azure.functions as func
 
 
 def dump_dict(request: func.HttpRequest) -> dict:
-    return {
-        "route_params": dict(request.route_params),
-        "url": request.url,
-        "method": request.method,
-        "headers": dict(request.headers),
-        "params": dict(request.params),
-        "form": request.form,
-        "files": request.files,
-        "body": request.get_body().decode("utf-8"),
-        "environment": dict(os.environ)
-    }
+    try: # try json
+        json = request.get_json()
+    except Exception as e:
+        json = str(e)
+    try:
+        return {
+            "route_params": dict(request.route_params),
+            "url": request.url,
+            "method": request.method,
+            "headers": dict(request.headers),
+            "params": dict(request.params),
+            "form": request.form,
+            "files": request.files,
+            "body": request.get_body().decode("utf-8"),
+            "json": json,
+            "environment": dict(os.environ)
+        }
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
 
 
 
