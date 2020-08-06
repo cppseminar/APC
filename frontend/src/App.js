@@ -54,10 +54,6 @@ const Submissions = (props) => {
 }
 
 
-const responseGoogleFail = (response) => {
-  console.log("Failed")
-  console.log(response);
-}
 
 // This is from module react-google-login. And it worked fine, but in the evening
 // it just stopped, due to CORS on some api it was loading... ¯\_(ツ)_/¯
@@ -99,7 +95,7 @@ function App() {
         return;
       }
       // The user authorized the application for the scopes requested.
-      var accessToken = response.access_token;
+      // var accessToken = response.access_token;
       success_callback(response.id_token)
       // You can also now use gapi.client to perform authenticated requests.
     });
