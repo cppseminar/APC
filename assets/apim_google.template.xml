@@ -13,6 +13,7 @@
 <policies>
     <inbound>
         <base />
+        <rate-limit calls="250" renewal-period="60" />
         <cors>
             <allowed-origins>
                 <origin>*</origin>
