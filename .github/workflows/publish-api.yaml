@@ -3,6 +3,8 @@ name: Publish new api
 on:
   push:
     branches: [ master ]
+env:
+  PYTHON_VERSION: '3.8'
 
 jobs:
   # This workflow contains a single job called "build"
@@ -11,8 +13,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - name: Checkout repo
+      uses: actions/checkout@v2
 
+    - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 'Run pip'
+      shell: bash
+      run: |
+        pushd functions
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt --target=".python_packages/lib/python3.6/site-packages"
+        popd
     - name: Publish functions
       uses: Azure/functions-action@v1.1.4
       with:
