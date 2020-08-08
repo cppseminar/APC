@@ -2,6 +2,7 @@
   "name": "apc",
   "version": "1.0.0",
   "private": true,
+  "proxy": "http://localhost:7071",
   "dependencies": {
     "@reduxjs/toolkit": "^1.4.0",
     "@testing-library/jest-dom": "^4.2.4",
