@@ -1,0 +1,14 @@
+# This are working test requests to our function api. They of course
+# work only if you have functions running locally.
+@baseUrl = http://localhost:3000
+
+GET {{baseUrl}}/api/submissions/ HTTP/1.1
+Accept: */*
+X-request-email: miro@example.net
+
+####
+GET {{baseUrl}}/api/submissions/ HTTP/1.1
+Accept: */*
+X-request-email: jozo@example.com
+
+####

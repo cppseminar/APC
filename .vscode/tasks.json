@@ -1,0 +1,36 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "start",
+			"path": "frontend/",
+			"problemMatcher": [
+				"$eslint-compact"
+			],
+			"label": "npm: start - frontend",
+			"detail": "react-scripts start"
+		},
+		{
+			"label": "mypy",
+			"type": "shell",
+			"command": "${config:python.pythonPath}",
+			"args": ["-m", "mypy", "--ignore-missing-imports", "${file}"],
+			"problemMatcher": []
+		},
+		{
+			"label": "pylint",
+			"type": "shell",
+			"command": "${config:python.pythonPath}",
+			"args": ["-m", "pylint" ,"${file}"],
+			"problemMatcher": []
+		},
+		{
+			"label": "pyteest",
+			"type": "shell",
+			"command": "${config:python.pythonPath}",
+			"args": ["-m", "pytest" ,"functions_test"],
+			"problemMatcher": []
+		}
+	]
+}

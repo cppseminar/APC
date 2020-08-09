@@ -22,7 +22,7 @@ def _dict_response(response: typing.Union[dict, list], code=200):
 
 def response_server_error(message="Server error", code=500) -> functions.HttpResponse:
     """Returns azure http response with server error."""
-    return _dict_response({"error": message, "statusCode": code}, code=code)
+    return _dict_response({"statusCode": code, "message": message}, code=code)
 
 
 def dispatcher(get=None, post=None, put=None):
