@@ -86,7 +86,7 @@ function App() {
 
   const googleClick = () => {
     window.gapi.auth2.authorize({
-      client_id: '576929321854-j4sla3jtq4mlig7n7r0m9h2dl19s1ua5.apps.googleusercontent.com',
+      client_id: '576929321854-ehseffml2b36tulnmtcua5dn9tkfs0it.apps.googleusercontent.com',
       scope: 'email profile openid',
       response_type: 'id_token permission'
     }, function(response) {
@@ -99,7 +99,7 @@ function App() {
       success_callback(response.id_token)
       // You can also now use gapi.client to perform authenticated requests.
     });
-    
+
   }
 
 
@@ -110,22 +110,22 @@ function App() {
         <Counter />
         {/* <Button success={success_callback} error={responseGoogleFail}/> */}
         <button onClick={googleClick}>Login google</button>
-        
+
 
         <p>
           {message}
         </p>
         <hr style={{width: "10em"}}/>
         <p>
-          Google token: 
+          Google token:
         </p>
 
         <textarea value={token}/>
 
         <Submissions/>
-      
 
-      
+
+
       </header>
     </div>
   );

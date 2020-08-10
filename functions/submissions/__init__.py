@@ -91,7 +91,7 @@ def post_handler(req: func.HttpRequest):
             raise RuntimeError("Trying to set _id")
         # For now, this is fine
         submit = request_json
-    except Exception as e:
+    except Exception:
         return dict_response({"error": "Bad json"}, code=400)
 
     result = collection.insert_one(submit)
@@ -105,7 +105,7 @@ def post_handler(req: func.HttpRequest):
     slash = ""
     if uri and uri[-1] != "/":
         slash = "/"
-    editable[2] = str(uri) + f"/{new_id}"
+    editable[2] = str(uri) + slash + f"{new_id}"
     # Done
 
     url = urllib.parse.urlunparse(editable)
