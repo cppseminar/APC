@@ -12,3 +12,12 @@ Accept: */*
 X-request-email: jozo@example.com
 
 ####
+
+POST {{baseUrl}}/api/submissions/ HTTP/1.1
+Accept: */*
+X-request-email: jozo@example.com
+
+{
+        "files": [{"content":"wqeqw asd wadwa", "fileName" : "source.cpp"}],
+        "taskId": "abcd123"
+}

@@ -15,6 +15,7 @@ import urllib
 import typing
 
 import azure.functions as func
+import cerberus
 
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -23,6 +24,24 @@ from bson.json_util import dumps, RELAXED_JSON_OPTIONS
 from .. import shared
 from ..shared import http
 
+
+POST_SCHEMA = {
+    "files": {
+        "type": "list",
+        "required": True,
+        "items": [
+            {
+                "type": "dict",
+                "require_all": True,
+                "schema": {
+                    "fileName": {"type": "string"},
+                    "content": {"type": "string"},
+                },
+            }
+        ],
+    },
+    "taskId": {"type": "string", "required": True, "empty": False},
+}
 
 async def main(req: func.HttpRequest) -> func.HttpResponse:
     dispatch = shared.http.dispatcher(get=get_handler, post=post_handler)
@@ -64,7 +83,7 @@ def get_handler(req: func.HttpRequest, user=None):
 
     offset = 0
     with contextlib.suppress(TypeError):
-        offset = int(req.params.get("offset", 1))
+        offset = int(req.params.get("offset", 0))
         logging.warn("offset is %s", offset)
 
     result = list(collection.find().limit(5).skip(offset))
@@ -87,6 +106,12 @@ def post_handler(req: func.HttpRequest):
     try:
         request_json = req.get_json()
         request_json = dict(request_json)
+        global POST_SCHEMA
+        validator = cerberus.Validator(POST_SCHEMA)
+        if not validator.validate(request_json):
+            logging.info("Error in submission post %s", validator.errors)
+            raise RuntimeError("Bad json schema")
+
         if "_id" in request_json:
             raise RuntimeError("Trying to set _id")
         # For now, this is fine
