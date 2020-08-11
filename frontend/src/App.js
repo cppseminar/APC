@@ -4,7 +4,13 @@ import logo from './logo.svg';
 import { Counter } from './features/counter/Counter';
 import './App.css';
 
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route
+} from "react-router-dom"
 
+import GoogleLogin, { CallbackPage } from './features/google-login/button'
 
 
 const Submissions = (props) => {
@@ -53,80 +59,28 @@ const Submissions = (props) => {
   )
 }
 
-
-
-// This is from module react-google-login. And it worked fine, but in the evening
-// it just stopped, due to CORS on some api it was loading... ¯\_(ツ)_/¯
-
-// const Button = (success, error) => {
-//   return <GoogleLogin
-//   clientId="576929321854-j4sla3jtq4mlig7n7r0m9h2dl19s1ua5.apps.googleusercontent.com"
-//   buttonText="Login with google"
-//   onSuccess={success}
-//   onFailure={error}
-//   cookiePolicy={'single_host_origin'} />
-// }
-
-function App() {
-
-  let [message, setMessage] = useState("Hi please sign in")
-  let [token, setToken] = useState("")
-
-  const success_callback = (obj) => {
-    setMessage("Successful login")
-    console.log(obj)
-    setToken(obj)
-  }
-
-
-  const fail = () => {
-    setMessage("Failed login")
-  }
-
-
-  const googleClick = () => {
-    window.gapi.auth2.authorize({
-      client_id: '576929321854-ehseffml2b36tulnmtcua5dn9tkfs0it.apps.googleusercontent.com',
-      scope: 'email profile openid',
-      response_type: 'id_token permission'
-    }, function(response) {
-      if (response.error) {
-        fail()
-        return;
-      }
-      // The user authorized the application for the scopes requested.
-      // var accessToken = response.access_token;
-      success_callback(response.id_token)
-      // You can also now use gapi.client to perform authenticated requests.
-    });
-
-  }
-
-
+const App = () => {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        {/* <Button success={success_callback} error={responseGoogleFail}/> */}
-        <button onClick={googleClick}>Login google</button>
+      <Router>
+        <Switch>
+          <Route path='/.auth/google/login'>
+            <CallbackPage />
+          </Route>
+          <Route path='/'>
+            <header className="App-header">
+              <img src={logo} className="App-logo" alt="logo" />
+              <Counter />
 
+              <GoogleLogin />
+              <hr style={{width: "10em"}}/>
 
-        <p>
-          {message}
-        </p>
-        <hr style={{width: "10em"}}/>
-        <p>
-          Google token:
-        </p>
+              <Submissions/>
 
-        <textarea value={token}/>
-
-        <Submissions/>
-
-
-
-      </header>
+            </header>
+          </Route>
+        </Switch>
+      </Router>
     </div>
   );
 }
