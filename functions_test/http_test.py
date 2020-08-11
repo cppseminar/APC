@@ -2,7 +2,7 @@ import unittest.mock
 from unittest.mock import MagicMock
 import pytest
 
-from functions.shared.http import login_required
+from functions.shared.decorators import login_required
 from functions.shared.common import HEADER_EMAIL
 
 

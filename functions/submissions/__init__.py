@@ -22,7 +22,7 @@ from bson.objectid import ObjectId
 from bson.json_util import dumps, RELAXED_JSON_OPTIONS
 
 from .. import shared
-from ..shared import http
+from ..shared import http, decorators
 
 
 POST_SCHEMA = {
@@ -59,7 +59,7 @@ def error_response(response: str, code=400):
          status_code=code, mimetype="application/json"
     )
 
-@shared.http.login_required
+@shared.decorators.login_required
 def get_handler(req: func.HttpRequest, user=None):
     logging.info("Logged in user %s", user)
     request_id = req.route_params.get("id", None)
@@ -89,7 +89,7 @@ def get_handler(req: func.HttpRequest, user=None):
     result = list(collection.find().limit(5).skip(offset))
     return dict_response(json.loads(dumps(result, json_options=RELAXED_JSON_OPTIONS)))
 
-@shared.http.login_required
+@shared.decorators.login_required
 def post_handler(req: func.HttpRequest):
     """Handle new submissions."""
     request_id = req.route_params.get("id", None)
@@ -136,4 +136,3 @@ def post_handler(req: func.HttpRequest):
     url = urllib.parse.urlunparse(editable)
 
     return dict_response({"link": url})
-
