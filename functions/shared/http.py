@@ -23,6 +23,10 @@ def response_server_error(message="Server error", code=500) -> functions.HttpRes
     """Returns azure http response with server error."""
     return _dict_response({"statusCode": code, "message": message}, code=code)
 
+def response_client_error(message="Error bad request", code=400) -> functions.HttpResponse:
+    """Returns azure http response filled with bad request code and message."""
+    return _dict_response({"statusCode": code, "message": message}, code=code)
+
 
 def dispatcher(get=None, post=None, put=None):
     """Method to simplify handling of GET, POST and so on.
