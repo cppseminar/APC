@@ -7,9 +7,14 @@ Accept: */*
 X-request-email: miro@example.net
 
 ####
-GET {{baseUrl}}/api/submissions/ HTTP/1.1
+GET {{baseUrl}}/api/submissions/5f3172e94ccb2b29ecbf28e0 HTTP/1.1
 Accept: */*
 X-request-email: jozo@example.com
+
+####
+GET {{baseUrl}}/api/submissions?offset=5&limit=2 HTTP/1.1
+Accept: */*
+X-request-email: miro@example.net
 
 ####
 

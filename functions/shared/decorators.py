@@ -64,8 +64,8 @@ def _get_mapper(settings: dict):
     return _internal
 
 
-def validate_parameters(route_settings: typing.Dict[str, dict] = None,
-                        query_settings: typing.Dict[str, dict] = None):
+def validate_parameters(route_settings: typing.Dict[str, typing.Any] = None,
+                        query_settings: typing.Dict[str, typing.Any] = None):
     """
     Decorator for request argument/parameter validation.
 

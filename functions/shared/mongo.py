@@ -6,6 +6,7 @@ import os
 import pymongo.collection  # pylint: disable=unused-import
 
 from pymongo import MongoClient
+from bson import ObjectId
 from . import common
 from . import users
 
@@ -63,3 +64,21 @@ class MongoUsers:
     @staticmethod
     def get_submission(submission_id: str):
         """Get submissions identified by submission_id."""
+
+
+class MongoSubmissions:
+    """Manipulation of submissions."""
+
+    @staticmethod
+    def get_submissions(limit=10, skip=0):
+        """Get all submissions."""
+        collection = get_client().get_submissions()
+        cursor = collection.find({}).limit(limit).skip(skip)
+        return iter(cursor)
+
+    @staticmethod
+    def get_submission(submission_id=None):
+        """Get specific submission."""
+        sub_id = ObjectId(submission_id)
+        collection = get_client().get_submissions()
+        return collection.find_one({"_id": sub_id})

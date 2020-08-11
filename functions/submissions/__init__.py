@@ -21,85 +21,44 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.json_util import dumps, RELAXED_JSON_OPTIONS
 
+
+from .validators import POST_SCHEMA, QUERY_PARAMS, ROUTE_PARAMS
+
 from .. import shared
-from ..shared import http, decorators
+from ..shared import http, decorators, mongo
 
-
-POST_SCHEMA = {
-    "files": {
-        "type": "list",
-        "required": True,
-        "items": [
-            {
-                "type": "dict",
-                "require_all": True,
-                "schema": {
-                    "fileName": {"type": "string"},
-                    "content": {"type": "string"},
-                },
-            }
-        ],
-    },
-    "taskId": {"type": "string", "required": True, "empty": False},
-}
 
 async def main(req: func.HttpRequest) -> func.HttpResponse:
+    """Entry point."""
     dispatch = shared.http.dispatcher(get=get_handler, post=post_handler)
     return dispatch(req)
 
 
-def dict_response(response: typing.Union[dict,list], code=200):
-    return func.HttpResponse(
-        json.dumps(response), status_code=code, mimetype="application/json"
-    )
-
-def error_response(response: str, code=400):
-    return func.HttpResponse(
-        json.dumps({"error": response, "code": code }),
-         status_code=code, mimetype="application/json"
-    )
 
 @shared.decorators.login_required
-def get_handler(req: func.HttpRequest, user=None):
-    logging.info("Logged in user %s", user)
-    request_id = req.route_params.get("id", None)
-    if request_id and not ObjectId.is_valid(request_id):
-        return error_response("Invalid request id")
+@shared.decorators.validate_parameters(
+    route_settings=ROUTE_PARAMS, query_settings=QUERY_PARAMS
+)
+def get_handler(req: func.HttpRequest, submission_id=None, skip=0, limit=10):
+    """Handle list requests and concrete id request."""
 
-    client = MongoClient(os.environ["MyCosmosDBConnectionString"], retryWrites=False)
-    db = client.get_database("development")
-    collection = db.get_collection("submissions")
-    if request_id:
-
-        logging.warn({"_id": ObjectId(request_id)})
-        result = collection.find_one({"_id": ObjectId(request_id)})
+    if submission_id:
+        result = mongo.MongoSubmissions.get_submission(submission_id=submission_id)
         if not result:
-            return error_response("Not found", code=403)
-        logging.info(type(result))
-        return dict_response(json.loads(dumps(result, json_options=RELAXED_JSON_OPTIONS)))
+            return http.response_not_found()
+        return http.response_ok(result)
 
-    # This is get method and no request id was set, therefore we want to
-    # list something
+    submissions = mongo.MongoSubmissions.get_submissions(skip=skip, limit=limit)
+    return http.response_ok(list(submissions))
 
-    offset = 0
-    with contextlib.suppress(TypeError):
-        offset = int(req.params.get("offset", 0))
-        logging.warn("offset is %s", offset)
-
-    result = list(collection.find().limit(5).skip(offset))
-    return dict_response(json.loads(dumps(result, json_options=RELAXED_JSON_OPTIONS)))
 
 @shared.decorators.login_required
 def post_handler(req: func.HttpRequest):
     """Handle new submissions."""
-    request_id = req.route_params.get("id", None)
-    if request_id and not ObjectId.is_valid(request_id):
-        return error_response("Invalid request id")
 
     client = MongoClient(os.environ["MyCosmosDBConnectionString"], retryWrites=False)
     db = client.get_database("development")
     collection = db.get_collection("submissions")
-
 
     # Someone is adding new value
     submit = None
@@ -117,7 +76,7 @@ def post_handler(req: func.HttpRequest):
         # For now, this is fine
         submit = request_json
     except Exception:
-        return dict_response({"error": "Bad json"}, code=400)
+        return http.response_client_error()
 
     result = collection.insert_one(submit)
     new_id = str(result.inserted_id)
@@ -135,4 +94,4 @@ def post_handler(req: func.HttpRequest):
 
     url = urllib.parse.urlunparse(editable)
 
-    return dict_response({"link": url})
+    return http.response_ok({"link": url})
