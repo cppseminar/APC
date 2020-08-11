@@ -5,6 +5,7 @@ import pytest
 from functions.shared.decorators import (
     login_required,
     validate_parameters,
+    object_id_validator,
     VALIDATOR,
     DESTINATION,
 )
@@ -142,3 +143,10 @@ class TestValidateParameters:
 
         call_result = _decorated(request)
         assert result == 444
+
+def test_object_id_validator():
+    with pytest.raises(Exception):
+        object_id_validator("123")
+    with pytest.raises(Exception):
+        object_id_validator("asdf")
+    assert object_id_validator("5f3172e94ccb2b29ecbf28e0")

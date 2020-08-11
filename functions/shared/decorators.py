@@ -5,6 +5,7 @@ import functools
 import typing
 
 import azure.functions as functions
+from bson.objectid import ObjectId
 
 from . import common
 from . import users
@@ -42,6 +43,13 @@ def login_required(func: typing.Callable):
 
 VALIDATOR = "validator"
 DESTINATION = "dest"
+
+def object_id_validator(value):
+    """Return object id as ObjectId object, or raise error."""
+    if not ObjectId.is_valid(value):
+        raise RuntimeError(f"Value {str(value)} doesn't look like object ID")
+    return ObjectId(value)
+
 
 
 def _get_mapper(settings: dict):
@@ -107,8 +115,9 @@ def validate_parameters(route_settings: typing.Dict[str, dict] = None,
             try:
                 kwargs.update(dict(map(query_mapper, query_args)))
                 kwargs.update(dict(map(route_mapper, route_args)))
-            except RuntimeError as error:
-                logging.info("Error during parsing http params %s", error)
+            except Exception as error: # pylint: disable=W0703
+                # Let's assume validator threw some solid description
+                logging.warning("Error during parsing http params %s", error)
                 return response_client_error()
             return func(req, *args, **kwargs)
 
