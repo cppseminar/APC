@@ -27,11 +27,11 @@ class _Mongo:
     def __init__(self, client):
         self.client = client
 
-    def get_users(self):
+    def get_users(self) -> pymongo.collection.Collection:
         """Return users collection."""
         return self.client.get_collection(common.COL_USERS)
 
-    def get_submissions(self):
+    def get_submissions(self) -> pymongo.collection.Collection:
         """Return submissions collection."""
         return self.client.get_collection(common.COL_SUBMISSIONS)
 
@@ -64,6 +64,7 @@ class MongoUsers:
     @staticmethod
     def get_submission(submission_id: str):
         """Get submissions identified by submission_id."""
+        pass
 
 
 class MongoSubmissions:
@@ -82,3 +83,20 @@ class MongoSubmissions:
         sub_id = ObjectId(submission_id)
         collection = get_client().get_submissions()
         return collection.find_one({"_id": sub_id})
+
+    @staticmethod
+    def submit(user="", files=None, task_id=""):
+        """Submit one entry to submissions."""
+        collection = get_client().get_submissions()
+        if not files:
+            files = list()
+        document = {
+            "user": user,
+            "files": files,
+            "task_id": task_id
+        }
+        result = collection.insert_one(document)
+        if not result.acknowledged:
+            return None
+        document["_id"] = result.inserted_id
+        return document

@@ -34,7 +34,6 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
     return dispatch(req)
 
 
-
 @shared.decorators.login_required
 @shared.decorators.validate_parameters(
     route_settings=ROUTE_PARAMS, query_settings=QUERY_PARAMS
@@ -53,34 +52,18 @@ def get_handler(req: func.HttpRequest, submission_id=None, skip=0, limit=10):
 
 
 @shared.decorators.login_required
-def post_handler(req: func.HttpRequest):
+def post_handler(req: func.HttpRequest, user=None):
     """Handle new submissions."""
-
-    client = MongoClient(os.environ["MyCosmosDBConnectionString"], retryWrites=False)
-    db = client.get_database("development")
-    collection = db.get_collection("submissions")
-
-    # Someone is adding new value
-    submit = None
-    try:
-        request_json = req.get_json()
-        request_json = dict(request_json)
-        validator = cerberus.Validator(POST_SCHEMA)
-        # validator = cerberus.Validator(POST_SCHEMA, allow_unknown=False)
-        if not validator.validate(request_json):
-            logging.warning("Error in submission post %s", validator.errors)
-            return http.response_client_error()
-
-        if "_id" in request_json:
-            raise RuntimeError("Trying to set _id")
-        # For now, this is fine
-        submit = request_json
-    except Exception as error:
-        logging.error("Something went wrong %s", error)
+    document = http.get_json(req, POST_SCHEMA)
+    if not document:
         return http.response_client_error()
+    # TODO: Validate if task is ok
 
-    result = collection.insert_one(submit)
-    new_id = str(result.inserted_id)
+    result = mongo.MongoSubmissions.submit(
+        user=user.email, files=document["files"], task_id=document["taskId"]
+    )
+
+    return_id = str(result["_id"])
 
     parsed = urllib.parse.urlparse(req.url)
     editable = list(parsed)
@@ -90,9 +73,9 @@ def post_handler(req: func.HttpRequest):
     slash = ""
     if uri and uri[-1] != "/":
         slash = "/"
-    editable[2] = str(uri) + slash + f"{new_id}"
+    editable[2] = str(uri) + slash + f"{return_id}"
     # Done
 
     url = urllib.parse.urlunparse(editable)
 
-    return http.response_ok({"link": url})
+    return http.response_ok(result, code=201)

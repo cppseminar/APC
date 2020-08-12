@@ -10,6 +10,7 @@ import typing
 
 import azure.functions as functions
 import bson.json_util
+import cerberus
 
 
 def response_ok(document: typing.Any, code=200):
@@ -75,3 +76,18 @@ def dispatcher(get=None, post=None, put=None):
         return response_server_error()
 
     return _dispatch
+
+def get_json(request: functions.HttpRequest, schema: dict, /):
+    """Validate submitted json schema. Returns dict or None."""
+    try:
+        data = request.get_json()
+        validator = cerberus.Validator(schema, allow_unknown=False, require_all=True)
+        if not validator.validate(data):
+            logging.warning("Error in json %s", validator.errors)
+            return None
+        return validator.document
+    except TypeError:
+        logging.warn("Received non json request")
+    except Exception as error:
+        logging.error("Error in handling json %s", error)
+    return None
