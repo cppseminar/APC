@@ -10,8 +10,8 @@ if (process.env.NODE_ENV !== 'production') {
 
 const config = {
   authority: 'https://accounts.google.com/',
-  client_id: '576929321854-j4sla3jtq4mlig7n7r0m9h2dl19s1ua5.apps.googleusercontent.com',
-  redirect_uri: 'https://l33t.party/.auth/google/login',
+  client_id: '576929321854-c33uueff0j60au8i87lecabbqme5s3hj.apps.googleusercontent.com',
+  redirect_uri: window.location.protocol + "//" + window.location.host + '/.auth/google/login',
   scope: 'email profile openid',
   automaticSilentRenew: true,
 }
@@ -40,29 +40,29 @@ const Button = () => {
     })
   }, [um])
 
-  const login = () => { 
+  const login = () => {
     um.signinPopup().catch((reason) => {
       console.log('Failed to log in! ' + reason)
     })
   }
 
   const switchUser = () => {
-    um.signinPopup({prompt: 'select_account'}).catch((reason) => {
+    um.signinPopup({ prompt: 'select_account' }).catch((reason) => {
       console.log('Failed to switch user! ' + reason)
     })
   }
 
   return (
     <div>
-      { !token ? 
-        <button onClick={ login } >Login</button> : 
+      {!token ?
+        <button onClick={login} >Login</button> :
         <>
-          <button onClick={ switchUser }>Switch user</button>
-          { picture ? <img alt='avatar' src={picture} /> : '' }{profile}
-        </> }
-      
-      
-      { token ? <><h5>Your Access Token:</h5><textarea readOnly value={token}/> </> : null }
+          <button onClick={switchUser}>Switch user</button>
+          {picture ? <img alt='avatar' src={picture} /> : ''}{profile}
+        </>}
+
+
+      {token ? <><h5>Your Access Token:</h5><textarea readOnly value={token} /> </> : null}
 
     </div>
   )
