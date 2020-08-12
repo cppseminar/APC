@@ -1,4 +1,5 @@
 """Wrappers for cosmos(mongo api)."""
+import datetime
 import logging
 import os
 
@@ -85,15 +86,18 @@ class MongoSubmissions:
         return collection.find_one({"_id": sub_id})
 
     @staticmethod
-    def submit(user="", files=None, task_id=""):
+    def submit(user="", files=None, task_id="", date=None):
         """Submit one entry to submissions."""
         collection = get_client().get_submissions()
         if not files:
             files = list()
+        if not date:
+            date = datetime.datetime.now()
         document = {
             "user": user,
             "files": files,
-            "task_id": task_id
+            "task_id": task_id,
+            "date": date
         }
         result = collection.insert_one(document)
         if not result.acknowledged:
