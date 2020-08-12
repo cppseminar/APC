@@ -65,17 +65,18 @@ def post_handler(req: func.HttpRequest):
     try:
         request_json = req.get_json()
         request_json = dict(request_json)
-        global POST_SCHEMA
         validator = cerberus.Validator(POST_SCHEMA)
+        # validator = cerberus.Validator(POST_SCHEMA, allow_unknown=False)
         if not validator.validate(request_json):
-            logging.info("Error in submission post %s", validator.errors)
-            raise RuntimeError("Bad json schema")
+            logging.warning("Error in submission post %s", validator.errors)
+            return http.response_client_error()
 
         if "_id" in request_json:
             raise RuntimeError("Trying to set _id")
         # For now, this is fine
         submit = request_json
-    except Exception:
+    except Exception as error:
+        logging.error("Something went wrong %s", error)
         return http.response_client_error()
 
     result = collection.insert_one(submit)

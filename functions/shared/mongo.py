@@ -73,7 +73,7 @@ class MongoSubmissions:
     def get_submissions(limit=10, skip=0):
         """Get all submissions."""
         collection = get_client().get_submissions()
-        cursor = collection.find({}).limit(limit).skip(skip)
+        cursor = collection.find({}, {"files": 0}).limit(limit).skip(skip)
         return iter(cursor)
 
     @staticmethod
