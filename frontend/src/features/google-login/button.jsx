@@ -10,7 +10,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 const config = {
   authority: 'https://accounts.google.com/',
-  client_id: '576929321854-c33uueff0j60au8i87lecabbqme5s3hj.apps.googleusercontent.com',
+  client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
   redirect_uri: window.location.protocol + "//" + window.location.host + '/.auth/google/login',
   scope: 'email profile openid',
   automaticSilentRenew: true,

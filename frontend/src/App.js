@@ -1,8 +1,8 @@
-import React from 'react';
-import {useState} from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import React from 'react'
+import {useState} from 'react'
+import logo from './logo.svg'
+import { Counter } from './features/counter/Counter'
+import './App.css'
 
 import {
   BrowserRouter as Router,
@@ -12,11 +12,14 @@ import {
 
 import GoogleLogin, { CallbackPage } from './features/google-login/button'
 
+if (process.env.NODE_ENV === 'development') {
+  console.log('Current environment ', process.env)
+}
 
 const Submissions = (props) => {
 
   let [token, setToken] = useState("")
-  let [url, setUrl] = useState("/api/submissions/")
+  let [url, setUrl] = useState((process.env.REACT_APP_API_DOMAIN ?? '') + '/api/submissions/')
   let [response, setResponse] = useState("")
   let [code, setCode] = useState(0)
 
