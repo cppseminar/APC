@@ -10,8 +10,8 @@ if (process.env.NODE_ENV !== 'production') {
 
 const config = {
   authority: 'https://accounts.google.com/',
-  client_id: '474411939355-h4u2vrq5ancripp1vilp5d6prkalb0hh.apps.googleusercontent.com',
-  redirect_uri: 'https://localhost:3000/.auth/google/login',
+  client_id: '576929321854-j4sla3jtq4mlig7n7r0m9h2dl19s1ua5.apps.googleusercontent.com',
+  redirect_uri: 'https://l33t.party/.auth/google/login',
   scope: 'email profile openid',
   automaticSilentRenew: true,
 }
