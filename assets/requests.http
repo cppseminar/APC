@@ -7,14 +7,15 @@ Accept: */*
 X-request-email: miro@example.net
 
 ####
-GET {{baseUrl}}/api/submissions/ HTTP/1.1
+GET {{baseUrl}}/api/submissions?user=miro@example.com HTTP/1.1
 Accept: */*
-X-request-email: jozo@example.com
+X-request-email: miro@example.com
 
 ####
-GET {{baseUrl}}/api/submissions/5f3172e94ccb2b29ecbf28e0 HTTP/1.1
+
+GET {{baseUrl}}/api/submissions/5f34fa499cd6ee86b5fe4370 HTTP/1.1
 Accept: */*
-X-request-email: jozo@example.com
+X-request-email: miro@example.com
 
 ####
 GET {{baseUrl}}/api/submissions?offset=5&limit=2 HTTP/1.1
@@ -25,12 +26,12 @@ X-request-email: miro@example.net
 
 POST {{baseUrl}}/api/submissions/ HTTP/1.1
 Accept: */*
-X-request-email: jozo@example.com
+X-request-email: miro@example.com
 
 {
         "files": [
                 {
-                        "fileContent":"#include",
+                        "fileContent": "import json\n print()",
                         "fileName" : "source.cpp"
                 }
         ],

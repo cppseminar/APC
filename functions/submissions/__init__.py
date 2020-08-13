@@ -25,7 +25,7 @@ from bson.json_util import dumps, RELAXED_JSON_OPTIONS
 from .validators import POST_SCHEMA, QUERY_PARAMS, ROUTE_PARAMS
 
 from .. import shared
-from ..shared import http, decorators, mongo
+from ..shared import http, decorators, mongo, users
 
 
 async def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -38,16 +38,31 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
 @shared.decorators.validate_parameters(
     route_settings=ROUTE_PARAMS, query_settings=QUERY_PARAMS
 )
-def get_handler(req: func.HttpRequest, submission_id=None, skip=0, limit=10):
+def get_handler(
+    req: func.HttpRequest,
+    user: shared.users.User,
+    submission_id=None,
+    skip=0,
+    limit=10,
+    user_filter=None,
+):
     """Handle list requests and concrete id request."""
 
+    # We want one concrete reponse
     if submission_id:
         result = mongo.MongoSubmissions.get_submission(submission_id=submission_id)
         if not result:
             return http.response_not_found()
-        return http.response_ok(result)
 
-    submissions = mongo.MongoSubmissions.get_submissions(skip=skip, limit=limit)
+        if not user.is_admin and user.email != result["user"]:
+            return http.response_forbidden()
+        return http.response_ok(result)
+    # We are listing all
+    if not user.is_admin:
+        if user_filter != user.email:
+            return http.response_forbidden()
+
+    submissions = mongo.MongoSubmissions.get_submissions(skip=skip, limit=limit, user=user_filter)
     return http.response_ok(list(submissions))
 
 

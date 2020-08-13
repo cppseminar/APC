@@ -62,20 +62,23 @@ class MongoUsers:
         roles = list(entry.get(common.SCHEMA_USER.ROLES, []))
         return users.User(email=email, is_admin=is_admin, roles=roles)
 
-    @staticmethod
-    def get_submission(submission_id: str):
-        """Get submissions identified by submission_id."""
-        pass
-
 
 class MongoSubmissions:
     """Manipulation of submissions."""
 
     @staticmethod
-    def get_submissions(limit=10, skip=0):
+    def get_submissions(limit=10, skip=0, user=None):
         """Get all submissions."""
         collection = get_client().get_submissions()
-        cursor = collection.find({}, {"files": 0}).limit(limit).skip(skip)
+        query = {}
+        if user:
+            query["user"] = user
+        cursor = (
+            collection.find(query, {"files": 0})
+            .limit(limit)
+            .skip(skip)
+            .sort([("date", pymongo.DESCENDING)])
+        )
         return iter(cursor)
 
     @staticmethod
@@ -97,7 +100,8 @@ class MongoSubmissions:
             "user": user,
             "files": files,
             "task_id": task_id,
-            "date": date
+            "date": date,
+            "isFinal": False,
         }
         result = collection.insert_one(document)
         if not result.acknowledged:
