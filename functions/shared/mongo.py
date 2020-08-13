@@ -95,7 +95,7 @@ class MongoSubmissions:
         if not files:
             files = list()
         if not date:
-            date = datetime.datetime.now()
+            date = datetime.datetime.now(datetime.timezone.utc)
         document = {
             "user": user,
             "files": files,
