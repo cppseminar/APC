@@ -1,7 +1,30 @@
 """Functions without application logic, required in multiple modules."""
+import datetime
+import json
+import typing
+
+
 from bson import ObjectId
+
 
 def schema_object_id_validator(field, value, error):
     """Cerberus object id validator."""
     if not ObjectId.is_valid(value):
         error(field, "value doesn't seem like object id")
+
+
+class MongoEncoder(json.JSONEncoder):
+    """Json encoder extension, able to encode mongo types.
+
+    This is better than default bson tools, because it allows us to hide mongo
+    specific entries, like $oid or $date.
+    """
+
+    def default(self: json.JSONEncoder, obj: typing.Any):
+        """Detect and encode mongo types."""
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        if isinstance(obj, datetime.date):
+            return obj.isoformat()
+        return json.JSONEncoder.default(self, obj)
+

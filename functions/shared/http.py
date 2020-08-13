@@ -12,6 +12,8 @@ import azure.functions as functions
 import bson.json_util
 import cerberus
 
+from . import core
+
 
 def response_ok(document: typing.Any, code=200):
     """Return response. Only accepts json serializable."""
@@ -19,13 +21,19 @@ def response_ok(document: typing.Any, code=200):
     try:
         # Try converting to json
         with contextlib.suppress(TypeError):
-            response_str = json.dumps(document)
+            response_str = json.dumps(
+                document,
+                skipkeys=False,
+                allow_nan=False,
+                indent=2,
+                cls=core.MongoEncoder,
+            )
         if not response_str:
             # Let's try bson now
             response_str = bson.json_util.dumps(
                 document, json_options=bson.json_util.RELAXED_JSON_OPTIONS
             )
-    except (Exception) as error: # pylint: disable=W0703
+    except (Exception) as error:  # pylint: disable=W0703
         logging.error("Serialization went wrong %s", error)
         return response_server_error()
 
@@ -45,8 +53,9 @@ def response_server_error(message="Server error", code=500) -> functions.HttpRes
     return _dict_response({"statusCode": code, "message": message}, code=code)
 
 
-def response_client_error(message="Error bad request",
-                          code=400) -> functions.HttpResponse:
+def response_client_error(
+    message="Error bad request", code=400
+) -> functions.HttpResponse:
     """Returns azure http response filled with bad request code and message."""
     return _dict_response({"statusCode": code, "message": message}, code=code)
 
@@ -55,6 +64,9 @@ def response_not_found():
     """Return standard 404 not found."""
     return response_client_error(message="Object not found", code=404)
 
+def response_forbidden():
+    """Return 403."""
+    return response_client_error(message="This action is forbidden", code=403)
 
 def dispatcher(get=None, post=None, put=None):
     """Method to simplify handling of GET, POST and so on.
@@ -76,6 +88,7 @@ def dispatcher(get=None, post=None, put=None):
         return response_server_error()
 
     return _dispatch
+
 
 def get_json(request: functions.HttpRequest, schema: dict, /):
     """Validate submitted json schema. Returns dict or None."""
