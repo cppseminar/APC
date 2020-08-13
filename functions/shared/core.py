@@ -2,6 +2,7 @@
 import datetime
 import json
 import typing
+import re
 
 
 from bson import ObjectId
@@ -28,3 +29,15 @@ class MongoEncoder(json.JSONEncoder):
             return obj.isoformat()
         return json.JSONEncoder.default(self, obj)
 
+
+def is_email(address: str):
+    """Check if address is email suitable for our needs.
+
+    Note: This is in no way complete and probably not even correct validation
+          of email address.  But it is format in which we expect our users
+          will have their email addresses.
+    """
+    ret = re.match(r"^[a-z0-9]+@[a-z0-9]+\.[a-z]{2,5}$", address)
+    if ret:
+        return True
+    return False

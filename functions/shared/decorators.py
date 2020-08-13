@@ -7,8 +7,7 @@ import typing
 import azure.functions as functions
 from bson.objectid import ObjectId
 
-from . import common
-from . import users
+from . import common, core, users
 from .http import response_server_error, response_client_error
 
 
@@ -26,7 +25,7 @@ def login_required(func: typing.Callable):
     @functools.wraps(func)
     def _user_wrapper(req: functions.HttpRequest, *args, **keyword_args):
         email = req.headers.get(common.HEADER_EMAIL, "")
-        if not users.validate_email(email):
+        if not core.is_email(email):
             logging.warning(
                 "Rejecting not an email %s in %s field", email, common.HEADER_EMAIL
             )

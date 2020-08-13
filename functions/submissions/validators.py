@@ -50,6 +50,12 @@ def _limit_validator(value):
     raise ValueError(f"Not acceptable value for limit {number}")
 
 
+def _user_validator(value):
+    if core.is_email(value):
+        return str(value)
+    raise ValueError(f"Not an email {value}")
+
+
 QUERY_PARAMS = {
     "offset": {decorators.VALIDATOR: int, decorators.DESTINATION: "skip"},
     "limit": {decorators.VALIDATOR: _limit_validator},
