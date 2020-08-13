@@ -25,8 +25,9 @@ class MongoEncoder(json.JSONEncoder):
         """Detect and encode mongo types."""
         if isinstance(obj, ObjectId):
             return str(obj)
-        if isinstance(obj, datetime.date):
-            return obj.isoformat()
+        if isinstance(obj, datetime.datetime):
+            new_date = obj.replace(tzinfo=datetime.timezone.utc)
+            return new_date.isoformat()
         return json.JSONEncoder.default(self, obj)
 
 
