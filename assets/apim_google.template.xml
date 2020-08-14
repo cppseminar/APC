@@ -21,6 +21,7 @@
             <allowed-methods>
                 <method>GET</method>
                 <method>POST</method>
+                <method>PUT</method>
             </allowed-methods>
             <allowed-headers>
                 <header>Authorization</header>
