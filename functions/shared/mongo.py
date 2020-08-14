@@ -1,7 +1,15 @@
-"""Wrappers for cosmos(mongo api)."""
+"""Wrappers for cosmos(mongo api).
+
+All mongo logic - searching, insering is hidden right here.  Another important
+thing in this module is caching of mongo connection.  Every time there is new
+connection request (this is actually throttled to x seconds), we try one admin
+command at first, so if connection is no longer working, we can open new one.
+
+"""
 import datetime
 import logging
 import os
+import time
 
 # For type hints only
 import pymongo.collection  # pylint: disable=unused-import
@@ -12,17 +20,54 @@ from . import common
 from . import users
 
 
-def get_client():
-    """Get Mongo instance. Try to reuse last connection."""
-    try:
-        client = MongoClient(
-            os.environ["MyCosmosDBConnectionString"], retryWrites=False
-        )
-        return _Mongo(client.get_database(common.DB_NAME))
-    except Exception as error:
-        logging.error("Error connecting to mongo %s", error)
-        raise
+# These variables are global as there is a chance, they will survive
+# between invocations and save us some time
 
+_GLOBAL_MONGO = None   # Mongo connection to database (class _Mongo)
+_GLOBAL_MONGO_CHECKUP = None # Last successfull action as timestamp
+
+def __get_new_conn():
+    client = MongoClient(
+        os.environ["MyCosmosDBConnectionString"], retryWrites=False
+    )
+    return _Mongo(client.get_database(common.DB_NAME))
+
+
+def __mark_success():
+    global _GLOBAL_MONGO_CHECKUP
+    _GLOBAL_MONGO_CHECKUP = time.time()
+
+
+def get_client():
+    """Return instance of _Mongo with set up connection.
+
+    If connection exists and is new, reuse it. If it is old, check if it is
+    working and reuse it, or create new one.
+    """
+    global _GLOBAL_MONGO_CHECKUP
+    global _GLOBAL_MONGO
+    last_success = _GLOBAL_MONGO_CHECKUP or 1
+    if last_success + 20 < time.time(): # 20 seconds max age
+        # We must recheck connection, it is too old now
+        try:
+            # _GLOBAL_MONGO might be None, but we will catch this anyway
+            _GLOBAL_MONGO.get_users().find_one({}, {"_id":1})
+            __mark_success()
+            return _GLOBAL_MONGO
+        except AttributeError:
+            # This error means that mongo was None - it is init - don't log
+            pass
+        except: # We don't know, what mongo may throw so ...
+            # We are interested in this log message, so we know, how servers
+            # generally behave
+            logging.warning("Creating new connection to mongo.")
+            logging.warning("WARNING: This should not happen often!")
+    else: # Connection is fresh
+        return _GLOBAL_MONGO
+    # We must create new connection, old one is closed or doesn't exist
+    _GLOBAL_MONGO = __get_new_conn()
+    __mark_success()
+    return _GLOBAL_MONGO
 
 class _Mongo:
     def __init__(self, client):
@@ -36,6 +81,9 @@ class _Mongo:
         """Return submissions collection."""
         return self.client.get_collection(common.COL_SUBMISSIONS)
 
+    def get_tasks(self) -> pymongo.collection.Collection:
+        """Return tasks collection."""
+        return self.client.get_collection(common.COL_TASKS)
 
 class MongoUsers:
     """Collection of methods for working with users collection."""
@@ -108,3 +156,16 @@ class MongoSubmissions:
             return None
         document["_id"] = result.inserted_id
         return document
+
+
+class MongoTasks:
+
+    @staticmethod
+    def get_task():
+        pass
+
+    @staticmethod
+    def get_tasks():
+        collection = get_client().get_tasks()
+        return collection.find({})
+
