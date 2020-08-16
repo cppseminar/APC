@@ -37,3 +37,16 @@ X-request-email: miro@example.com
         ],
         "taskId": "5f3172e94ccb2b29ecbf28e0"
 }
+
+
+###########################
+# tasks api
+###########################
+GET {{baseUrl}}/api/tasks HTTP/1.1
+Accept: */*
+X-request-email: miro@example.com
+
+####
+GET {{baseUrl}}/api/tasks/5f3288281a4fbf01ac328213 HTTP/1.1
+Accept: */*
+X-request-email: miro@example.com

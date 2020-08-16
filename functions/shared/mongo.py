@@ -1,10 +1,10 @@
 """Wrappers for cosmos(mongo api).
 
-All mongo logic - searching, insering is hidden right here.  Another important
-thing in this module is caching of mongo connection.  Every time there is new
-connection request (this is actually throttled to x seconds), we try one admin
-command at first, so if connection is no longer working, we can open new one.
-
+All mongo logic - searching, insering, updating and is hidden right here.
+Another important thing in this module is caching of mongo connection.  Every
+time there is new connection request (this is actually throttled to 20
+seconds), we try one simple command at first, so if connection is no longer
+working, we can open new one.
 """
 import datetime
 import logging
@@ -161,11 +161,13 @@ class MongoSubmissions:
 class MongoTasks:
 
     @staticmethod
-    def get_task():
-        pass
+    def get_task(task_id):
+        collection = get_client().get_tasks()
+        return collection.find_one({"_id": task_id})
+
 
     @staticmethod
     def get_tasks():
         collection = get_client().get_tasks()
-        return collection.find({})
+        return collection.find({}, {"name": 1})
 

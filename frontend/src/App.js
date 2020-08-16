@@ -1,16 +1,18 @@
 import React from 'react'
 import {useState} from 'react'
-import logo from './logo.svg'
 import { Counter } from './features/counter/Counter'
 import './App.css'
 
 import {
   BrowserRouter as Router,
   Switch,
-  Route
+  Route,
+  Link,
 } from "react-router-dom"
 
 import GoogleLogin, { CallbackPage } from './features/google-login/button'
+
+import Tasks from './pages/tasks'
 
 if (process.env.NODE_ENV === 'development') {
   console.log('Current environment ', process.env)
@@ -70,9 +72,13 @@ const App = () => {
           <Route path='/.auth/google/login'>
             <CallbackPage />
           </Route>
+          <Route path='/task/'>
+            <Tasks/>
+          </Route>
           <Route path='/'>
             <header className="App-header">
-              <img src={logo} className="App-logo" alt="logo" />
+              <h3><Link to="/task" >Tasks</Link></h3>
+              <p>But first login!</p>
               <Counter />
 
               <GoogleLogin />
@@ -82,6 +88,7 @@ const App = () => {
 
             </header>
           </Route>
+
         </Switch>
       </Router>
     </div>

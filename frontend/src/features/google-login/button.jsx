@@ -3,6 +3,10 @@ import { UserManager } from 'oidc-client'
 
 import { Log } from 'oidc-client'
 
+import { setAuthToken } from 'services/auth'
+import { useDispatch } from 'react-redux';
+
+
 if (process.env.NODE_ENV !== 'production') {
   Log.logger = console
   Log.level = Log.INFO
@@ -18,12 +22,20 @@ const config = {
 
 const Button = () => {
   const [um] = useState(new UserManager(config))
+  const dispatch = useDispatch()
 
-  const [token, setToken] = useState(null)
+  const [token, setTokenInternal] = useState(null)
+
   const [profile, setProfile] = useState('')
   const [picture, setPicture] = useState('')
 
   useEffect(() => {
+
+  const setToken = (token) =>  {
+    setTokenInternal(token)
+    dispatch(setAuthToken(token))
+  }
+
     um.events.addUserLoaded((user) => {
 
       setToken(user.id_token)
@@ -38,7 +50,7 @@ const Button = () => {
     um.signinSilent().catch((reason) => {
       setToken(null)
     })
-  }, [um])
+  }, [um, dispatch])
 
   const login = () => {
     um.signinPopup().catch((reason) => {
