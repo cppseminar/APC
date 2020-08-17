@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { UserManager } from 'oidc-client'
+import { UserManager, Log } from 'oidc-client'
 
-import { Log } from 'oidc-client'
+import { useDispatch, useSelector } from 'react-redux'
 
-import { setAuthToken } from 'services/auth'
-import { useDispatch } from 'react-redux';
-
+import { setUser, removeUser } from '../../services/auth'
 
 if (process.env.NODE_ENV !== 'production') {
   Log.logger = console
@@ -15,41 +13,33 @@ if (process.env.NODE_ENV !== 'production') {
 const config = {
   authority: 'https://accounts.google.com/',
   client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
-  redirect_uri: window.location.protocol + "//" + window.location.host + '/.auth/google/login',
+  redirect_uri: window.location.protocol + '//' + window.location.host + '/.auth/google/login',
   scope: 'email profile openid',
-  automaticSilentRenew: true,
+  automaticSilentRenew: true
 }
 
 const Button = () => {
   const [um] = useState(new UserManager(config))
   const dispatch = useDispatch()
 
-  const [token, setTokenInternal] = useState(null)
-
-  const [profile, setProfile] = useState('')
-  const [picture, setPicture] = useState('')
+  const { token, email, name, img } = useSelector(state => {
+    return state.auth
+  })
 
   useEffect(() => {
-
-  const setToken = (token) =>  {
-    setTokenInternal(token)
-    dispatch(setAuthToken(token))
-  }
-
     um.events.addUserLoaded((user) => {
-
-      setToken(user.id_token)
-      setProfile(user.profile.name + ' (' + user.profile.email + ')')
-      setPicture(user.profile.picture ?? '')
+      const payload = {
+        token: user.id_token,
+        name: user.profile.name ?? '',
+        email: user.profile.email ?? '',
+        img: user.profile.picture ?? ''
+      }
+      dispatch(setUser(payload))
     })
 
-    um.events.addUserUnloaded(() => {
-      setToken(null)
-    })
+    um.events.addUserUnloaded(dispatch(removeUser))
 
-    um.signinSilent().catch((reason) => {
-      setToken(null)
-    })
+    um.signinSilent().catch(dispatch(removeUser))
   }, [um, dispatch])
 
   const login = () => {
@@ -64,18 +54,19 @@ const Button = () => {
     })
   }
 
+  const firstLogin = (<button onClick={login}>Login</button>)
+  const loggedOn = (
+    <>
+      <button onClick={switchUser}>Switch user</button>
+      {img ? <img alt='avatar' src={img} /> : ''}{name + ' (' + email + ')'}
+      <h5>Your Access Token:</h5>
+      <textarea readOnly value={token} />
+    </>
+  )
+
   return (
     <div>
-      {!token ?
-        <button onClick={login} >Login</button> :
-        <>
-          <button onClick={switchUser}>Switch user</button>
-          {picture ? <img alt='avatar' src={picture} /> : ''}{profile}
-        </>}
-
-
-      {token ? <><h5>Your Access Token:</h5><textarea readOnly value={token} /> </> : null}
-
+      {!token ? firstLogin : loggedOn}
     </div>
   )
 }
