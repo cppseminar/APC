@@ -63,17 +63,12 @@ const App = () => {
             <Tasks />
           </Route>
           <Route path='/'>
-            <header className='App-header'>
-              <h3><Link to='/task'>Tasks</Link></h3>
-              <p>But first login!</p>
-              <CodeEditor />
-              <hr style={{ width: '10em' }} />
+            <h3><Link to='/task'>Tasks</Link></h3>
+            <CodeEditor />
+            <hr style={{ width: '10em' }} />
 
-              <Submissions />
-
-            </header>
+            <Submissions />
           </Route>
-
         </Switch>
       </Router>
     </div>
