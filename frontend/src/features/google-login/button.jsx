@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react'
+import { Button } from 'react-bootstrap'
 import { UserManager, Log } from 'oidc-client'
 
 import { useDispatch, useSelector } from 'react-redux'
+
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route
+} from 'react-router-dom'
 
 import { setUser, removeUser } from '../../services/auth'
 
@@ -18,7 +25,15 @@ const config = {
   automaticSilentRenew: true
 }
 
-const Button = () => {
+export const CallbackPage = () => {
+  useEffect(() => {
+    new UserManager().signinCallback(window.location.href)
+  })
+
+  return null
+}
+
+const GoogleLogin = () => {
   const [um] = useState(new UserManager(config))
   const dispatch = useDispatch()
 
@@ -57,26 +72,24 @@ const Button = () => {
   const firstLogin = (<button onClick={login}>Login</button>)
   const loggedOn = (
     <>
-      <button onClick={switchUser}>Switch user</button>
-      {img ? <img alt='avatar' src={img} /> : ''}{name + ' (' + email + ')'}
-      <h5>Your Access Token:</h5>
-      <textarea readOnly value={token} />
+      {name + ' (' + email + ') '}
+      {img ? <img height='30px' alt='avatar' src={img} /> : ''}{' '}
+      <Button size='sm' onClick={switchUser}>Switch user</Button>
     </>
   )
 
   return (
     <div>
       {!token ? firstLogin : loggedOn}
+      <Router>
+        <Switch>
+          <Route path='/.auth/google/login'>
+            <CallbackPage />
+          </Route>
+        </Switch>
+      </Router>
     </div>
   )
 }
 
-export const CallbackPage = () => {
-  useEffect(() => {
-    new UserManager().signinCallback(window.location.href)
-  })
-
-  return null
-}
-
-export default Button
+export default GoogleLogin

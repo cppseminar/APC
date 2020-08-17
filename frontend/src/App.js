@@ -10,8 +10,8 @@ import {
   Link
 } from 'react-router-dom'
 
-import GoogleLogin, { CallbackPage } from './features/google-login/button'
 import CodeEditor from './features/code-editor'
+import Header from './features/header'
 
 import Tasks from './pages/tasks'
 
@@ -57,10 +57,8 @@ const App = () => {
   return (
     <div className='App'>
       <Router>
+        <Header />
         <Switch>
-          <Route path='/.auth/google/login'>
-            <CallbackPage />
-          </Route>
           <Route path='/task/'>
             <Tasks />
           </Route>
@@ -68,8 +66,6 @@ const App = () => {
             <header className='App-header'>
               <h3><Link to='/task'>Tasks</Link></h3>
               <p>But first login!</p>
-
-              <GoogleLogin />
               <CodeEditor />
               <hr style={{ width: '10em' }} />
 
