@@ -152,6 +152,8 @@ class MongoSubmissions:
             "task_id": task_id,
             "date": date,
             "isFinal": False,
+            "testsRunCount": 0,
+            "tests" : []
         }
         result = collection.insert_one(document)
         if not result.acknowledged:

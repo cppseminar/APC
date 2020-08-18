@@ -62,7 +62,9 @@ def get_handler(
         if user_filter != user.email:
             return http.response_forbidden()
 
-    submissions = mongo.MongoSubmissions.get_submissions(skip=skip, limit=limit, user=user_filter)
+    submissions = mongo.MongoSubmissions.get_submissions(
+        skip=skip, limit=limit, user=user_filter
+    )
     return http.response_ok(list(submissions))
 
 
@@ -72,25 +74,16 @@ def post_handler(req: func.HttpRequest, user=None):
     document = http.get_json(req, POST_SCHEMA)
     if not document:
         return http.response_client_error()
-    # TODO: Validate if task is ok
-
+    # Let's check if user has right to submit to this task
+    roles = None
+    if not user.is_admin:
+        roles = user.roles or []
+    result = mongo.MongoTasks.get_task(ObjectId(document["taskId"]), roles=roles)
+    if not result:
+        return http.response_client_error()
+    # User has right to do this
     result = mongo.MongoSubmissions.submit(
         user=user.email, files=document["files"], task_id=document["taskId"]
     )
-
-    return_id = str(result["_id"])
-
-    parsed = urllib.parse.urlparse(req.url)
-    editable = list(parsed)
-
-    # Fix slash on the end of uri
-    uri = editable[2]
-    slash = ""
-    if uri and uri[-1] != "/":
-        slash = "/"
-    editable[2] = str(uri) + slash + f"{return_id}"
-    # Done
-
-    url = urllib.parse.urlunparse(editable)
 
     return http.response_ok(result, code=201)
