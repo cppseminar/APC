@@ -6,7 +6,8 @@ export const authSlice = createSlice({
     token: '',
     email: '',
     name: '',
-    img: ''
+    img: '',
+    firstSilentLoginRunning: true
   }, // no user selected
   reducers: {
     setUser: (state, action) => {
@@ -15,12 +16,15 @@ export const authSlice = createSlice({
       state.name = action.payload.name
       state.img = action.payload.img
     },
-    removeUser: (state, action) => {
+    removeUser: (state) => {
       state.token = ''
+    },
+    firstSilentLoginFinished: (state) => {
+      state.firstSilentLoginRunning = false
     }
   }
 })
 
-export const { setUser, removeUser } = authSlice.actions
+export const { setUser, removeUser, firstSilentLoginFinished } = authSlice.actions
 
 export const authReducer = authSlice.reducer

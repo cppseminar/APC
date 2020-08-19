@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useSelector } from 'react-redux'
 
 import './App.css'
 import api from './app/api'
@@ -54,22 +55,28 @@ const Submissions = (props) => {
 }
 
 const App = () => {
+  const loading = useSelector(state => state.auth.firstSilentLoginRunning)
+
+  const body = loading ? null : (
+    <Switch>
+      <Route path='/task/'>
+        <Tasks />
+      </Route>
+      <Route path='/'>
+        <h3><Link to='/task'>Tasks</Link></h3>
+        <CodeEditor />
+        <hr style={{ width: '10em' }} />
+
+        <Submissions />
+      </Route>
+    </Switch>
+  )
+
   return (
     <div className='App'>
       <Router>
         <Header />
-        <Switch>
-          <Route path='/task/'>
-            <Tasks />
-          </Route>
-          <Route path='/'>
-            <h3><Link to='/task'>Tasks</Link></h3>
-            <CodeEditor />
-            <hr style={{ width: '10em' }} />
-
-            <Submissions />
-          </Route>
-        </Switch>
+        {body}
       </Router>
     </div>
   )

@@ -10,7 +10,7 @@ import {
   Route
 } from 'react-router-dom'
 
-import { setUser, removeUser } from '../../services/auth'
+import { setUser, removeUser, firstSilentLoginFinished } from '../../services/auth'
 
 if (process.env.NODE_ENV !== 'production') {
   Log.logger = console
@@ -52,9 +52,11 @@ const GoogleLogin = () => {
       dispatch(setUser(payload))
     })
 
-    um.events.addUserUnloaded(dispatch(removeUser))
+    um.events.addUserUnloaded(() => { dispatch(removeUser()) })
 
-    um.signinSilent().catch(dispatch(removeUser))
+    um.signinSilent()
+      .catch(() => { dispatch(removeUser()) })
+      .finally(() => { dispatch(firstSilentLoginFinished()) })
   }, [um, dispatch])
 
   const login = () => {
@@ -69,7 +71,7 @@ const GoogleLogin = () => {
     })
   }
 
-  const firstLogin = (<button onClick={login}>Login</button>)
+  const firstLogin = (<Button onClick={login}>Login</Button>)
   const loggedOn = (
     <>
       {name + ' (' + email + ') '}

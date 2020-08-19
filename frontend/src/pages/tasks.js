@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-
 import {
   BrowserRouter as Router,
   Switch,
@@ -8,6 +7,8 @@ import {
   useParams,
   useRouteMatch
 } from 'react-router-dom'
+import isEmpty from 'lodash/isEmpty'
+
 import { getTasks, getTask } from 'services/tasks'
 
 const TaskView = () => {
@@ -15,18 +16,16 @@ const TaskView = () => {
   const [task, setTask] = useState({})
 
   useEffect(() => {
-    getTask(taskId).then((task) => setTask(task))
+    getTask(taskId).then((task) => setTask(task)).catch(setTask({}))
   }, [taskId])
 
-  return (
+  return isEmpty(task) ? 'Error!' : (
     <div style={{ border: '1px solid green' }}>
       <p>Showing task id {taskId}</p>
       <h4>
         {task.name}
-
       </h4>
       <p>
-
         {task.description}
       </p>
 
