@@ -45,6 +45,7 @@ def get_handler(
     skip=0,
     limit=10,
     user_filter=None,
+    task_id=None,
 ):
     """Handle list requests and concrete id request."""
 
@@ -63,7 +64,7 @@ def get_handler(
             return http.response_forbidden()
 
     submissions = mongo.MongoSubmissions.get_submissions(
-        skip=skip, limit=limit, user=user_filter
+        skip=skip, limit=limit, user=user_filter, task_id=task_id
     )
     return http.response_ok(list(submissions))
 
@@ -83,7 +84,7 @@ def post_handler(req: func.HttpRequest, user=None):
         return http.response_client_error()
     # User has right to do this
     result = mongo.MongoSubmissions.submit(
-        user=user.email, files=document["files"], task_id=document["taskId"]
+        user=user.email, files=document["files"], task_id=ObjectId(document["taskId"])
     )
 
     return http.response_ok(result, code=201)

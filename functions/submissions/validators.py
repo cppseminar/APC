@@ -59,7 +59,10 @@ def _user_validator(value):
 QUERY_PARAMS = {
     "offset": {decorators.VALIDATOR: int, decorators.DESTINATION: "skip"},
     "limit": {decorators.VALIDATOR: _limit_validator},
-    "task_id": {decorators.VALIDATOR: decorators.object_id_validator},
+    "task": {
+        decorators.VALIDATOR: decorators.object_id_validator,
+        decorators.DESTINATION: "task_id",
+    },
     "user": {
         decorators.VALIDATOR: _user_validator,
         decorators.DESTINATION: "user_filter",

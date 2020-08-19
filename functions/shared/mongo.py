@@ -117,12 +117,14 @@ class MongoSubmissions:
     """Manipulation of submissions."""
 
     @staticmethod
-    def get_submissions(limit=10, skip=0, user=None):
+    def get_submissions(limit=10, skip=0, user=None, task_id=None):
         """Get all submissions."""
         collection = get_client().get_submissions()
         query = {}
         if user:
             query["user"] = user
+        if task_id:
+            query["taskId"] = task_id
         cursor = (
             collection.find(query, {"files": 0})
             .limit(limit)
@@ -149,11 +151,12 @@ class MongoSubmissions:
         document = {
             "user": user,
             "files": files,
-            "task_id": task_id,
+            "taskId": task_id,
             "date": date,
             "isFinal": False,
             "testsRunCount": 0,
-            "tests" : []
+            "type": "submission",
+            "tests": [],
         }
         result = collection.insert_one(document)
         if not result.acknowledged:
