@@ -1,25 +1,22 @@
-import React, { useState, useRef } from 'react'
+import React from 'react'
 import AceEditor from 'react-ace'
 
 import 'ace-builds/src-noconflict/mode-c_cpp'
 import 'ace-builds/src-noconflict/theme-monokai'
 
-const CodeEditor = () => {
-  const [value, setValue] = useState('')
-  const valueGetter = useRef()
-
+const CodeEditor = ({ onChange, readOnly, value }) => {
+  console.log(onChange, readOnly, value)
   return (
-    <>
-      <AceEditor 
-        height='30vh'
-        width='90vw'
-        mode='c_cpp'
-        theme='monokai'
-        defaultValue={value}
-        placeholder='// Place your code here...'
-        onChange={(newValue) => { setValue(newValue) }}
-      />
-    </>
+    <AceEditor 
+      height='100%'
+      width='100%'
+      mode='c_cpp'
+      theme='monokai'
+      placeholder='// Place your code here...'
+      onChange={onChange ?? (() => {})}
+      value={value ?? ''}
+      readOnly={readOnly ?? false}
+    />
   )
 }
 
