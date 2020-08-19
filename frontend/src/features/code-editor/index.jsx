@@ -1,25 +1,24 @@
 import React, { useState, useRef } from 'react'
-import Editor from '@monaco-editor/react'
+import AceEditor from 'react-ace'
+
+import 'ace-builds/src-noconflict/mode-c_cpp'
+import 'ace-builds/src-noconflict/theme-monokai'
 
 const CodeEditor = () => {
-  const [isEditorReady, setIsEditorReady] = useState(false)
+  const [value, setValue] = useState('')
   const valueGetter = useRef()
-
-  const handleEditorDidMount = (value) => {
-    valueGetter.current = value
-    setIsEditorReady(true)
-  }
-
-  const handleShowValue = () => {
-    console.log(valueGetter.current())
-  }
 
   return (
     <>
-      <button onClick={handleShowValue} disabled={!isEditorReady}>
-        Show value
-      </button>
-      <Editor height='30vh' width='90vw' language='cpp' editorDidMount={handleEditorDidMount} />
+      <AceEditor 
+        height='30vh'
+        width='90vw'
+        mode='c_cpp'
+        theme='monokai'
+        defaultValue={value}
+        placeholder='// Place your code here...'
+        onChange={(newValue) => { setValue(newValue) }}
+      />
     </>
   )
 }
