@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import {
-  Switch,
-  Route,
   NavLink,
   useRouteMatch
 } from 'react-router-dom'

@@ -26,7 +26,7 @@ const Body = () => {
 
   return (
     <Switch>
-      <Redirect from="/:url*(/+)" to={pathname.slice(0, -1)} />
+      <Redirect from='/:url*(/+)' to={pathname.slice(0, -1)} />
       <Route path='/task'>
         <Tasks />
       </Route>
@@ -43,7 +43,7 @@ const Body = () => {
 const App = () => {
   const loading = useSelector(state => state.auth.firstSilentLoginRunning)
 
-  const body = loading ? null : ( <Body /> )
+  const body = loading ? null : (<Body />)
 
   return (
     <Router>

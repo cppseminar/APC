@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { useParams, useRouteMatch } from 'react-router-dom'
+import { useRouteMatch, Link } from 'react-router-dom'
 import isEmpty from 'lodash/isEmpty'
-import { Link } from 'react-router-dom'
+
 import Button from 'react-bootstrap/Button'
 
 import { getTask } from 'services/tasks'
@@ -10,7 +10,7 @@ import Submission from '../submissions/submit-dialog'
 
 const TaskView = () => {
   const [task, setTask] = useState({})
-  
+
   const match = useRouteMatch('/task/:taskId')
   const taskId = match?.params.taskId
 

@@ -1,23 +1,25 @@
-import React from 'react'
+import React, { useState } from 'react'
 import AceEditor from 'react-ace'
 
 import 'ace-builds/src-noconflict/mode-c_cpp'
 import 'ace-builds/src-noconflict/theme-monokai'
 
-const CodeEditor = ({ onChange, readOnly, value }) => {
-  console.log(onChange, readOnly, value)
+const CodeEditor = React.forwardRef(({ readOnly, defValue }, ref) => {
+  const [value, setValue] = useState(defValue)
+
   return (
-    <AceEditor 
+    <AceEditor
+      ref={ref}
       height='100%'
       width='100%'
       mode='c_cpp'
       theme='monokai'
       placeholder='// Place your code here...'
-      onChange={onChange ?? (() => {})}
+      onChange={(newValue) => { setValue(newValue) }}
       value={value ?? ''}
       readOnly={readOnly ?? false}
     />
   )
-}
+})
 
 export default CodeEditor

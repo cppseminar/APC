@@ -13,7 +13,7 @@ export const postSubmission = async (content, taskId) => {
   return api.post('/api/submissions', {
     files: [
       {
-        fileName: 'main.cpp', 
+        fileName: 'main.cpp',
         fileContent: content
       }
     ],
