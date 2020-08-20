@@ -24,7 +24,7 @@ export const postSubmission = async (content, taskId) => {
 export const getSubmissions = async (taskId) => {
   return api.get('/api/submissions', {
     params: {
-      taskId
+      task: taskId
     }
   }).then(verifyResponse).catch(catchError)
 }
