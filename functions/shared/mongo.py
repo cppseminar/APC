@@ -86,6 +86,10 @@ class _Mongo:
         """Return tasks collection."""
         return self.client.get_collection(common.COL_TASKS)
 
+    def get_test_cases(self) -> pymongo.collection.Collection:
+        """Return test cases collection."""
+        return self.client.get_collection(common.COL_CASES)
+
 
 class MongoUsers:
     """Collection of methods for working with users collection."""
@@ -188,3 +192,26 @@ class MongoTasks:
         collection = get_client().get_tasks()
         return collection.find(query, {"name": 1})
 
+class MongoTestCases:
+    """Functions for retrieving test cases from mongo."""
+    
+    @staticmethod
+    def get_case(case_id: ObjectId, roles: typing.List = None):
+        """Retrieve concrete case."""
+        query = {"_id": case_id}
+        if roles is not None:
+            query["roles"] = {"$in": roles}
+        
+        collection = get_client().get_test_cases()
+        return collection.find_one(query)
+
+    @staticmethod
+    def get_cases(task_id: ObjectId = None, roles: typing.List = None ):
+        """Retrieve all test cases."""
+        query = {}
+        if task_id is not None:
+            query["taskId"] = task_id
+        if roles is not None:
+            query["roles"] = {"$in": roles}
+        collection = get_client().get_test_cases()
+        return collection.find(query)

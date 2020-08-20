@@ -5,6 +5,7 @@ DB_NAME = "development"
 COL_USERS = "users"
 COL_SUBMISSIONS = "submissions"
 COL_TASKS = "tasks"
+COL_CASES = "test_cases"
 
 SCHEMA_USER = SimpleNamespace (
     EMAIL="email",
