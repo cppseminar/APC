@@ -12,6 +12,7 @@ def test_validate_email():
     assert is_email("ab cd@gmail.com") == False
     assert is_email("abee[at]gmail.com") == False
     assert is_email("abee@gmail.party") == True
+    assert is_email("abee.tyler@gmail.party") == True
 
 
 class TestMongoEncoder:
