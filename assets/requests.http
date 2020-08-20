@@ -12,6 +12,11 @@ Accept: */*
 X-request-email: miro@example.com
 
 ####
+GET {{baseUrl}}/api/submissions?user=miro@example.com&task=5f3944f1bf1bb81e48bae8fa  HTTP/1.1
+Accept: */*
+X-request-email: miro@example.com
+
+####
 
 GET {{baseUrl}}/api/submissions/5f34fa499cd6ee86b5fe4370 HTTP/1.1
 Accept: */*

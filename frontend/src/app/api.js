@@ -9,15 +9,16 @@ const api = axios.create({
   headers: {}
 })
 
-if (process.env.NODE_ENV === 'development') {
-  // api.defaults.headers.common['X-REQUEST-EMAIL'] = 'miro@example.com'
-}
 
 const changeAuthentication = () => {
   const auth = store.getState().auth
   if (auth) {
     api.defaults.headers.common.Authorization = 'Bearer ' + auth.token
     // api.defaults.params.user = auth.email
+    if (process.env.NODE_ENV === 'development') {
+      // api.defaults.headers.common['X-REQUEST-EMAIL'] = auth.email
+    }
+
   }
 }
 
