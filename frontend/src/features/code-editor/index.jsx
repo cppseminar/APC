@@ -8,17 +8,20 @@ const CodeEditor = React.forwardRef(({ readOnly, defValue }, ref) => {
   const [value, setValue] = useState(defValue)
 
   return (
-    <AceEditor
-      ref={ref}
-      height='100%'
-      width='100%'
-      mode='c_cpp'
-      theme='monokai'
-      placeholder='// Place your code here...'
-      onChange={(newValue) => { setValue(newValue) }}
-      value={value ?? ''}
-      readOnly={readOnly ?? false}
-    />
+    <>
+      <AceEditor
+        ref={ref}
+        height='100%'
+        width='100%'
+        mode='c_cpp'
+        theme='monokai'
+        placeholder='// Place your code here...'
+        onChange={(newValue) => { setValue(newValue) }}
+        value={value ?? ''}
+        readOnly={readOnly ?? false}
+        fontSize='1rem'
+      />
+    </>
   )
 })
 
