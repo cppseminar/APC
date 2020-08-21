@@ -4,9 +4,9 @@ const verifyResponse = (response) => {
   return response.data
 }
 
-const catchError = (response) => {
-  console.log(response)
-  return null
+const catchError = (error) => {
+  console.log(error)
+  return Promise.reject(error.response)
 }
 
 export const getTasks = async () => {

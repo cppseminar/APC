@@ -7,8 +7,9 @@ export const authSlice = createSlice({
     email: '',
     name: '',
     img: '',
-    firstSilentLoginRunning: true
-  }, // no user selected
+    firstSilentLoginRunning: true,
+    isAdmin: true,
+  },
   reducers: {
     setUser: (state, action) => {
       state.token = action.payload.token
