@@ -8,7 +8,7 @@ export const authSlice = createSlice({
     name: '',
     img: '',
     firstSilentLoginRunning: true,
-    isAdmin: true,
+    isAdmin: true
   },
   reducers: {
     setUser: (state, action) => {

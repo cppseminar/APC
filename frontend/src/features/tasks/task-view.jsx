@@ -48,8 +48,8 @@ const TaskView = () => {
       const { status, statusText } = error
       return (
         <>
-          {status && ( <h3>{ status }</h3>)}
-          {statusText && ( <p>{ statusText }</p>)}
+          {status && (<h3>{status}</h3>)}
+          {statusText && (<p>{statusText}</p>)}
         </>
       )
     } else {

@@ -7,13 +7,12 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
-  Link,
   Redirect,
   useLocation
 } from 'react-router-dom'
 
 import Header from './features/header'
-
+import LandingPage from './features/landing-page'
 import Tasks from './features/tasks'
 import Submissions from './features/submissions'
 
@@ -34,7 +33,7 @@ const Body = () => {
         <Submissions />
       </Route>
       <Route path='/'>
-        <h3><Link to='/task'>Tasks</Link></h3>
+        <LandingPage />
       </Route>
     </Switch>
   )

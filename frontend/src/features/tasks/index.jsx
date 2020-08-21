@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { NavLink, useRouteMatch } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import Button from 'react-bootstrap/Button'
@@ -22,20 +22,25 @@ const Tasks = () => {
 
   const user = useSelector(state => state.auth.token)
 
-  const refreshTasks = () => {
-    state !== 'loading' && setState('reloading') // differentiate between first load and subsequent fetch
+  const loadTasks = useCallback(() => {
     getTasks()
       .then((response) => setTasks(response))
       .catch(() => setTasks(null))
       .finally(() => setState('loaded'))
+  }, [])
+
+  const refreshTasks = () => {
+    setState('reloading')
+
+    loadTasks()
   }
 
   useEffect(() => {
-    refreshTasks()
-  }, [user])
+    loadTasks()
+  }, [user, loadTasks])
 
   const tasksList = (
-    <div style={{position: 'relative'}}>
+    <div style={{ position: 'relative' }}>
       {state === 'reloading' && (<LoadingOverlay />)}
       <Container className='mt-3'>
         <Row>
@@ -87,7 +92,7 @@ const Tasks = () => {
             <Col>
               <h1 className='display-3'>Tasks</h1>
               <p>
-                All your tasks are listed here. 
+                All your tasks are listed here.
               </p>
             </Col>
             <Col sm='auto'>

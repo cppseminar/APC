@@ -14,7 +14,7 @@ const Overlay = styled.div`
 const LoadingOverlay = () => {
   return (
     <Overlay>
-      <Spinner animation='border' variant='primary' style={{width: '4rem', height: '4rem', margin: 'auto'}} />
+      <Spinner animation='border' variant='primary' style={{ width: '4rem', height: '4rem', margin: 'auto' }} />
     </Overlay>
   )
 }
