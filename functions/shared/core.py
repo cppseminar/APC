@@ -1,4 +1,5 @@
 """Functions without application logic, required in multiple modules."""
+import dataclasses
 import datetime
 import json
 import typing
@@ -21,14 +22,14 @@ class MongoEncoder(json.JSONEncoder):
     specific entries, like $oid or $date.
     """
 
-    def default(self: json.JSONEncoder, obj: typing.Any):
+    def default(self: json.JSONEncoder, o: typing.Any):
         """Detect and encode mongo types."""
-        if isinstance(obj, ObjectId):
-            return str(obj)
-        if isinstance(obj, datetime.datetime):
-            new_date = obj.replace(tzinfo=datetime.timezone.utc)
+        if isinstance(o, ObjectId):
+            return str(o)
+        if isinstance(o, datetime.datetime):
+            new_date = o.replace(tzinfo=datetime.timezone.utc)
             return new_date.isoformat()
-        return json.JSONEncoder.default(self, obj)
+        return json.JSONEncoder.default(self, o)
 
 
 def is_email(address: str):
@@ -42,3 +43,24 @@ def is_email(address: str):
     if ret:
         return True
     return False
+
+
+def instantiate_dataclass(klass, **kwargs):
+    """Calls init on KLASS, with required subgroup of kwargs.
+
+    Motivation for this function is, that you may have dictionary with lots of
+    keys (for example result from db) and you want to create dataclass from it.
+    Using standard init would throw exception, due to non-existing arguments.
+    This function throws away those parameters, which are not in generated
+    __init__ function.
+    """
+    if not dataclasses.is_dataclass(klass):
+        raise TypeError("Not a dataclass")
+
+    def _is_init_param(some_field: dataclasses.Field):
+        return some_field.init
+
+    fields = filter(_is_init_param, dataclasses.fields(klass))
+    names = set(map(lambda x: x.name, fields))  # All field names in dataclass
+    new_kwargs = [(arg[0], arg[1]) for arg in kwargs.items() if arg[0] in names]
+    return klass(**dict(new_kwargs))
