@@ -38,7 +38,7 @@ def is_email(address: str):
           of email address.  But it is format in which we expect our users
           will have their email addresses.
     """
-    ret = re.match(r"^[a-z0-9\.]+@[a-z0-9]+\.[a-z]{2,5}$", address)
+    ret = re.match(r"^[a-z0-9\.]+@([a-z0-9]+\.)+[a-z]{2,5}$", address)
     if ret:
         return True
     return False
