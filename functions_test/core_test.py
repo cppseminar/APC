@@ -4,7 +4,13 @@ import json
 import pytest
 
 from bson import ObjectId
-from functions.shared.core import is_email, MongoEncoder, instantiate_dataclass
+from functions.shared.core import (
+    is_email,
+    MongoEncoder,
+    instantiate_dataclass,
+    empty_dataclass_dict,
+)
+
 
 def test_validate_email():
     """Test our simple validator."""
@@ -37,6 +43,7 @@ class TestDataclassInstantiate:
     def test_standard_class(self):
         class Ghj:
             pass
+
         with pytest.raises(TypeError):
             instantiate_dataclass(Ghj, abcd=1)
 
@@ -59,4 +66,39 @@ class TestDataclassInstantiate:
         result = instantiate_dataclass(Dtc, req_id="aa", ne_column=2, some_id=1)
         assert result.req_id == "aa"
         assert result.some_id == 1
+
+
+class TestEmptyDataclassDict:
+    def test_defaults(self):
+        @dataclasses.dataclass
+        class Dtc:
+            some_str: str = dataclasses.field(default_factory=str)
+            some_id: int = 1234
+
+        result = empty_dataclass_dict(Dtc)
+        assert result["some_str"] == ""
+        assert result["some_id"] == 1234
+
+    def test_required(self):
+        @dataclasses.dataclass
+        class Dtc:
+            obj_id: ObjectId
+        result = empty_dataclass_dict(Dtc)
+        assert ObjectId.is_valid(result["obj_id"])
+
+    def test_custom(self):
+        class _NotSimple:
+            def __init__(self, some_arg):
+                raise RuntimeError("Bad init")
+
+        @dataclasses.dataclass
+        class Dtc:
+            obj: _NotSimple
+    
+        result = empty_dataclass_dict(Dtc)
+        assert result["obj"] == ""
+
+
+        
+
 

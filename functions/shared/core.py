@@ -64,3 +64,29 @@ def instantiate_dataclass(klass, **kwargs):
     names = set(map(lambda x: x.name, fields))  # All field names in dataclass
     new_kwargs = [(arg[0], arg[1]) for arg in kwargs.items() if arg[0] in names]
     return klass(**dict(new_kwargs))
+
+
+def empty_dataclass_dict(klass):
+    """Try to get dict from dataclass, with default values.
+
+    If default value cannot be instantiated, returns empty string as value.
+
+    WARNING: This should be used only with simple types (e.g. what you store in
+             db), as it will often try to call constructors on types.
+    """
+    if not dataclasses.is_dataclass(klass):
+        raise TypeError("Not a dataclass")
+
+    def _get_key_value(field: dataclasses.Field):
+        key = field.name
+        if field.default is not dataclasses.MISSING:
+            return key, field.default
+        if field.default_factory is not dataclasses.MISSING:  # type: ignore
+            return key, field.default_factory() # type: ignore
+        try:
+            return key, field.type()
+        except:
+            pass
+        return key, ""
+
+    return dict(map(_get_key_value, dataclasses.fields(klass)))
