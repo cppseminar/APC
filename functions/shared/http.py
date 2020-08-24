@@ -68,6 +68,10 @@ def response_forbidden():
     """Return 403."""
     return response_client_error(message="This action is forbidden", code=403)
 
+def response_payment():
+    """Return 402."""
+    return response_client_error(message="Payment Required", code=402)
+
 def dispatcher(get=None, post=None, put=None):
     """Method to simplify handling of GET, POST and so on.
 

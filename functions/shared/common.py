@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 
+ENV_CONNECTION_STRING = "MyCosmosDBConnectionString"
 HEADER_EMAIL="X-REQUEST-EMAIL"
 DB_NAME = "development"
 COL_USERS = "users"

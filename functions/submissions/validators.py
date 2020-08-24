@@ -31,7 +31,7 @@ POST_SCHEMA = {
         "type": "string",
         "required": True,
         "empty": False,
-        "check_with": core.schema_object_id_validator,
+        "check_with": core.cerberus_object_id_validator,
     },
 }
 

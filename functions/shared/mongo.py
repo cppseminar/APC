@@ -29,7 +29,7 @@ _GLOBAL_MONGO_CHECKUP = None  # Last successfull action as timestamp
 
 
 def __get_new_conn():
-    client = MongoClient(os.environ["MyCosmosDBConnectionString"], retryWrites=False)
+    client = MongoClient(os.environ[common.ENV_CONNECTION_STRING], retryWrites=False)
     return _Mongo(client.get_database(common.DB_NAME))
 
 
@@ -194,14 +194,14 @@ class MongoTasks:
 
 class MongoTestCases:
     """Functions for retrieving test cases from mongo."""
-    
+
     @staticmethod
     def get_case(case_id: ObjectId, roles: typing.List = None):
         """Retrieve concrete case."""
         query = {"_id": case_id}
         if roles is not None:
             query["roles"] = {"$in": roles}
-        
+
         collection = get_client().get_test_cases()
         return collection.find_one(query)
 
