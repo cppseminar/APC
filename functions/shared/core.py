@@ -1,6 +1,8 @@
 """Functions without application logic, required in multiple modules."""
+from abc import ABC
 import dataclasses
 import datetime
+import logging
 import json
 import typing
 import re
@@ -13,6 +15,31 @@ def cerberus_object_id_validator(field, value, error):
     """Cerberus object id validator."""
     if not ObjectId.is_valid(value):
         error(field, "value doesn't seem like object id")
+
+
+@dataclasses.dataclass
+class ModelBase(ABC):
+    """Base class for all of our mongo models.
+
+    map_item and filter_item can be overriden, to modify output.
+    """
+
+    _id: ObjectId
+
+    def __iter__(self):
+        return iter(
+            map(
+                self.map_item,
+                filter(self.filter_item, dataclasses.asdict(self).items()),
+            )
+        )
+
+    def map_item(self, item):
+        key, value = item
+        return key, value
+
+    def filter_item(self, item):
+        return True
 
 
 class MongoEncoder(json.JSONEncoder):
@@ -29,6 +56,8 @@ class MongoEncoder(json.JSONEncoder):
         if isinstance(o, datetime.datetime):
             new_date = o.replace(tzinfo=datetime.timezone.utc)
             return new_date.isoformat()
+        if isinstance(o, ModelBase):
+            return dict(o)
         return json.JSONEncoder.default(self, o)
 
 

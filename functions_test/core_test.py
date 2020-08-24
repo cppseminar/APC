@@ -7,6 +7,7 @@ from bson import ObjectId
 from functions.shared.core import (
     is_email,
     MongoEncoder,
+    ModelBase,
     instantiate_dataclass,
     empty_dataclass_dict,
 )
@@ -20,7 +21,42 @@ def test_validate_email():
     assert is_email("abee[at]gmail.com") == False
     assert is_email("abee@gmail.party") == True
     assert is_email("abee.tyler@gmail.party") == True
-    assert is_email("jozko.marek23@fmfi.uniba.sk")
+    assert is_email("jozko.marek23@fmfi.uniba.sk") == True
+
+
+class TestModelBase:
+
+    def test_map_item(self):
+
+        @dataclasses.dataclass
+        class Cls(ModelBase):
+            def map_item(self, item):
+                key, value = item
+                if key == '_id':
+                    key = 'Id'
+                return key, value
+
+        datac = Cls(_id=ObjectId("5f3172e94ccb2b29ecbf28e0"))
+        result = dict(datac)
+        assert result == {"Id":ObjectId("5f3172e94ccb2b29ecbf28e0")}
+
+    def test_filter_item(self):
+
+        @dataclasses.dataclass
+        class Cls(ModelBase):
+            id2: int = 1
+            id3: int = 4
+
+            def filter_item(self, item):
+                key, value = item
+                if key == 'id3':
+                    return True
+                return False
+
+        datac = Cls(_id=ObjectId("5f3172e94ccb2b29ecbf28e0"))
+        result = dict(datac)
+        assert result == {"id3": 4}
+
 
 
 class TestMongoEncoder:
@@ -35,6 +71,16 @@ class TestMongoEncoder:
         document = {"_id": ObjectId("5f3172e94ccb2b29ecbf28e0")}
         result = json.dumps(document, cls=MongoEncoder)
         assert result == """{"_id": "5f3172e94ccb2b29ecbf28e0"}"""
+
+    def test_model_base(self):
+        @dataclasses.dataclass
+        class Cls(ModelBase):
+            id2: int = 1
+        string_id = "5f4394ec5e854afcff62fe49"
+        datac = Cls(_id=ObjectId("5f4394ec5e854afcff62fe49"))
+        result = json.dumps(datac, cls=MongoEncoder)
+        print(result)
+        assert result == '{"_id": "%s", "id2": 1}' % string_id
 
 
 class TestDataclassInstantiate:
