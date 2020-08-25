@@ -89,10 +89,6 @@ class _Mongo:
         """Return test cases collection."""
         return self.client.get_collection(common.COL_CASES)
 
-    def get_tests(self) -> pymongo.collection.Collection:
-        """Return collection with test results."""
-        return self.client.get_collection(common.COL_TESTS)
-
 
 class MongoUsers:
     """Collection of methods for working with users collection."""
@@ -209,22 +205,19 @@ class MongoTestCases:
         result["does_count"] = result["doesCount"]
         return core.instantiate_dataclass(models.TestCase, **result)
 
+
     @staticmethod
-    def get_case(case_id: ObjectId, roles: typing.List = None) -> models.TestCase:
+    def get_case(case_id: ObjectId, roles: typing.List = None):
         """Retrieve concrete case."""
         query = {"_id": case_id}
         if roles is not None:
             query["roles"] = {"$in": roles}
 
         collection = get_client().get_test_cases()
-        return core.mongo_filter_errors(
-            collection.find_one(query), MongoTestCases._to_model
-        )
+        return core.mongo_filter_errors(collection.find_one(query), MongoTestCases._to_model)
 
     @staticmethod
-    def get_cases(
-        task_id: ObjectId = None, roles: typing.List = None
-    ) -> typing.List[models.TestCase]:
+    def get_cases(task_id: ObjectId = None, roles: typing.List = None):
         """Retrieve all test cases."""
         query = {}
         if task_id is not None:
@@ -234,11 +227,3 @@ class MongoTestCases:
         collection = get_client().get_test_cases()
         result = collection.find(query)
         return core.mongo_filter_errors(result, MongoTestCases._to_model)
-
-
-class MongoTests:
-    """Retrieve executed/executing tests."""
-
-    @staticmethod
-    def create_test(user=None, submission_id=None, case_id=None):
-        pass
