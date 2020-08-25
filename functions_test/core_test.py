@@ -10,6 +10,7 @@ from functions.shared.core import (
     ModelBase,
     instantiate_dataclass,
     empty_dataclass_dict,
+    mongo_filter_errors
 )
 
 
@@ -140,11 +141,31 @@ class TestEmptyDataclassDict:
         @dataclasses.dataclass
         class Dtc:
             obj: _NotSimple
-    
+
         result = empty_dataclass_dict(Dtc)
         assert result["obj"] == ""
 
 
-        
+class TestMongoFilterErrors:
 
+    def test_single_object(self):
+
+        def _throws(obj):
+            raise RuntimeError("Abcde")
+
+        def _returns(obj):
+            return 5
+
+        assert mongo_filter_errors(ObjectId(), _throws) is None
+        assert mongo_filter_errors(ObjectId(), _returns) == 5
+
+    def test_mulitple(self):
+
+        def _func(obj):
+            if obj == 5:
+                raise RuntimeError("Idk")
+            return obj
+        input_list = [1, 5, 3]
+        result = mongo_filter_errors(input_list, _func)
+        assert list(result) == [1, 3]
 

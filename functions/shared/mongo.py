@@ -17,8 +17,7 @@ import pymongo.collection  # pylint: disable=unused-import
 
 from pymongo import MongoClient
 from bson import ObjectId
-from . import common
-from . import users
+from . import common, users, models, core
 
 
 # These variables are global as there is a chance, they will survive
@@ -192,8 +191,20 @@ class MongoTasks:
         collection = get_client().get_tasks()
         return collection.find(query, {"name": 1})
 
+
 class MongoTestCases:
     """Functions for retrieving test cases from mongo."""
+
+    @staticmethod
+    def _to_model(obj):
+        """Convert names between JS and python notation."""
+        result = core.empty_dataclass_dict(models.TestCase)
+        result.update(obj)
+        result["task_id"] = result.get("taskId", "")
+        result["runs_allowed"] = result["numRunsAllowed"]
+        result["does_count"] = result["doesCount"]
+        return core.instantiate_dataclass(models.TestCase, **result)
+
 
     @staticmethod
     def get_case(case_id: ObjectId, roles: typing.List = None):
@@ -203,10 +214,10 @@ class MongoTestCases:
             query["roles"] = {"$in": roles}
 
         collection = get_client().get_test_cases()
-        return collection.find_one(query)
+        return core.mongo_filter_errors(collection.find_one(query), MongoTestCases._to_model)
 
     @staticmethod
-    def get_cases(task_id: ObjectId = None, roles: typing.List = None ):
+    def get_cases(task_id: ObjectId = None, roles: typing.List = None):
         """Retrieve all test cases."""
         query = {}
         if task_id is not None:
@@ -214,4 +225,5 @@ class MongoTestCases:
         if roles is not None:
             query["roles"] = {"$in": roles}
         collection = get_client().get_test_cases()
-        return collection.find(query)
+        result = collection.find(query)
+        return core.mongo_filter_errors(result, MongoTestCases._to_model)

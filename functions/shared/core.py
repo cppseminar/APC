@@ -2,6 +2,7 @@
 from abc import ABC
 import dataclasses
 import datetime
+import functools
 import logging
 import json
 import typing
@@ -9,6 +10,7 @@ import re
 
 
 from bson import ObjectId
+from pymongo.cursor import Cursor
 
 
 def cerberus_object_id_validator(field, value, error):
@@ -35,10 +37,13 @@ class ModelBase(ABC):
         )
 
     def map_item(self, item):
+        """Called on each field. Able to change key or value."""
         key, value = item
         return key, value
 
-    def filter_item(self, item):
+    def filter_item(self, _item):
+        """Called before map_items. You can disable output for some fields, by
+        returning False."""
         return True
 
 
@@ -111,7 +116,7 @@ def empty_dataclass_dict(klass):
         if field.default is not dataclasses.MISSING:
             return key, field.default
         if field.default_factory is not dataclasses.MISSING:  # type: ignore
-            return key, field.default_factory() # type: ignore
+            return key, field.default_factory()  # type: ignore
         try:
             return key, field.type()
         except:
@@ -119,3 +124,35 @@ def empty_dataclass_dict(klass):
         return key, ""
 
     return dict(map(_get_key_value, dataclasses.fields(klass)))
+
+@functools.singledispatch
+def mongo_filter_errors(obj, converter):
+    """Call converter on obj and ignore failed objects.
+
+    Returns result of converter. If converter raises Exception, None will be
+    returned.
+    If obj is list, converter is called on each element. Those which raise
+    exceptions are skipped.
+    """
+    if obj is None:
+        return None
+    try:
+        return converter(obj)
+    except Exception as error:
+        logging.error("During parsing db data (single): %s", error)
+        logging.error("Method %s", converter)
+        logging.error("Value %s", obj)
+        return None
+
+
+@mongo_filter_errors.register(Cursor)
+@mongo_filter_errors.register(list)
+def _mongo_list_ignore_errors(obj_list: Cursor, converter):
+    for item in obj_list:
+        try:
+            yield converter(item)
+        except Exception as error:
+            # Skip this entry in list. We will only log error and continue
+            logging.error("During parsing db data (iter): %s", error)
+            logging.error("Method %s", converter)
+            logging.error("Value %s", item)
