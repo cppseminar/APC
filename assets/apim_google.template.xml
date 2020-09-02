@@ -25,6 +25,7 @@
             </allowed-methods>
             <allowed-headers>
                 <header>Authorization</header>
+                <header>Content-type</header>
             </allowed-headers>
         </cors>
         <check-header name="Authorization" failed-check-httpcode="403" failed-check-error-message="Missing authorization token" ignore-case="false" />
@@ -51,6 +52,11 @@
         <set-variable name="email" value="@(((Jwt)context.Variables["validated-jwt"]).Claims["email"][0])" />
         <set-header name="x-request-email" exists-action="override">
             <value>@((System.String)context.Variables["email"])</value>
+        </set-header>
+        <set-header name="x-functions-key" exists-action="override">
+            <value>
+                <!-- Your id -->
+            </value>
         </set-header>
     </inbound>
     <backend>
