@@ -75,3 +75,15 @@ X-request-email: {{user}}
 GET {{baseUrl}}/api/cases/ HTTP/1.1
 Accept: */*
 X-request-email: {{user}}
+
+###############################
+# Tests api
+###############################
+POST {{baseUrl}}/api/tests/ HTTP/1.1
+Accept: */*
+X-request-email: {{user}}
+
+{
+        "submissionId":"5f50ac375cd93b87048013ef",
+        "testCaseId": "5f3e8f187e296d1539d94845"
+}

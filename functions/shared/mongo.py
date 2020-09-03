@@ -157,6 +157,16 @@ class MongoSubmissions:
         )
 
     @staticmethod
+    def increment_test(submission_id):
+        """Increment number of test runs on submission."""
+        query = {"_id": submission_id}
+        operation = {"$inc": {"testsRunCount": 1}}
+        collection = get_client().get_submissions()
+        result = collection.update_one(query, operation)
+        return result.modified_count == 1
+
+
+    @staticmethod
     def submit(user="", files=None, task_id="", date=None):
         """Submit one entry to submissions."""
         collection = get_client().get_submissions()
@@ -253,5 +263,39 @@ class MongoTests:
     """Retrieve executed/executing tests."""
 
     @staticmethod
+    def _to_model(obj):
+        """Convert dict (bson) to model."""
+        kwargs = core.empty_dataclass_dict(models.TestRun)
+        kwargs.update(obj)
+        kwargs["case_id"] = obj["caseId"] # Necessary
+        kwargs["submission_id"] = obj["submissionId"] # Necessary
+        return core.instantiate_dataclass(models.TestRun, **kwargs)
+
+    @staticmethod
     def create_test(user=None, submission_id=None, case_id=None):
-        pass
+        collection = get_client().get_tests()
+        document = {
+            "user": user,
+            "submissionId": submission_id,
+            "caseId": case_id,
+            "requested": datetime.datetime.now(datetime.timezone.utc),
+            "description": "Test run is not finished. Check back later."
+        }
+        result = collection.insert_one(document)
+
+        if not result.acknowledged:
+            logging.warning("Test run creation failed. Result not acknowledged")
+            return None
+        document["_id"] = result.inserted_id
+        return core.mongo_filter_errors(document, MongoTests._to_model)
+
+    @staticmethod
+    def count_tests(case_id, user=None):
+        """Count number of test runs with case_id. If user is set, count only
+        test runs by that user.
+        """
+        collection = get_client().get_tests()
+        query = {"caseId": case_id}
+        if user:
+            query["user"] = user
+        return collection.count_documents(query)

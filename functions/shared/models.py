@@ -1,4 +1,5 @@
 import dataclasses
+import datetime
 import typing
 
 from .core import ModelBase
@@ -42,3 +43,11 @@ class Submission(ModelBase):
         if key in mapper:
             return mapper[key], value
         return super().map_item(item)
+
+@dataclasses.dataclass
+class TestRun(ModelBase):
+    """Representation of one test run."""
+    submission_id: ObjectId
+    case_id: ObjectId
+    requested: datetime.datetime
+    description: str = ""

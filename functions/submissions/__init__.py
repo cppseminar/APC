@@ -73,6 +73,7 @@ def get_handler(
 def post_handler(req: func.HttpRequest, user=None):
     """Handle new submissions."""
     document = http.get_json(req, POST_SCHEMA)
+    # TODO: Tasks must have time interval for submissions
     if not document:
         return http.response_client_error()
     # Let's check if user has right to submit to this task

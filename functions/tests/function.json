@@ -13,6 +13,13 @@
       ]
     },
     {
+      "type": "queue",
+      "direction": "out",
+      "name": "queue",
+      "queueName": "testquee",
+      "connection": "AzureWebJobsStorage"
+    },
+    {
       "type": "http",
       "direction": "out",
       "name": "$return"
