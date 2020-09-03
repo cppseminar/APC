@@ -55,7 +55,7 @@ def get_handler(
         if not result:
             return http.response_not_found()
 
-        if not user.is_admin and user.email != result["user"]:
+        if not user.is_admin and user.email != result.user:
             return http.response_forbidden()
         return http.response_ok(result)
     # We are listing all

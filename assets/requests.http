@@ -2,7 +2,7 @@
 # work only if you have functions running locally.
 @baseUrl = http://localhost:3000
 @user = miro@example.com
-@admin = jozo@example.com 
+@admin = jozo@example.com
 
 GET {{baseUrl}}/api/submissions/ HTTP/1.1
 Accept: */*
@@ -20,7 +20,7 @@ X-request-email: miro@example.com
 
 ####
 
-GET {{baseUrl}}/api/submissions/5f34fa499cd6ee86b5fe4370 HTTP/1.1
+GET {{baseUrl}}/api/submissions/5f50ac375cd93b87048013ef HTTP/1.1
 Accept: */*
 X-request-email: miro@example.com
 

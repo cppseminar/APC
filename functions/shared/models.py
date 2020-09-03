@@ -29,3 +29,16 @@ class TestCase(ModelBase):
             return False
         return True
 
+@dataclasses.dataclass
+class Submission(ModelBase):
+    """Representation of submission in db."""
+    user: str  # User email
+    files: typing.Optional[typing.List[typing.Any]] = None
+
+
+    def map_item(self, item):
+        key, value = item
+        mapper = {"_id": "id"}
+        if key in mapper:
+            return mapper[key], value
+        return super().map_item(item)

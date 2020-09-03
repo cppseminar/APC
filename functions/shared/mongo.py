@@ -124,6 +124,13 @@ class MongoSubmissions:
     """Manipulation of submissions."""
 
     @staticmethod
+    def _to_model(obj):
+        """Convert mongo bson to submission model."""
+        kwargs = core.empty_dataclass_dict(models.Submission)
+        kwargs.update(obj)
+        return core.instantiate_dataclass(models.Submission, **kwargs)
+
+    @staticmethod
     def get_submissions(limit=10, skip=0, user=None, task_id=None):
         """Get all submissions."""
         collection = get_client().get_submissions()
@@ -145,7 +152,9 @@ class MongoSubmissions:
         """Get specific submission."""
         sub_id = ObjectId(submission_id)
         collection = get_client().get_submissions()
-        return collection.find_one({"_id": sub_id})
+        return core.mongo_filter_errors(
+            collection.find_one({"_id": sub_id}), MongoSubmissions._to_model
+        )
 
     @staticmethod
     def submit(user="", files=None, task_id="", date=None):
@@ -169,14 +178,17 @@ class MongoSubmissions:
         if not result.acknowledged:
             return None
         document["_id"] = result.inserted_id
-        return document
+        return core.mongo_filter_errors(document, MongoSubmissions._to_model)
 
 
 class MongoTasks:
+    """Manipulation with tasks in db."""
+
     @staticmethod
     def get_task(task_id, roles: typing.List = None):
+        """Get task with task_id, if has roles."""
         query = {"_id": task_id}
-        if roles != None:
+        if roles is not None:
             # This user is not an admin, so we must select only those tasks,
             # with correct roles assigned
             query["roles"] = {"$in": roles}
@@ -186,8 +198,9 @@ class MongoTasks:
 
     @staticmethod
     def get_tasks(roles: typing.List = None):
+        """Get all tasks matchin roles."""
         query = {}
-        if roles != None:
+        if roles is not None:
             # This user is not an admin, so we must select only those tasks,
             # with correct roles assigned
             query["roles"] = {"$in": roles}
