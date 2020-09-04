@@ -19,7 +19,7 @@ const Submission = () => {
     <div style={{ border: '1px solid green' }}>
       {submission.files.map(x => {
         return (
-          <div key={x._id + x.fileName}>
+          <div key={x.id + x.fileName}>
             <h2>{x.fileName}</h2>
             <div style={{ width: '100%', height: '60vh' }}>
               <CodeEditor readOnly defValue={x.fileContent} />

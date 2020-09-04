@@ -30,23 +30,38 @@ class TestCase(ModelBase):
             return False
         return True
 
+
 @dataclasses.dataclass
 class Submission(ModelBase):
     """Representation of submission in db."""
-    user: str  # User email
-    files: typing.Optional[typing.List[typing.Any]] = None
 
+    user: str  # User email
+    task_id: ObjectId
+    date: datetime.datetime
+    runs_count: int = 0
+    is_final: bool = False
+    files: typing.Optional[typing.List[typing.Any]] = None
 
     def map_item(self, item):
         key, value = item
-        mapper = {"_id": "id"}
+        mapper = {"_id": "id", "runs_count": "testsRunCount", "is_final": "isFinal"}
         if key in mapper:
             return mapper[key], value
         return super().map_item(item)
 
+    def filter_item(self, item):
+        key, value = item
+        if key == "files" and not value:
+            return False
+
+        filter_map = {"task_id": False}
+        return filter_map.get(key, True)
+
+
 @dataclasses.dataclass
 class TestRun(ModelBase):
     """Representation of one test run."""
+
     submission_id: ObjectId
     case_id: ObjectId
     requested: datetime.datetime

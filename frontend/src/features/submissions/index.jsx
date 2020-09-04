@@ -36,7 +36,7 @@ const Submissions = () => {
           <Col sm={3}>
             <ListGroup>
               {submissions.map(val => (
-                <ListGroup.Item key={val._id} as={NavLink} to={`${match.url}/${val._id}`} action>
+                <ListGroup.Item key={val.id} as={NavLink} to={`${match.url}/${val.id}`} action>
                   {new Date(val.date).toLocaleString()}
                 </ListGroup.Item>
               ))}

@@ -51,12 +51,14 @@ def get_handler(
 
     # We want one concrete reponse
     if submission_id:
-        result = mongo.MongoSubmissions.get_submission(submission_id=submission_id)
+        user_email = None
+        if not user.is_admin:
+            user_email = user.email
+        result = mongo.MongoSubmissions.get_submission(
+            submission_id=ObjectId(submission_id), user=user_email
+        )
         if not result:
             return http.response_not_found()
-
-        if not user.is_admin and user.email != result.user:
-            return http.response_forbidden()
         return http.response_ok(result)
     # We are listing all
     if not user.is_admin:

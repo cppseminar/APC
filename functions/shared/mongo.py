@@ -1,10 +1,10 @@
 """Wrappers for cosmos(mongo api).
 
-All mongo logic - searching, insering, updating and is hidden right here.
-Another important thing in this module is caching of mongo connection.  Every
+All mongo logic - searching, insering and updating is hidden right here.
+Another important thing in this module is caching of a mongo connection.  Every
 time there is new connection request (this is actually throttled to 20
 seconds), we try one simple command at first, so if connection is no longer
-working, we can open new one.
+working, we can open new one.  This is done to prevent failure in real requests.
 """
 import datetime
 import logging
@@ -128,6 +128,10 @@ class MongoSubmissions:
         """Convert mongo bson to submission model."""
         kwargs = core.empty_dataclass_dict(models.Submission)
         kwargs.update(obj)
+        kwargs["task_id"] = obj["taskId"]
+        kwargs["is_final"] = obj["isFinal"]
+        kwargs["runs_count"] = obj["testsRunCount"]
+
         return core.instantiate_dataclass(models.Submission, **kwargs)
 
     @staticmethod
@@ -145,15 +149,21 @@ class MongoSubmissions:
             .skip(skip)
             .sort([("date", pymongo.DESCENDING)])
         )
-        return iter(cursor)
+        return core.mongo_filter_errors(cursor, MongoSubmissions._to_model)
 
     @staticmethod
-    def get_submission(submission_id=None):
+    def get_submission(submission_id=None, user=None, full=True):
         """Get specific submission."""
-        sub_id = ObjectId(submission_id)
+        query = {"_id": submission_id}
+        projection = None
+        if not full:
+            projection = {"files": 0}
+        if user:
+            query["user"] = user
+
         collection = get_client().get_submissions()
         return core.mongo_filter_errors(
-            collection.find_one({"_id": sub_id}), MongoSubmissions._to_model
+            collection.find_one(query, projection), MongoSubmissions._to_model
         )
 
     @staticmethod
