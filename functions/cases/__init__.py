@@ -35,6 +35,7 @@ def get_case(_: func.HttpRequest, user: users.User, case_id):
 
 
 @decorators.login_required
+@decorators.validate_parameters(query_settings=QUERY_SETTINGS)
 def get_cases(_: func.HttpRequest, user: users.User, task_id: str = None):
     """List all cases for given task id."""
     roles: typing.Optional[typing.List] = user.roles
