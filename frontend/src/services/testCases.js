@@ -2,9 +2,11 @@ import api from '../app/api'
 
 
 export const getCases = (taskId) => {
-  return api.get('/api/cases', {params : {
-    task: taskId
-  }}).then(response => response.data)
+  return api.get('/api/cases', {
+    params: {
+      task: taskId
+    }
+  }).then(response => response.data)
 }
 
 export const submitTest = (testCaseId, submissionId) => {
@@ -12,4 +14,16 @@ export const submitTest = (testCaseId, submissionId) => {
     submissionId,
     testCaseId,
   })
+}
+
+export const listTests = ({ submissionId, taskId }) => {
+  let params = {}
+  if (submissionId) {
+    params = { submission: submissionId }
+  }
+  if (taskId) {
+    params = Object.assign(params, { task: taskId })
+  }
+  return api.get('/api/tests', { params })
+    .then(result => result.data)
 }

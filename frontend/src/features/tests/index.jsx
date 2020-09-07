@@ -7,11 +7,13 @@ import Col from 'react-bootstrap/Col'
 import Alert from 'react-bootstrap/Alert'
 import { useParams } from 'react-router-dom'
 
+import TestList from './tests'
 import TestCases from './testCases'
 
 const Tests = ({ taskId }) => {
   const [hidden, setHidden] = useState(false)
   const [retCode, setCode] = useState(null)
+  const [refresh, setRefresh] = useState(0)
   const { submissionId } = useParams()
 
   let notification = null
@@ -32,6 +34,7 @@ const Tests = ({ taskId }) => {
       submitTest(caseId, submissionId).then(result => {
         setHidden(false)
         setCode(Number(result.status))
+        setRefresh(refresh + 1)
       }).catch(error => {
         setHidden(false)
         if (error.response.status) {
@@ -50,6 +53,11 @@ const Tests = ({ taskId }) => {
 
   return (
     <Container>
+      <Row>
+        <Col>
+          <TestList submissionId={submissionId} refresh={refresh} />
+        </Col>
+      </Row>
       <Row>
         <Col>
           {notification}
