@@ -87,7 +87,10 @@ def post_handler(req: func.HttpRequest, user=None):
         return http.response_client_error()
     # User has right to do this
     result = mongo.MongoSubmissions.submit(
-        user=user.email, files=document["files"], task_id=ObjectId(document["taskId"])
+        user=user.email,
+        files=document["files"],
+        task_id=ObjectId(document["taskId"]),
+        name=result.get("name", ""),
     )
 
     return http.response_ok(result, code=201)

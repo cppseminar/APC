@@ -41,10 +41,16 @@ class Submission(ModelBase):
     runs_count: int = 0
     is_final: bool = False
     files: typing.Optional[typing.List[typing.Any]] = None
+    task_name: str = ""
 
     def map_item(self, item):
         key, value = item
-        mapper = {"_id": "id", "runs_count": "testsRunCount", "is_final": "isFinal"}
+        mapper = {
+            "_id": "id",
+            "runs_count": "testsRunCount",
+            "is_final": "isFinal",
+            "task_name": "taskName",
+        }
         if key in mapper:
             return mapper[key], value
         return super().map_item(item)

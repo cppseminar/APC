@@ -131,6 +131,7 @@ class MongoSubmissions:
         kwargs["task_id"] = obj["taskId"]
         kwargs["is_final"] = obj["isFinal"]
         kwargs["runs_count"] = obj["testsRunCount"]
+        kwargs["task_name"] = obj.get("taskName", "")
 
         return core.instantiate_dataclass(models.Submission, **kwargs)
 
@@ -177,7 +178,7 @@ class MongoSubmissions:
 
 
     @staticmethod
-    def submit(user="", files=None, task_id="", date=None):
+    def submit(user="", files=None, task_id="", date=None, name=""):
         """Submit one entry to submissions."""
         collection = get_client().get_submissions()
         if not files:
@@ -189,6 +190,7 @@ class MongoSubmissions:
             "files": files,
             "taskId": task_id,
             "date": date,
+            "taskName": name,
             "isFinal": False,
             "testsRunCount": 0,
             "type": "submission",
