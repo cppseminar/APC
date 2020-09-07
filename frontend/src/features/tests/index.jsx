@@ -45,7 +45,7 @@ const Tests = ({ taskId }) => {
       })
     }
     f(caseId)
-  }, [submissionId])
+  }, [submissionId, refresh])
 
   if (hidden) {
     return null

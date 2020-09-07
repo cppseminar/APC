@@ -31,12 +31,13 @@ const TestRun = (props) => {
 
 const TestList = ({ submissionId, refresh, taskId }) => {
   const [testRuns, setRuns] = useState([])
-  const refreshCb = () => {
+
+  useEffect(() =>{
     listTests({submissionId, taskId})
       .then(result => setRuns(result))
       .catch(error => console.error(error))
-  }
-  useEffect(() => refreshCb(), [submissionId, refresh])
+  }, [submissionId, refresh, taskId])
+
   if (!testRuns.length) {
     return null
   }
