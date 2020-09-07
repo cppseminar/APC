@@ -36,6 +36,7 @@ def mock_test_run():
         case_id=ObjectId(),
         description="abcd",
         requested=datetime.datetime.now(),
+        user=EMAIL1
     )
 
 

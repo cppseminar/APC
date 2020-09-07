@@ -176,7 +176,6 @@ class MongoSubmissions:
         result = collection.update_one(query, operation)
         return result.modified_count == 1
 
-
     @staticmethod
     def submit(user="", files=None, task_id="", date=None, name=""):
         """Submit one entry to submissions."""
@@ -279,20 +278,46 @@ class MongoTests:
         """Convert dict (bson) to model."""
         kwargs = core.empty_dataclass_dict(models.TestRun)
         kwargs.update(obj)
-        kwargs["case_id"] = obj["caseId"] # Necessary
-        kwargs["submission_id"] = obj["submissionId"] # Necessary
+        kwargs["case_id"] = obj["caseId"]  # Necessary
+        kwargs["submission_id"] = obj["submissionId"]  # Necessary
+        kwargs["case_name"] = obj.get("caseName", "")
+        kwargs["task_name"] = obj.get("taskName", "")
         return core.instantiate_dataclass(models.TestRun, **kwargs)
 
     @staticmethod
-    def create_test(user=None, submission_id=None, case_id=None, task_name=""):
+    def list_tests(email=None, submission_id=None, case_id=None, task_id=None):
+        query = {}
+        if email:
+            query["user"] = email
+        if submission_id:
+            query["submissionId"] = submission_id
+        if case_id:
+            query["caseId"] = case_id
+        if task_id:
+            query["taskId"] = task_id
+        collection = get_client().get_tests()
+        cursor = collection.find(query, {"description": 0})
+        return core.mongo_filter_errors(cursor, MongoTests._to_model)
+
+    @staticmethod
+    def create_test(
+        user=None,
+        submission_id=None,
+        case_id=None,
+        task_id=None,
+        task_name="",
+        case_name="",
+    ):
         collection = get_client().get_tests()
         document = {
             "user": user,
             "submissionId": submission_id,
             "caseId": case_id,
             "requested": datetime.datetime.now(datetime.timezone.utc),
+            "caseName": case_name,
             "taskName": task_name,
-            "description": "Test run is not finished. Check back later."
+            "taskId": task_id,
+            "description": "Test run is not finished. Check back later.",
         }
         result = collection.insert_one(document)
 

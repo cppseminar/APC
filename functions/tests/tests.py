@@ -15,12 +15,33 @@ def get_test(req, user, test_id, queue=None):
     return http.response_ok({})
 
 
+@decorators.login_required
+@decorators.validate_parameters(query_settings=validators.QUERY_SETTINGS)
+def list_tests(
+    req: func.HttpRequest,
+    user: users.User,
+    email=None,
+    submission_id=None,
+    case_id=None,
+    task_id=None,
+):
+    """List all tests, that were run."""
+    if not user.is_admin and (not email or email != user.email):
+        return http.response_forbidden()
+    # If user is really filtering only his submissions, we don't need to
+    # validate other parameters (i.e. submission id)
+    result = mongo.MongoTests().list_tests(
+        email=email, submission_id=submission_id, case_id=case_id, task_id=task_id
+    )
+    return http.response_ok(list(result))
+
+
 def get_dispatch(req: func.HttpRequest, queue=None):
     """Dispatch to concrete implementation, based on route."""
     has_id = req.route_params.get("id", None)
     if has_id:
         return get_test(req)  # pylint:disable=no-value-for-parameter
-    return http.response_forbidden()
+    return list_tests(req)  # pylint:disable=no-value-for-parameter
 
 
 @decorators.login_required
@@ -65,6 +86,8 @@ def post_test(req: func.HttpRequest, user: users.User, queue=None):
         submission_id=submission_id,
         case_id=test_case_id,
         task_name=submission.task_name,
+        case_name=test_case.name,
+        task_id=submission.task_id,
     )
     if not result:
         return http.response_server_error()

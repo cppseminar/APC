@@ -67,8 +67,30 @@ class Submission(ModelBase):
 @dataclasses.dataclass
 class TestRun(ModelBase):
     """Representation of one test run."""
-
     submission_id: ObjectId
     case_id: ObjectId
+    user: str
     requested: datetime.datetime
     description: str = ""
+    case_name: str = ""
+    task_name: str = ""
+
+
+    def map_item(self, item):
+        key, value = item
+        mapper = {
+            "_id": "id",
+            "case_id": "caseId",
+            "submission_id": "submissionId",
+            "task_name": "taskName",
+            "case_name": "caseName",
+        }
+        if key in mapper:
+            return mapper[key], value
+        return super().map_item(item)
+
+    def filter_item(self, item):
+        key, value = item
+        if key == "description" and not value:
+            return False
+        return super().filter_item(item)
