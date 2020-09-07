@@ -284,13 +284,14 @@ class MongoTests:
         return core.instantiate_dataclass(models.TestRun, **kwargs)
 
     @staticmethod
-    def create_test(user=None, submission_id=None, case_id=None):
+    def create_test(user=None, submission_id=None, case_id=None, task_name=""):
         collection = get_client().get_tests()
         document = {
             "user": user,
             "submissionId": submission_id,
             "caseId": case_id,
             "requested": datetime.datetime.now(datetime.timezone.utc),
+            "taskName": task_name,
             "description": "Test run is not finished. Check back later."
         }
         result = collection.insert_one(document)

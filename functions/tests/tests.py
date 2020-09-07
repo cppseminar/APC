@@ -57,11 +57,14 @@ def post_test(req: func.HttpRequest, user: users.User, queue=None):
     if not submission:
         return http.response_not_found()
 
-    if user.email == submission.user: # Let's mark submission as test run
+    if user.email == submission.user:  # Let's mark submission as test run
         mongo.MongoSubmissions.increment_test(submission_id)
 
     result = mongo.MongoTests.create_test(
-        user=user.email, submission_id=submission_id, case_id=test_case_id
+        user=user.email,
+        submission_id=submission_id,
+        case_id=test_case_id,
+        task_name=submission.task_name,
     )
     if not result:
         return http.response_server_error()
