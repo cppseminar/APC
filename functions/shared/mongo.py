@@ -300,6 +300,16 @@ class MongoTests:
         return core.mongo_filter_errors(cursor, MongoTests._to_model)
 
     @staticmethod
+    def get_test(test_id, user=None):
+        """Get one test run from db."""
+        query = {"_id" : test_id}
+        if user:
+            query["user"] = user
+        collection = get_client().get_tests()
+        result = collection.find_one(query)
+        return core.mongo_filter_errors(result, MongoTests._to_model)
+
+    @staticmethod
     def create_test(
         user=None,
         submission_id=None,
@@ -317,7 +327,7 @@ class MongoTests:
             "caseName": case_name,
             "taskName": task_name,
             "taskId": task_id,
-            "description": "Test run is not finished. Check back later.",
+            "description": "Test run is not finished.\nCheck back later.",
         }
         result = collection.insert_one(document)
 

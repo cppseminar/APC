@@ -11,8 +11,15 @@ from bson import ObjectId
 
 @decorators.login_required
 @decorators.validate_parameters(route_settings=validators.ROUTE_SETTINGS)
-def get_test(req, user, test_id, queue=None):
-    return http.response_ok({})
+def get_test(req, user: users.User, test_id, queue=None):
+    user_param = None
+    if not user.is_admin:
+        user_param = user.email
+    result = mongo.MongoTests.get_test(test_id, user=user_param)
+    if not result:
+        logging.info("Not found result")
+        return http.response_not_found()
+    return http.response_ok(result)
 
 
 @decorators.login_required
