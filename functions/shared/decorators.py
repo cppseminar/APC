@@ -55,6 +55,7 @@ def _get_mapper(settings: dict):
     def _internal(entry: typing.Tuple[str, dict]):
         # We expect entry[0] to be in dict, as it is reponsibility of caller
         # to not call this function relentlessly
+        # Entry is  one entry from dict "key": {validator, destination}
         entry_settings = settings[entry[0]]
         destination = entry_settings.get(DESTINATION, entry[0])
         value_validator = entry_settings.get(VALIDATOR, lambda x: x)
@@ -95,8 +96,10 @@ def validate_parameters(route_settings: typing.Dict[str, typing.Any] = None,
 
     """
     # Route params
-    query_mapper = _get_mapper(query_settings or {})
-    route_mapper = _get_mapper(route_settings or {})
+    query_settings = query_settings or {}
+    route_settings = route_settings or {}
+    query_mapper = _get_mapper(query_settings)
+    route_mapper = _get_mapper(route_settings)
 
     def _func_call(func: typing.Callable):
         @functools.wraps(func)
