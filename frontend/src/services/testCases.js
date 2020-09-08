@@ -27,3 +27,7 @@ export const listTests = ({ submissionId, taskId }) => {
   return api.get('/api/tests', { params })
     .then(result => result.data)
 }
+
+export const getTest = (testId) => {
+  return api.get('/api/tests/' + testId).then(result => result.data)
+}
