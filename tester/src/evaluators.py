@@ -2,6 +2,7 @@
 import argparse
 import collections
 import contextlib
+import itertools
 import os
 import re
 
@@ -115,6 +116,40 @@ class HuffmanEvaluator(infrastructure.Module):
                 return values
 
         return {}
+
+class DiffEvaluator(infrastructure.Module):
+    SETTINGS = {
+        "expected_output": infrastructure.FileNameParser(),
+        "input_identification": infrastructure.AnyStringParser(),
+    }
+
+    def __init__(self, name):
+        """Register event."""
+        super().__init__(name)
+        self.register_event(runner.RunOutput)
+
+    def handle_internal(self, event: runner.RunOutput):
+        """Check if run output is correct."""
+        if event.identification != self.settings['input_identification']:
+            return False
+        identificator = "[" + self.__class__.__name__ + self.name + "]"
+        zipped = itertools.zip_longest(
+                self.get_file_iter(self.settings["expected_output"]),
+                self.get_file_iter(event.output_file),
+                fillvalue="")
+        for index, values in enumerate(zipped):
+            if values[0] != values[1]:
+                self.notify(infrastructure.Notification(
+                    f"{identificator} Error wrong output",
+                    infrastructure.MessageSeverity.ERROR))
+                return False
+        self.notify(infrastructure.Notification(f"{identificator} Correct"))
+
+    @staticmethod
+    def get_file_iter(file_name):
+        with open(file_name, "r") as f:
+            yield f.readline()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
