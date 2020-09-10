@@ -1,6 +1,8 @@
 """Module containing compilers..."""
 import contextlib
 import dataclasses
+import json
+import logging
 import os
 import pathlib
 import shutil
@@ -92,7 +94,7 @@ class CompilerEvent(infrastructure.Event):
     platform: Platform
     warnings: List[str]
     errors: List[str]
-    identifier: str  # file name - probably not unique
+    identifier: str = "source_file" # file name - probably not unique
 
 
 class Compiler(infrastructure.Module):
@@ -217,3 +219,113 @@ class Compiler(infrastructure.Module):
                     infrastructure.MessageSeverity.INFO))
 
         self.send(event)
+
+_GCC_OPS = [
+    "-Wall",
+    "-Wextra",
+    "-Wctor-dtor-privacy",
+    "-Wdisabled-optimization",
+    "-Wformat=2",
+    "-Winit-self",
+    "-Wlogical-op",
+    "-Wmissing-include-dirs",
+    "-Wnoexcept",
+    "-Wold-style-cast",
+    "-Woverloaded-virtual",
+    "-Wredundant-decls",
+    "-Wshadow",
+    "-Wsign-conversion",
+    "-Wsign-promo",
+    "-Wstrict-null-sentinel",
+    "-Wstrict-overflow=5",
+    "-Wundef",
+    "-Wno-unused",
+    "-Wzero-as-null-pointer-constant",
+    "-fmax-errors=3",
+    "-Wnull-dereference",
+    "-Wimplicit-fallthrough=5",
+    "-Wuninitialized",
+    "-Walloca",
+    "-Wno-pointer-compare",
+    "-Wcast-qual",
+    "-Wcast-align=strict",
+    "-Wparentheses",
+    "-Wlogical-op",
+    "-Wno-multichar"
+]
+
+_COMPILED_OK = "Compilation successful"
+_COMPILED_WARNINGS = "Compilation successful with warnings"
+_COMPILED_ERROR = "Compilation unsuccessful. Error occured."
+_COMPILED_CONFIG = "Compiler config error. See logs."
+
+def gcc_stderr_to_lists(output: str):
+    warnings = []
+    errors = []
+    try:
+        out = json.loads(output)
+        for entry in out:
+            if entry["kind"] == "warning":
+                warnings.append(entry["message"])
+            elif entry["kind"] == "error":
+                errors.append(entry["message"])
+        return warnings, errors
+    except Exception as e:
+        _logger.error(e)
+        return [], ["Error"]
+
+def gcc_compile(input_file, output_file, debug=False):
+    """Run g++ to compile input_file."""
+    compiler = shutil.which("g++")
+    additional_ops = [
+            "-fdiagnostics-format=json",
+            str(input_file),
+            "-o",
+            str(output_file)]
+    completed_process = subprocess.run(
+            [compiler] + _GCC_OPS + additional_ops, capture_output=True)
+    return gcc_stderr_to_lists(completed_process.stderr)
+
+class Gcc(infrastructure.Module):
+    """Gcc compilation on linux."""
+    SETTINGS = {
+    }
+
+    def __init__(self, name):
+        super().__init__(name)
+        self.register_event(SourceFileEvent)
+
+    def handle_internal(self, event):
+        if len(event.file_names) != 1:
+            _logger.info("Compilation supports only one file")
+            return
+        self.register_setting(
+                'folder',
+                parser=infrastructure.TmpFolderCreator(name_parts=['compiler'],
+                                                       cleanup=True))
+        folder = (self.settings['folder'])
+        exe_path = pathlib.Path(folder).joinpath("out.a")
+        warnings, errors = self.compile(event.file_names[0], exe_path)
+        if not errors and not exe_path.exists():
+            self.notify(infrastructure.Notification(
+                _COMPILED_CONFIG,
+                infrastructure.MessageSeverity.ERROR))
+        elif errors:
+            self.notify(infrastructure.Notification(
+                _COMPILED_ERROR,
+                infrastructure.MessageSeverity.ERROR))
+        elif warnings: # Now exe_path definitely exists
+            self.notify(infrastructure.Notification(
+                _COMPILED_WARNINGS, infrastructure.MessageSeverity.WARNING))
+            self.send(CompilerEvent(exe_path, warnings=warnings,
+                errors=errors, platform=Platform.x64_Release))
+        else:
+            self.notify(infrastructure.Notification(_COMPILED_OK))
+            self.send(CompilerEvent(exe_path, warnings=warnings,
+                errors=errors, platform=Platform.x64_Release))
+
+
+    def compile(self, input_file, output_file):
+        with contextlib.suppress(Exception):
+            return gcc_compile(input_file, output_file)
+        return [], ["Unknown error"]

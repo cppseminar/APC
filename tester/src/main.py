@@ -93,6 +93,7 @@ if __name__ == "__main__":
     script.add_class(WeirdLogger)
     script.add_class(compiler.CppFinder)
     script.add_class(compiler.Compiler)
+    script.add_class(compiler.Gcc)
     script.add_class(infrastructure.HTMLWriter)
     script.add_class(infrastructure.ConsoleWriter)
     script.add_class(runner.CompilerFilter)
