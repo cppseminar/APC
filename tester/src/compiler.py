@@ -1,6 +1,7 @@
 """Module containing compilers..."""
 import contextlib
 import dataclasses
+import itertools
 import json
 import logging
 import os
@@ -94,7 +95,7 @@ class CompilerEvent(infrastructure.Event):
     platform: Platform
     warnings: List[str]
     errors: List[str]
-    identifier: str = "source_file" # file name - probably not unique
+    identifier: str = "" # file name - probably not unique
 
 
 class Compiler(infrastructure.Module):
@@ -306,17 +307,21 @@ class Gcc(infrastructure.Module):
         folder = (self.settings['folder'])
         exe_path = pathlib.Path(folder).joinpath("out.a")
         warnings, errors = self.compile(event.file_names[0], exe_path)
+        payload = '\n'.join(itertools.chain(warnings, errors))
         if not errors and not exe_path.exists():
             self.notify(infrastructure.Notification(
                 _COMPILED_CONFIG,
                 infrastructure.MessageSeverity.ERROR))
         elif errors:
             self.notify(infrastructure.Notification(
-                _COMPILED_ERROR,
-                infrastructure.MessageSeverity.ERROR))
+                            _COMPILED_ERROR,
+                            infrastructure.MessageSeverity.ERROR,
+                            payload=payload))
         elif warnings: # Now exe_path definitely exists
             self.notify(infrastructure.Notification(
-                _COMPILED_WARNINGS, infrastructure.MessageSeverity.WARNING))
+                            _COMPILED_WARNINGS,
+                            infrastructure.MessageSeverity.WARNING,
+                            payload=payload))
             self.send(CompilerEvent(exe_path, warnings=warnings,
                 errors=errors, platform=Platform.x64_Release))
         else:

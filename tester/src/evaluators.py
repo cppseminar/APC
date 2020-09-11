@@ -2,6 +2,7 @@
 import argparse
 import collections
 import contextlib
+import difflib
 import itertools
 import os
 import re
@@ -132,23 +133,27 @@ class DiffEvaluator(infrastructure.Module):
         """Check if run output is correct."""
         if event.identification != self.settings['input_identification']:
             return False
-        identificator = "[" + self.__class__.__name__ + self.name + "]"
+        identificator = "[" + self.__class__.__name__ + "] " + self.name + " -"
         zipped = itertools.zip_longest(
                 self.get_file_iter(self.settings["expected_output"]),
                 self.get_file_iter(event.output_file),
                 fillvalue="")
         for index, values in enumerate(zipped):
             if values[0] != values[1]:
+                diffs = difflib.ndiff((values[0],), (values[1],))
+                err = f"Line:{index+1} (starting 1)\n" +"\n".join(diffs)
+
                 self.notify(infrastructure.Notification(
                     f"{identificator} Error wrong output",
-                    infrastructure.MessageSeverity.ERROR))
+                    infrastructure.MessageSeverity.ERROR,
+                    payload=err))
                 return False
         self.notify(infrastructure.Notification(f"{identificator} Correct"))
 
     @staticmethod
     def get_file_iter(file_name):
         with open(file_name, "r") as f:
-            yield f.readline()
+            yield f.readline().rstrip()
 
 
 if __name__ == '__main__':
