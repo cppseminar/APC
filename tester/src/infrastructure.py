@@ -790,7 +790,7 @@ class ConsoleWriter(Module):
     severity
     """
 
-    SETTINGS = {'severity': [MessageSeverity.CRITICAL, MessageSeverity.INFO]}
+    SETTINGS = {'payload': [False, True]}
 
     def __init__(self, name):
         super().__init__(name)
@@ -807,6 +807,9 @@ class ConsoleWriter(Module):
             print(constants.KEYWORDS.ERROR + " " + event.message)
         else:
             print(event.message)
+        # Print payload if set
+        if self.settings["payload"] and event.payload:
+            print(event.payload)
         return True
 
 class HTMLWriter(ConsoleWriter):
