@@ -15,6 +15,7 @@
       "returnUrl": {
           "$id": "#/properties/returnUrl",
           "type": "string",
+          "format": "uri",
           "title": "The returnUrl schema",
           "description": "Result of the run will be submited to this URL.",
           "default": ""
@@ -32,19 +33,30 @@
           "title": "The files schema",
           "description": "An explanation about the purpose of this instance.",
           "default": {},
+          "maxProperties": 10,
+          "patternProperties": {
+            "^[A-Za-z0-9_\\-\\.]{0,100}$": { 
+                "type": "string",
+                "maxLength": 102400
+            }
+          },
           "examples": [
               {
                   "main.cpp": "#include <iostream>\n\nint main() { std::cout << \"Hello json!\"; }"
               }
           ],
-          "additionalProperties": true
+          "additionalProperties": false
       },
       "maxRunTime": {
           "$id": "#/properties/maxRunTime",
           "type": "number",
           "title": "Maximum runnig time",
           "description": "After this many seconds the test will break.",
-          "default": 0
+          "default": 0,
+          "multipleOf": 1.0,
+          "minimum": 1,
+          "maximum": 900
       }
-  }
+  },
+  "additionalProperties": false
 }

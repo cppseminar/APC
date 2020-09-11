@@ -1,33 +1,19 @@
-// go get github.com/xeipuuv/gojsonschema
+// go get gopkg.in/square/go-jose.v2
+
+// TODO https://stackoverflow.com/questions/28282370/is-it-advisable-to-further-limit-the-size-of-forms-when-using-golang
 
 package main
 
 import (
+	"bytes"
 	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/xeipuuv/gojsonschema"
 	"gopkg.in/square/go-jose.v2"
 )
-
-func getSchema() *gojsonschema.Schema {
-	dat, err := ioutil.ReadFile("./schema.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	schemaLoader := gojsonschema.NewBytesLoader(dat)
-
-	schema, err := gojsonschema.NewSchema(schemaLoader)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return schema
-}
 
 func verifyJWSAndExtractPayload(body []byte) ([]byte, error) {
 	object, err := jose.ParseSigned(string(body))
@@ -39,11 +25,11 @@ func verifyJWSAndExtractPayload(body []byte) ([]byte, error) {
 	// this we should load from environment
 	var publicKey jose.JSONWebKey
 	publicKey.UnmarshalJSON([]byte(`{
-    "kty":"EC",
-    "crv":"P-256",
-    "x":"bWrIDOM1ZD_aeQ--HJoqL_ench7qRSGBCD_5t3gBgzM",
-    "y":"BJKB0iiarWhW1Q_btd2KSBIwYSGfn38T2xKq36fH-Ks"
-	}`))
+    "kty": "oct",
+    "use": "sig",
+    "k": "ZXhhbXBsZSBobWFjIGtleQ",
+    "alg": "HS256"
+}`))
 
 	// i'm kind of scared from jose, so I add here those paranoid checks
 	// https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/?_ga=2.1739384.896580470.1599590522-1256792510.1597065586
@@ -51,8 +37,8 @@ func verifyJWSAndExtractPayload(body []byte) ([]byte, error) {
 		return nil, errors.New("Only one signature is allowed!")
 	}
 
-	if object.Signatures[0].Header.Algorithm != "ES256" {
-		return nil, errors.New("Only ES256 is allowed as signing algorithm!")
+	if object.Signatures[0].Header.Algorithm != "HS256" {
+		return nil, errors.New("Only HS256 is allowed as signing algorithm!")
 	}
 
 	output, err := object.Verify(&publicKey)
@@ -81,30 +67,26 @@ func processRequest(r *http.Request) int {
 		return http.StatusUnauthorized
 	}
 
-	// check payload against json scheme to validate it
-	jsonDocument := gojsonschema.NewBytesLoader(payload)
-
-	result, err := schema.Validate(jsonDocument)
+	// so here the request is verified, we are good to go
+	resp, err := client.Post("http://localhost:10009", "text/json", bytes.NewReader(payload))
 	if err != nil {
-		log.Println(err)
-		return http.StatusBadRequest
+		log.Println("Cannot forward request to queue", err)
+		return http.StatusInternalServerError
 	}
 
-	if !result.Valid() {
-		log.Println(result.Errors())
-		return http.StatusBadRequest
-	}
-
-	// so here the request is verified and validated, we are good to go
-
-	return http.StatusOK
+	// forward the error code
+	return resp.StatusCode
 }
 
-var schema *gojsonschema.Schema
+var tr = &http.Transport{
+	ResponseHeaderTimeout:  10 * time.Second,
+	IdleConnTimeout:        30 * time.Second,
+	MaxResponseHeaderBytes: 1024,
+}
+
+var client = &http.Client{Transport: tr}
 
 func main() {
-	schema = getSchema()
-
 	srv := &http.Server{
 		Addr:         ":1488",
 		ReadTimeout:  5 * time.Second,
