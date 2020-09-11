@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/xeipuuv/gojsonschema"
@@ -37,6 +39,40 @@ func getSchema() *gojsonschema.Schema {
 
 var schema *gojsonschema.Schema
 
+var queue = make(chan RequestMessage, 100)
+
+func processMessages() {
+	for {
+		msg := <-queue
+
+		func() {
+			dir, err := ioutil.TempDir("", "queue-go")
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			defer func() {
+				if err := os.RemoveAll(dir); err != nil {
+					log.Println(err)
+				}
+			}()
+
+			for file, content := range msg.Files {
+				path := filepath.Join(dir, file)
+
+				err := ioutil.WriteFile(path, []byte(content), 0644)
+				if err != nil {
+					log.Println(err)
+					return
+				}
+			}
+
+			log.Println("Here be dragons...")
+		}()
+	}
+}
+
 func main() {
 	schema = getSchema()
 
@@ -47,6 +83,9 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 		Handler:      http.HandlerFunc(ServerHandler),
 	}
+
+	// start process messages queue
+	go processMessages()
 
 	err := srv.ListenAndServe()
 	if err != nil {
@@ -78,11 +117,18 @@ func processRequest(r *http.Request) int {
 		return http.StatusBadRequest
 	}
 
-	// so here the request is validated, we are good to go
+	// so here the request is validated, we are good to go and create new message
 	var msg RequestMessage
 	if err := json.Unmarshal(req, &msg); err != nil {
 		log.Println(err)
 		return http.StatusBadRequest
+	}
+
+	select {
+	case queue <- msg: // normally just add it
+	default: // we are full
+		log.Println("Queue is full")
+		return http.StatusTooManyRequests
 	}
 
 	return http.StatusOK

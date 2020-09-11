@@ -17,26 +17,25 @@
           "type": "string",
           "format": "uri",
           "title": "The returnUrl schema",
-          "description": "Result of the run will be submited to this URL.",
-          "default": ""
+          "description": "Result of the run will be submited to this URL."
       },
       "dockerImage": {
           "$id": "#/properties/dockerImage",
           "type": "string",
           "title": "Name of the docker image",
-          "description": "The image will be used to process the files and collect results.",
-          "default": ""
+          "description": "The image will be used to process the files and collect results."
       },
       "files": {
           "$id": "#/properties/files",
           "type": "object",
           "title": "The files schema",
           "description": "An explanation about the purpose of this instance.",
-          "default": {},
+          "minProperties": 1,
           "maxProperties": 10,
           "patternProperties": {
-            "^[A-Za-z0-9_\\-\\.]{0,100}$": { 
+            "^[A-Za-z0-9_\\-\\.]{4,250}$": { 
                 "type": "string",
+                "minLength": 1,
                 "maxLength": 102400
             }
           },
@@ -52,7 +51,6 @@
           "type": "number",
           "title": "Maximum runnig time",
           "description": "After this many seconds the test will break.",
-          "default": 0,
           "multipleOf": 1.0,
           "minimum": 1,
           "maximum": 900

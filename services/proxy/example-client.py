@@ -7,7 +7,8 @@ payload = r"""{
     "returnUrl": "https://example.com/",
     "dockerImage": "palindrom",
     "files": {
-        "main.cpp": "#include <iostream>\n\nint main() { std::cout << \"Hello json!\"; }"
+        "main.cpp": "#include <iostream>\n\nint main() { std::cout << \"Hello json!\"; }",
+        "megafile.h": "// best solution to the problem ever!"
     },
     "maxRunTime": 15
 }"""
