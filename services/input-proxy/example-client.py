@@ -1,7 +1,7 @@
 import http.client
 from jose import jws
 
-connection = http.client.HTTPConnection('localhost', 1488, timeout=10)
+connection = http.client.HTTPConnection('localhost', 10017, timeout=10)
 
 payload = r"""{
     "returnUrl": "https://example.com/",

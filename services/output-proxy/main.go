@@ -1,14 +1,14 @@
-// go get gopkg.in/square/go-jose.v2
-
 package main
 
 import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
+	"gopkg.in/natefinch/lumberjack.v2"
 	"gopkg.in/square/go-jose.v2"
 )
 
@@ -79,7 +79,21 @@ var tr = &http.Transport{
 
 var client = &http.Client{Transport: tr}
 
+// key should be base64 encoded
+var privateKey string = os.Getenv("APC_PRIVATE_KEY")
+
 func main() {
+	log.SetOutput(&lumberjack.Logger{
+		Filename: ".\\output-proxy.log",
+		MaxSize:  100, // megabytes
+		Compress: true,
+	})
+
+	privateKey = strings.TrimSpace(privateKey)
+	if privateKey == "" {
+		log.Fatal("Cannot retrieve private key from env.")
+	}
+
 	srv := &http.Server{
 		Addr:         ":10018",
 		ReadTimeout:  5 * time.Second,

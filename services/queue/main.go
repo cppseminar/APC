@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/xeipuuv/gojsonschema"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type RequestMessage struct {
@@ -45,6 +46,8 @@ func processMessages() {
 	for {
 		msg := <-queue
 
+		log.Printf("%+v\n", msg)
+
 		func() {
 			dir, err := ioutil.TempDir("", "queue-go")
 			if err != nil {
@@ -74,6 +77,12 @@ func processMessages() {
 }
 
 func main() {
+	log.SetOutput(&lumberjack.Logger{
+		Filename: ".\\queue.log",
+		MaxSize:  100, // megabytes
+		Compress: true,
+	})
+
 	schema = getSchema()
 
 	srv := &http.Server{

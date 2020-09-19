@@ -1,17 +1,17 @@
-// go get gopkg.in/square/go-jose.v2
-
-// TODO https://stackoverflow.com/questions/28282370/is-it-advisable-to-further-limit-the-size-of-forms-when-using-golang
-
 package main
 
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
+	"gopkg.in/natefinch/lumberjack.v2"
 	"gopkg.in/square/go-jose.v2"
 )
 
@@ -23,13 +23,13 @@ func verifyJWSAndExtractPayload(body []byte) ([]byte, error) {
 	}
 
 	// this we should load from environment
-	var publicKey jose.JSONWebKey
-	publicKey.UnmarshalJSON([]byte(`{
+	var key jose.JSONWebKey
+	key.UnmarshalJSON([]byte(fmt.Sprintf(`{
     "kty": "oct",
     "use": "sig",
-    "k": "ZXhhbXBsZSBobWFjIGtleQ",
+    "k": "%v",
     "alg": "HS256"
-}`))
+	}`, privateKey)))
 
 	// i'm kind of scared from jose, so I add here those paranoid checks
 	// https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/?_ga=2.1739384.896580470.1599590522-1256792510.1597065586
@@ -41,9 +41,9 @@ func verifyJWSAndExtractPayload(body []byte) ([]byte, error) {
 		return nil, errors.New("Only HS256 is allowed as signing algorithm!")
 	}
 
-	output, err := object.Verify(&publicKey)
+	output, err := object.Verify(&key)
 	if err != nil {
-		log.Println("Invalid signature '", string(body), "'.", err)
+		log.Println(err)
 		return nil, err
 	}
 
@@ -70,7 +70,7 @@ func processRequest(r *http.Request) int {
 	// so here the request is verified, we are good to go
 	resp, err := client.Post("http://localhost:10009", "text/json", bytes.NewReader(payload))
 	if err != nil {
-		log.Println("Cannot forward request to queue", err)
+		log.Println(err)
 		return http.StatusInternalServerError
 	}
 
@@ -86,7 +86,22 @@ var tr = &http.Transport{
 
 var client = &http.Client{Transport: tr}
 
+// key should be base64 encoded
+var privateKey string = os.Getenv("APC_PRIVATE_KEY")
+
 func main() {
+	log.SetOutput(&lumberjack.Logger{
+		Filename: ".\\input-proxy.log",
+		MaxSize:  100, // megabytes
+		Compress: true,
+	})
+
+	// privateKey = "ZXhhbXBsZSBobWFjIGtleQ"
+	privateKey = strings.TrimSpace(privateKey)
+	if privateKey == "" {
+		log.Fatal("Cannot retrieve private key from env.")
+	}
+
 	srv := &http.Server{
 		Addr:         ":10017",
 		ReadTimeout:  5 * time.Second,
