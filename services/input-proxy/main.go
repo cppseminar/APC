@@ -58,7 +58,7 @@ func processRequest(r *http.Request) int {
 
 	req, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Println("Cannot read http body!")
+		log.Println(err)
 		return http.StatusInternalServerError
 	}
 
@@ -88,7 +88,7 @@ var client = &http.Client{Transport: tr}
 
 func main() {
 	srv := &http.Server{
-		Addr:         ":1488",
+		Addr:         ":10017",
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
@@ -102,6 +102,15 @@ func main() {
 }
 
 func ServerHandler(w http.ResponseWriter, r *http.Request) {
+	// limit body size to something sensible https://stackoverflow.com/q/28282370/4807781
+	r.Body = http.MaxBytesReader(w, r.Body, 100000)
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	status := processRequest(r)
 	if status != http.StatusOK {
 		log.Println("Request",
@@ -109,8 +118,6 @@ func ServerHandler(w http.ResponseWriter, r *http.Request) {
 			r.Host,
 			r.Proto,
 			"remote addr", r.RemoteAddr,
-			"x-real-ip", r.Header.Get("X-Real-Ip"),
-			"x-forwarded-for", r.Header.Get("X-Forwarded-For"),
 			"ended up with status", status)
 	}
 
