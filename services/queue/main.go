@@ -3,23 +3,139 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/xeipuuv/gojsonschema"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
+
+type dockerConfig struct {
+	// File path to folder mounted as /source (should contain source files)
+	mountPoint string
+	// Name of docker image, that will be run
+	dockerImage string
+}
 
 type RequestMessage struct {
 	ReturnUrl   string
 	DockerImage string
 	Files       map[string]string
 	MaxRunTime  int
+}
+
+var schema *gojsonschema.Schema
+
+var queue = make(chan RequestMessage, 100)
+
+func waitExit(ctx context.Context, dockerCli *client.Client, containerID string) <-chan int {
+	if len(containerID) == 0 {
+		// containerID can never be empty
+		panic("Internal Error: waitExit needs a containerID as parameter")
+	}
+
+	// WaitConditionNextExit is used to wait for the next time the state changes
+	// to a non-running state. If the state is currently "created" or "exited",
+	// this would cause Wait() to block until either the container runs and exits
+	// or is removed.
+	resultC, errC := dockerCli.ContainerWait(ctx, containerID, container.WaitConditionNextExit)
+
+	statusC := make(chan int)
+	go func() {
+		select {
+		case result := <-resultC:
+			if result.Error != nil {
+				statusC <- 125
+			} else {
+				statusC <- int(result.StatusCode)
+			}
+		case <-errC:
+			panic("Error attach")
+			// statusC <- 125
+		}
+	}()
+
+	return statusC
+}
+
+func formatVolume(folderPath string) (string, error) {
+	absolutePath, err := filepath.Abs(folderPath)
+	if err != nil {
+		return "", fmt.Errorf("Wrong file path %v", folderPath)
+	}
+	return absolutePath + `:/sources`, nil
+}
+
+func DockerExec(config dockerConfig) (string, error) {
+	var errorMessage = errors.New("Error occured tests were not executed")
+
+	volume, err := formatVolume(config.mountPoint)
+
+	if err != nil {
+		log.Printf("Error in path manipulation (%v): %v", config.mountPoint, err)
+		return "", errorMessage
+	}
+
+	// TODO: Context should be cancellable, for docker timeout
+	ctx := context.Background()
+	cli, err := client.NewEnvClient()
+
+	if err != nil {
+		log.Printf("Error while creating docker client: %v", err)
+		return "", errorMessage
+	}
+
+	container, err := cli.ContainerCreate(ctx, &container.Config{
+		Image: config.dockerImage,
+	}, &container.HostConfig{
+		Binds: []string{volume}}, nil, "")
+	if err != nil {
+		log.Printf("Error while creating docker image (%v): %v",
+			config.dockerImage, err)
+		return "", errorMessage
+	}
+	var containerWaitC = waitExit(ctx, cli, container.ID)
+
+	// This should delete all not running containers
+	defer cli.ContainersPrune(ctx, filters.Args{})
+
+	response, err := cli.ContainerAttach(ctx, container.ID,
+		types.ContainerAttachOptions{
+			Stdout: true,
+			Stream: true,
+			Stderr: true,
+		})
+
+	if err != nil {
+		log.Printf("Error on docker attach: %v", err)
+		return "", errorMessage
+	}
+
+	err = cli.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
+
+	if err != nil {
+		log.Printf("Error on docker image (%v) start: %v", config.dockerImage, err)
+		return "", errorMessage
+	}
+	// Wait for container to finish
+	<-containerWaitC
+	stdout, stderr := strings.Builder{}, strings.Builder{}
+	stdcopy.StdCopy(&stdout, &stderr, response.Reader)
+	return stdout.String(), nil
 }
 
 func getSchema() *gojsonschema.Schema {
@@ -37,10 +153,6 @@ func getSchema() *gojsonschema.Schema {
 
 	return schema
 }
-
-var schema *gojsonschema.Schema
-
-var queue = make(chan RequestMessage, 100)
 
 func processMessages() {
 	for {
@@ -71,7 +183,21 @@ func processMessages() {
 				}
 			}
 
-			log.Println("Here be dragons...")
+			log.Println("Detailed log of incoming request")
+			var config = dockerConfig{
+				mountPoint:  dir,
+				dockerImage: msg.DockerImage,
+			}
+			result, err := DockerExec(config)
+
+			if err != nil {
+				log.Printf("Error occured during DockerExec")
+				// Let's send error as output. This should be replaced by
+				// template string
+				result = err.Error()
+			}
+			// TODO: Send error somehow out
+			log.Println(result)
 		}()
 	}
 }
