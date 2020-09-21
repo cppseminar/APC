@@ -7,6 +7,7 @@ from . import validators
 
 import azure.functions as func
 from bson import ObjectId
+import cerberus
 
 
 @decorators.login_required
@@ -103,8 +104,41 @@ def post_test(req: func.HttpRequest, user: users.User, queue=None):
     queue.set(notification)
     return http.response_ok(result, code=201)
 
+@decorators.validate_parameters(route_settings=validators.ROUTE_SETTINGS)
+def patch_handler(request: func.HttpRequest, queue=None, test_id=None) -> func.HttpResponse:
+    """Handle update to test result.
+
+    This function will be called by background test machines.  Authentication
+    will be done via JOSE, as these machines don't have social network accounts.
+    """
+    ...
+    try:
+        if test_id is None:
+            return http.response_client_error()
+        body = request.get_json()
+        # TODO: Check signature here
+        validator = cerberus.Validator(
+            validators.PATCH_SCHEMA, allow_unknown=False, require_all=True
+        )
+
+        if not validator.validate(body):
+            logging.error("Bad json in test update %s", validator.errors)
+            return http.response_client_error()
+        document = validator.document
+        update_result = mongo.MongoTests.update_test(
+            test_id,
+            document[validators.SCHEMA_TEST_DESCRIPTION],
+        )
+        if not update_result:
+            logging.error("On patch test, update db fail (wrong id?)")
+            return http.response_client_error()
+        return http.response_ok(None, code=204)
+    except Exception as error:
+        logging.error("Unknown error in test patch %s", error)
+        return http.response_client_error()
+
 
 def main(req: func.HttpRequest, queue: func.Out[str]) -> func.HttpResponse:  # type: ignore
     """Entry point. Dispatch request based on method."""
-    dispatch = http.dispatcher(get=get_dispatch, post=post_test)
+    dispatch = http.dispatcher(get=get_dispatch, post=post_test, patch=patch_handler)
     return dispatch(req, queue=queue)

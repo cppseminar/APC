@@ -4,6 +4,7 @@ from ..shared import decorators, core
 
 SCHEMA_SUBMISSION_ID = "submissionId"
 SCHEMA_CASE_ID = "testCaseId"
+SCHEMA_TEST_DESCRIPTION = "description"
 
 POST_SCHEMA = {
     SCHEMA_SUBMISSION_ID: {
@@ -17,6 +18,14 @@ POST_SCHEMA = {
         "required": True,
         "empty": False,
         "check_with": core.cerberus_object_id_validator,
+    },
+}
+
+PATCH_SCHEMA = {
+    SCHEMA_TEST_DESCRIPTION: {
+        "type": "string",
+        "required": True,
+        "maxlength": 1024 * 100,  # 100KB
     },
 }
 

@@ -87,3 +87,12 @@ X-request-email: {{user}}
         "submissionId":"5f50ac375cd93b87048013ef",
         "testCaseId": "5f3e8f187e296d1539d94845"
 }
+
+####
+
+PATCH {{baseUrl}}/api/tests/5f57bf1d7cd144db25c05fd7
+Accept: */*
+
+{
+        "description": "abcdef\n[ok] test ruw"
+}

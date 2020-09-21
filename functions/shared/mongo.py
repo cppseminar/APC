@@ -347,3 +347,15 @@ class MongoTests:
         if user:
             query["user"] = user
         return collection.count_documents(query)
+
+    @staticmethod
+    def update_test(test_id, description):
+        """Set new description (test result) for test."""
+        collection = get_client().get_tests()
+        query = {"_id": test_id}
+        update_query = {"$set": {
+            "description": description
+        }}
+
+        result = collection.update_one(query, update_query, upsert=False)
+        return result.acknowledged and result.matched_count

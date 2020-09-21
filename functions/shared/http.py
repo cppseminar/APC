@@ -18,6 +18,9 @@ from . import core
 def response_ok(document: typing.Any, code=200):
     """Return response. Only accepts json serializable."""
     response_str = ""
+    if code == 204: # Handle no content
+        return functions.HttpResponse(status_code=code)
+    # Let's try returning json
     try:
         # Try converting to json
         with contextlib.suppress(TypeError):
@@ -72,15 +75,15 @@ def response_payment():
     """Return 402."""
     return response_client_error(message="Payment Required", code=402)
 
-def dispatcher(get=None, post=None, put=None):
+def dispatcher(get=None, post=None, put=None, patch=None):
     """Method to simplify handling of GET, POST and so on.
 
     Usage
     -----
     > dispatch = dispatcher(get=get_handler)
-    > return dispatch(request, ....)
+    > return dispatch(request, arg2, kwarg1, ...)
     """
-    switch = {"GET": get, "POST": post, "PUT": put}
+    switch = {"GET": get, "POST": post, "PUT": put, "PATCH": patch}
 
     def _dispatch(req: functions.HttpRequest, *args, **kwargs):
         if not hasattr(req, "method"):
