@@ -38,7 +38,7 @@ func sign(body []byte) (string, error) {
 }
 
 func processRequest(r *http.Request) int {
-	if r.Method != "POST" {
+	if r.Method != "PATCH" {
 		log.Println("Only post requests are supported!")
 		return http.StatusBadRequest
 	}
@@ -57,11 +57,16 @@ func processRequest(r *http.Request) int {
 
 	payload, err := sign(req)
 	if err != nil {
-		return http.StatusUnauthorized
+		return http.StatusInternalServerError
 	}
 
-	// so here the request is verified, we are good to go
-	resp, err := client.Post(sendTo, "text/json", strings.NewReader(payload))
+	forwardReq, err := http.NewRequest("PATCH", sendTo, strings.NewReader(payload))
+	if err != nil {
+		log.Println("Cannot create request", err)
+		return http.StatusInternalServerError
+	}
+
+	resp, err := client.Do(forwardReq)
 	if err != nil {
 		log.Println("Cannot forward request", err)
 		return http.StatusInternalServerError

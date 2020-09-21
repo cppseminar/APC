@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -21,7 +22,6 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/xeipuuv/gojsonschema"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type dockerConfig struct {
@@ -248,24 +248,40 @@ func processMessages() {
 			result, err := DockerExec(config)
 
 			if err != nil {
-				log.Printf("Error occured during DockerExec")
+				log.Println("Error occured during DockerExec")
 				// Let's send error as output. This should be replaced by
 				// template string
 				result = err.Error()
 			}
-			// TODO: Send error somehow out
-			log.Println(result)
+
+			var jsonStr = []byte(`{"description":"` + result + `"}`)
+			req, err := http.NewRequest("PATCH", "http://localhost:10018", bytes.NewBuffer(jsonStr))
+			if err != nil {
+				log.Println("Cannot create request", err)
+			}
+			req.Header.Set("X-Send-To", msg.ReturnUrl)
+			req.Header.Set("Content-type", "application/json")
+
+			resp, err := httpClient.Do(req)
+			if err != nil {
+				log.Println("Cannot forward request", err)
+			}
+			if resp.StatusCode != http.StatusOK {
+				log.Println("Forward request failed", resp)
+			}
 		}()
 	}
 }
 
-func main() {
-	log.SetOutput(&lumberjack.Logger{
-		Filename: ".\\queue.log",
-		MaxSize:  100, // megabytes
-		Compress: true,
-	})
+var tr = &http.Transport{
+	ResponseHeaderTimeout:  10 * time.Second,
+	IdleConnTimeout:        30 * time.Second,
+	MaxResponseHeaderBytes: 1024,
+}
 
+var httpClient = &http.Client{Transport: tr}
+
+func main() {
 	schema = getSchema()
 
 	srv := &http.Server{
