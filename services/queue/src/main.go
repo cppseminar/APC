@@ -42,6 +42,68 @@ var schema *gojsonschema.Schema
 
 var queue = make(chan RequestMessage, 100)
 
+const schemaStr = `
+{
+	"$schema": "http://json-schema.org/draft-07/schema",
+	"$id": "http://example.com/example.json",
+	"type": "object",
+	"title": "The root schema",
+	"description": "The root schema comprises the entire JSON document.",
+	"default": {},
+	"required": [
+		"returnUrl",
+		"dockerImage",
+		"files",
+		"maxRunTime"
+	],
+	"properties": {
+		"returnUrl": {
+			"$id": "#/properties/returnUrl",
+			"type": "string",
+			"format": "uri",
+			"title": "The returnUrl schema",
+			"description": "Result of the run will be submited to this URL."
+		},
+		"dockerImage": {
+			"$id": "#/properties/dockerImage",
+			"type": "string",
+			"title": "Name of the docker image",
+			"description": "The image will be used to process the files and collect results."
+		},
+		"files": {
+			"$id": "#/properties/files",
+			"type": "object",
+			"title": "The files schema",
+			"description": "An explanation about the purpose of this instance.",
+			"minProperties": 1,
+			"maxProperties": 10,
+			"patternProperties": {
+			  "^[A-Za-z0-9_\\-\\.]{4,250}$": {
+				  "type": "string",
+				  "minLength": 1,
+				  "maxLength": 102400
+			  }
+			},
+			"examples": [
+				{
+					"main.cpp": "#include <iostream>\n\nint main() { std::cout << \"Hello json!\"; }"
+				}
+			],
+			"additionalProperties": false
+		},
+		"maxRunTime": {
+			"$id": "#/properties/maxRunTime",
+			"type": "number",
+			"title": "Maximum runnig time",
+			"description": "After this many seconds the test will break.",
+			"multipleOf": 1.0,
+			"minimum": 1,
+			"maximum": 900
+		}
+	},
+	"additionalProperties": false
+  }`
+
 func waitExit(ctx context.Context, dockerCli *client.Client, containerID string) <-chan int {
 	if len(containerID) == 0 {
 		// containerID can never be empty
@@ -139,12 +201,7 @@ func DockerExec(config dockerConfig) (string, error) {
 }
 
 func getSchema() *gojsonschema.Schema {
-	dat, err := ioutil.ReadFile("./schema.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	schemaLoader := gojsonschema.NewBytesLoader(dat)
+	schemaLoader := gojsonschema.NewStringLoader(schemaStr)
 
 	schema, err := gojsonschema.NewSchema(schemaLoader)
 	if err != nil {
