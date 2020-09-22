@@ -265,8 +265,9 @@ func processMessages() {
 			resp, err := httpClient.Do(req)
 			if err != nil {
 				log.Println("Cannot forward request", err)
+				return
 			}
-			if resp.StatusCode != http.StatusOK {
+			if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 				log.Println("Forward request failed", resp)
 			}
 		}()
