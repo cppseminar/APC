@@ -139,6 +139,14 @@ func formatVolume(folderPath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Wrong file path %v", folderPath)
 	}
+
+	stats, err := os.Stat(absolutePath)
+	if err != nil {
+		return "", fmt.Errorf("Wrong file path %v", folderPath)
+	}
+	if !stats.IsDir() {
+		return "", fmt.Errorf("Not a directory %v", folderPath)
+	}
 	return absolutePath + `:/sources`, nil
 }
 
@@ -240,12 +248,13 @@ func processMessages() {
 				}
 			}
 
-			log.Println("Detailed log of incoming request")
+			log.Println("Docker exec is starting")
 			var config = dockerConfig{
 				mountPoint:  dir,
 				dockerImage: msg.DockerImage,
 			}
 			result, err := DockerExec(config)
+			log.Println("Docker exec finished")
 
 			if err != nil {
 				log.Println("Error occured during DockerExec")
@@ -255,7 +264,7 @@ func processMessages() {
 			}
 
 			var jsonStr = []byte(`{"description":"` + result + `"}`)
-			req, err := http.NewRequest("PATCH", "http://localhost:10018", bytes.NewBuffer(jsonStr))
+			req, err := http.NewRequest("PATCH", "http://output-proxy:10018", bytes.NewBuffer(jsonStr))
 			if err != nil {
 				log.Println("Cannot create request", err)
 			}
@@ -283,7 +292,9 @@ var tr = &http.Transport{
 var httpClient = &http.Client{Transport: tr}
 
 func main() {
+	log.Println("Queue is starting")
 	schema = getSchema()
+
 
 	srv := &http.Server{
 		Addr:         ":10009",

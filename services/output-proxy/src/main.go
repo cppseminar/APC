@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/natefinch/lumberjack.v2"
 	"gopkg.in/square/go-jose.v2"
 )
 
@@ -38,6 +37,9 @@ func sign(body []byte) (string, error) {
 }
 
 func processRequest(r *http.Request) int {
+	// TODO: Delete me
+	log.Println("Processing one request")
+
 	if r.Method != "PATCH" {
 		log.Println("Only post requests are supported!")
 		return http.StatusBadRequest
@@ -88,12 +90,7 @@ var client = &http.Client{Transport: tr}
 var privateKey string = os.Getenv("APC_PRIVATE_KEY")
 
 func main() {
-	log.SetOutput(&lumberjack.Logger{
-		Filename: ".\\output-proxy.log",
-		MaxSize:  100, // megabytes
-		Compress: true,
-	})
-
+	log.Println("Output-proxy is starting")
 	privateKey = strings.TrimSpace(privateKey)
 	if privateKey == "" {
 		log.Fatal("Cannot retrieve private key from env.")

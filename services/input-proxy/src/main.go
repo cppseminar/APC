@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/natefinch/lumberjack.v2"
 	"gopkg.in/square/go-jose.v2"
 )
 
@@ -68,7 +67,7 @@ func processRequest(r *http.Request) int {
 	}
 
 	// so here the request is verified, we are good to go
-	resp, err := client.Post("http://localhost:10009", "text/json", bytes.NewReader(payload))
+	resp, err := client.Post("http://queue:10009", "text/json", bytes.NewReader(payload))
 	if err != nil {
 		log.Println(err)
 		return http.StatusInternalServerError
@@ -90,14 +89,10 @@ var client = &http.Client{Transport: tr}
 var privateKey string = os.Getenv("APC_PRIVATE_KEY")
 
 func main() {
-	log.SetOutput(&lumberjack.Logger{
-		Filename: ".\\input-proxy.log",
-		MaxSize:  100, // megabytes
-		Compress: true,
-	})
+	log.Println("Input-proxy is starting")
 
-	// privateKey = "ZXhhbXBsZSBobWFjIGtleQ"
 	privateKey = strings.TrimSpace(privateKey)
+	// TODO: try deleting trailing padding from base64
 	if privateKey == "" {
 		log.Fatal("Cannot retrieve private key from env.")
 	}

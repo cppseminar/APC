@@ -4,11 +4,10 @@ from jose import jws
 connection = http.client.HTTPConnection('localhost', 10017, timeout=10)
 
 payload = r"""{
-    "returnUrl": "https://example.com/",
-    "dockerImage": "palindrom",
+    "returnUrl": "http://host.docker.internal:8000",
+    "dockerImage": "hello",
     "files": {
-        "main.cpp": "#include <iostream>\n\nint main() { std::cout << \"Hello json!\"; }",
-        "megafile.h": "// best solution to the problem ever!"
+        "source.cpp": "\n\nint main() { std::cout << \"Hello json!\"; }"
     },
     "maxRunTime": 15
 }"""
