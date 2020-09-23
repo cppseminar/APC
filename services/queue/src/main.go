@@ -296,11 +296,19 @@ func processMessages() {
 				result = err.Error()
 			}
 
-			var jsonStr = []byte(`{"description":"` + result + `"}`)
-			req, err := http.NewRequest("PATCH", "http://output-proxy:10018", bytes.NewBuffer(jsonStr))
+
+			body, err := json.Marshal(map[string]string{"description": result})
+			if err != nil {
+				log.Println("Cannot create json", err)
+				return
+			}
+
+			req, err := http.NewRequest("PATCH", "http://output-proxy:10018", bytes.NewBuffer(body))
 			if err != nil {
 				log.Println("Cannot create request", err)
+				return
 			}
+
 			req.Header.Set("X-Send-To", msg.ReturnURL)
 			req.Header.Set("Content-type", "application/json")
 
