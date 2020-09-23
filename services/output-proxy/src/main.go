@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,12 +15,12 @@ import (
 func sign(body []byte) (string, error) {
 	// this we should load from environment
 	var key jose.JSONWebKey
-	key.UnmarshalJSON([]byte(`{
+	key.UnmarshalJSON([]byte(fmt.Sprintf(`{
     "kty": "oct",
     "use": "sig",
-    "k": "ZXhhbXBsZSBobWFjIGtleQ",
+    "k": "%v",
     "alg": "HS256"
-	}`))
+	}`, privateKey)))
 
 	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.HS256, Key: key}, nil)
 	if err != nil {
