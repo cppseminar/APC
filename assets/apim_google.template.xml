@@ -28,31 +28,35 @@
                 <header>Content-type</header>
             </allowed-headers>
         </cors>
-        <check-header name="Authorization" failed-check-httpcode="403" failed-check-error-message="Missing authorization token" ignore-case="false" />
-        <validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Authentication failed" require-expiration-time="true" require-scheme="Bearer" require-signed-tokens="true" clock-skew="10" output-token-variable-name="validated-jwt">
-            <openid-config url="https://accounts.google.com/.well-known/openid-configuration" />
-            <audiences>
-                <audience>
-                    <!-- Your id -->
-                </audience>
-            </audiences>
-            <issuers>
-                <issuer>accounts.google.com</issuer>
-            </issuers>
-            <required-claims>
-                <claim name="email" match="all" />
-                <claim name="email_verified" match="all">
-                    <value>true</value>
-                </claim>
-                <claim name="name" match="all" />
-                <claim name="picture" match="all" />
-                <claim name="exp" match="all" />
-            </required-claims>
-        </validate-jwt>
-        <set-variable name="email" value="@(((Jwt)context.Variables["validated-jwt"]).Claims["email"][0])" />
-        <set-header name="x-request-email" exists-action="override">
-            <value>@((System.String)context.Variables["email"])</value>
-        </set-header>
+        <choose>
+            <when condition="@(context.Request.Method != "PATCH")">
+                <validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Authentication failed" require-expiration-time="true" require-scheme="Bearer" require-signed-tokens="true" clock-skew="10" output-token-variable-name="validated-jwt">
+                    <openid-config url="https://accounts.google.com/.well-known/openid-configuration" />
+                    <audiences>
+                        <audience>
+                            <!-- Your id -->
+                        </audience>
+                    </audiences>
+                    <issuers>
+                        <issuer>accounts.google.com</issuer>
+                    </issuers>
+                    <required-claims>
+                        <claim name="email" match="all" />
+                        <claim name="email_verified" match="all">
+                            <value>true</value>
+                        </claim>
+                        <claim name="name" match="all" />
+                        <claim name="picture" match="all" />
+                        <claim name="exp" match="all" />
+                    </required-claims>
+                </validate-jwt>
+                <check-header name="Authorization" failed-check-httpcode="403" failed-check-error-message="Missing authorization token" ignore-case="false" />
+                <set-variable name="email" value="@(((Jwt)context.Variables["validated-jwt"]).Claims["email"][0])" />
+                <set-header name="x-request-email" exists-action="override">
+                    <value>@((System.String)context.Variables["email"])</value>
+                </set-header>
+            </when>
+        </choose>
         <set-header name="x-functions-key" exists-action="override">
             <value>
                 <!-- Your id -->
