@@ -295,15 +295,16 @@ class Gcc(infrastructure.Module):
     def __init__(self, name):
         super().__init__(name)
         self.register_event(SourceFileEvent)
+        self.register_setting(
+            'folder',
+            parser=infrastructure.TmpFolderCreator(name_parts=['compiler'],
+                                                    cleanup=True))
+
 
     def handle_internal(self, event):
         if len(event.file_names) != 1:
             _logger.info("Compilation supports only one file")
             return
-        self.register_setting(
-                'folder',
-                parser=infrastructure.TmpFolderCreator(name_parts=['compiler'],
-                                                       cleanup=True))
         folder = (self.settings['folder'])
         exe_path = pathlib.Path(folder).joinpath("out.a")
         warnings, errors = self.compile(event.file_names[0], exe_path)
