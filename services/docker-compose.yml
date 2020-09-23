@@ -2,15 +2,11 @@ version: "3.8"
 services:
     queue:
         container_name: queue1
+        env_file: .env
         build:
             context: ./queue
             network: host
         init: true
-        # restart_policy:
-        #     condition: any
-        #     delay: 5s
-        #     max_attempts: 3
-        #     window: 10s
         restart: always
         logging:
             driver: json-file
@@ -19,7 +15,8 @@ services:
                 max-file: "10"
 
         volumes:
-            -  /var/run/docker.sock:/var/run/docker.sock
+            - /var/run/docker.sock:/var/run/docker.sock
+            - sources:/volume
 
     input-proxy:
         env_file: .env
@@ -44,3 +41,7 @@ services:
             options:
                 max-size: "200k"
                 max-file: "10"
+
+volumes:
+    sources:
+        external: true

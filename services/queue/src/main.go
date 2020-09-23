@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -26,13 +25,38 @@ import (
 
 type dockerConfig struct {
 	// File path to folder mounted as /source (should contain source files)
-	mountPoint string
+	volume dockerVolume
 	// Name of docker image, that will be run
 	dockerImage string
 }
 
-type RequestMessage struct {
-	ReturnUrl   string
+type dockerVolume struct {
+	dirPath string
+	volume  string
+	rmDir   bool
+}
+
+func (volume dockerVolume) Cleanup() {
+	if volume.rmDir {
+		panic("Not implemented tmp folder deletion")
+	}
+
+	d, err := os.Open(volume.dirPath)
+	if err != nil {
+		return
+	}
+	defer d.Close()
+	names, err := d.Readdirnames(-1)
+	if err != nil {
+		return
+	}
+	for _, name := range names {
+		err = os.RemoveAll(filepath.Join(volume.dirPath, name))
+	}
+}
+
+type requestMessage struct {
+	ReturnURL   string
 	DockerImage string
 	Files       map[string]string
 	MaxRunTime  int
@@ -40,7 +64,7 @@ type RequestMessage struct {
 
 var schema *gojsonschema.Schema
 
-var queue = make(chan RequestMessage, 100)
+var queue = make(chan requestMessage, 100)
 
 const schemaStr = `
 {
@@ -126,39 +150,25 @@ func waitExit(ctx context.Context, dockerCli *client.Client, containerID string)
 				statusC <- int(result.StatusCode)
 			}
 		case <-errC:
-			panic("Error attach")
-			// statusC <- 125
+			log.Println("Error in attach to container")
+			statusC <- 125
 		}
 	}()
 
 	return statusC
 }
 
-func formatVolume(folderPath string) (string, error) {
-	absolutePath, err := filepath.Abs(folderPath)
-	if err != nil {
-		return "", fmt.Errorf("Wrong file path %v", folderPath)
+func formatVolume(volume dockerVolume) string {
+	if volume.volume != "" {
+		return volume.volume + `:/sources`
 	}
-
-	stats, err := os.Stat(absolutePath)
-	if err != nil {
-		return "", fmt.Errorf("Wrong file path %v", folderPath)
-	}
-	if !stats.IsDir() {
-		return "", fmt.Errorf("Not a directory %v", folderPath)
-	}
-	return absolutePath + `:/sources`, nil
+	return volume.dirPath + `:/sources`
 }
 
-func DockerExec(config dockerConfig) (string, error) {
+func dockerExec(config dockerConfig) (string, error) {
 	var errorMessage = errors.New("Error occured tests were not executed")
 
-	volume, err := formatVolume(config.mountPoint)
-
-	if err != nil {
-		log.Printf("Error in path manipulation (%v): %v", config.mountPoint, err)
-		return "", errorMessage
-	}
+	formattedVolume := formatVolume(config.volume)
 
 	// TODO: Context should be cancellable, for docker timeout
 	ctx := context.Background()
@@ -169,10 +179,10 @@ func DockerExec(config dockerConfig) (string, error) {
 		return "", errorMessage
 	}
 
-	container, err := cli.ContainerCreate(ctx, &container.Config{
-		Image: config.dockerImage,
-	}, &container.HostConfig{
-		Binds: []string{volume}}, nil, "")
+	var dockerContainerConfig = &container.Config{Image: config.dockerImage}
+	var dockerHostConfig = &container.HostConfig{Binds: []string{formattedVolume}}
+
+	container, err := cli.ContainerCreate(ctx, dockerContainerConfig, dockerHostConfig, nil, "")
 	if err != nil {
 		log.Printf("Error while creating docker image (%v): %v",
 			config.dockerImage, err)
@@ -208,6 +218,36 @@ func DockerExec(config dockerConfig) (string, error) {
 	return stdout.String(), nil
 }
 
+// Determine if this run should use volumes, instead of direct tmp paths
+// For using volumes there are 2 preconditions:
+//  1. Env variable must be set, with name of docker volume
+//  2. Directory /volume should be created
+func getVolume() dockerVolume {
+	const dirPath = "/volume"
+	var envVolume = os.Getenv("VOLUME_NAME")
+	var volumeExists bool = func(dirName string) bool {
+		// TODO: There is not check, if directory is actually writable
+		volumeInfo, err := os.Stat(dirName)
+		if err != nil {
+			return false
+		}
+		return volumeInfo.IsDir()
+	}(dirPath)
+
+	if envVolume == "" || !volumeExists {
+		// Create tmp folder
+		log.Println(envVolume, volumeExists)
+		panic("Not implemented tmp folder mapping :(")
+	}
+
+	// We are in docker environment
+	return dockerVolume{
+		dirPath: dirPath,
+		volume:  envVolume,
+		rmDir:   false,
+	}
+}
+
 func getSchema() *gojsonschema.Schema {
 	schemaLoader := gojsonschema.NewStringLoader(schemaStr)
 
@@ -226,17 +266,10 @@ func processMessages() {
 		log.Printf("%+v\n", msg)
 
 		func() {
-			dir, err := ioutil.TempDir("", "queue-go")
-			if err != nil {
-				log.Println(err)
-				return
-			}
+			var volume = getVolume()
+			var dir = volume.dirPath
 
-			defer func() {
-				if err := os.RemoveAll(dir); err != nil {
-					log.Println(err)
-				}
-			}()
+			defer volume.Cleanup()
 
 			for file, content := range msg.Files {
 				path := filepath.Join(dir, file)
@@ -250,14 +283,14 @@ func processMessages() {
 
 			log.Println("Docker exec is starting")
 			var config = dockerConfig{
-				mountPoint:  dir,
+				volume:      volume,
 				dockerImage: msg.DockerImage,
 			}
-			result, err := DockerExec(config)
+			result, err := dockerExec(config)
 			log.Println("Docker exec finished")
 
 			if err != nil {
-				log.Println("Error occured during DockerExec")
+				log.Println("Error occured during dockerExec")
 				// Let's send error as output. This should be replaced by
 				// template string
 				result = err.Error()
@@ -268,7 +301,7 @@ func processMessages() {
 			if err != nil {
 				log.Println("Cannot create request", err)
 			}
-			req.Header.Set("X-Send-To", msg.ReturnUrl)
+			req.Header.Set("X-Send-To", msg.ReturnURL)
 			req.Header.Set("Content-type", "application/json")
 
 			resp, err := httpClient.Do(req)
@@ -294,7 +327,6 @@ var httpClient = &http.Client{Transport: tr}
 func main() {
 	log.Println("Queue is starting")
 	schema = getSchema()
-
 
 	srv := &http.Server{
 		Addr:         ":10009",
@@ -338,7 +370,7 @@ func processRequest(r *http.Request) int {
 	}
 
 	// so here the request is validated, we are good to go and create new message
-	var msg RequestMessage
+	var msg requestMessage
 	if err := json.Unmarshal(req, &msg); err != nil {
 		log.Println(err)
 		return http.StatusBadRequest
