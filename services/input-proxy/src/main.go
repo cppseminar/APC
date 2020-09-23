@@ -17,7 +17,7 @@ import (
 func verifyJWSAndExtractPayload(body []byte) ([]byte, error) {
 	object, err := jose.ParseSigned(string(body))
 	if err != nil {
-		log.Println("Cannot parse body as JWS '", string(body), "'.", err)
+		log.Println("Cannot parse body as JWS '", string(body), "'.")
 		return nil, err
 	}
 
@@ -42,7 +42,6 @@ func verifyJWSAndExtractPayload(body []byte) ([]byte, error) {
 
 	output, err := object.Verify(&key)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
@@ -63,6 +62,7 @@ func processRequest(r *http.Request) int {
 
 	payload, err := verifyJWSAndExtractPayload(req)
 	if err != nil {
+		log.Println(err)
 		return http.StatusUnauthorized
 	}
 
