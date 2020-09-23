@@ -12,8 +12,18 @@ import (
 	"gopkg.in/square/go-jose.v2"
 )
 
+// key should be base64 encoded, without trailing '='
+var privateKey string = os.Getenv("APC_PRIVATE_KEY")
+
+var tr = &http.Transport{
+	ResponseHeaderTimeout:  10 * time.Second,
+	IdleConnTimeout:        30 * time.Second,
+	MaxResponseHeaderBytes: 1024,
+}
+
+var client = &http.Client{Transport: tr}
+
 func sign(body []byte) (string, error) {
-	// this we should load from environment
 	var key jose.JSONWebKey
 	key.UnmarshalJSON([]byte(fmt.Sprintf(`{
     "kty": "oct",
@@ -38,8 +48,6 @@ func sign(body []byte) (string, error) {
 }
 
 func processRequest(r *http.Request) int {
-	// TODO: Delete me
-	log.Println("Processing one request")
 
 	if r.Method != "PATCH" {
 		log.Println("Only post requests are supported!")
@@ -78,17 +86,6 @@ func processRequest(r *http.Request) int {
 	// forward the error code
 	return resp.StatusCode
 }
-
-var tr = &http.Transport{
-	ResponseHeaderTimeout:  10 * time.Second,
-	IdleConnTimeout:        30 * time.Second,
-	MaxResponseHeaderBytes: 1024,
-}
-
-var client = &http.Client{Transport: tr}
-
-// key should be base64 encoded
-var privateKey string = os.Getenv("APC_PRIVATE_KEY")
 
 func main() {
 	log.Println("Output-proxy is starting")

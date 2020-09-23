@@ -311,6 +311,7 @@ func processMessages() {
 			}
 			if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 				log.Println("Forward request failed", resp)
+				return
 			}
 		}()
 	}
