@@ -1,6 +1,8 @@
 """Endpoint for submitting new tests and viewing results."""
+import base64
 import json
 import logging
+import os
 
 from ..shared import http, decorators, mongo, users, core
 from . import validators
@@ -8,6 +10,7 @@ from . import validators
 import azure.functions as func
 from bson import ObjectId
 import cerberus
+from jose import jws
 
 
 @decorators.login_required
@@ -115,13 +118,21 @@ def patch_handler(request: func.HttpRequest, queue=None, test_id=None) -> func.H
     try:
         if test_id is None:
             return http.response_client_error()
-        body = request.get_json()
-        # TODO: Check signature here
+        body = request.get_body()
+        secret_key64 = os.environ["QUEUE_SECRET"]
+        decoded_key = base64.decodebytes(secret_key64.encode('utf-8'))
+
+        query = json.loads(
+            jws.verify(
+                body.decode('utf-8'), decoded_key.decode('utf-8'), 'HS256'
+                )
+            )
+
         validator = cerberus.Validator(
             validators.PATCH_SCHEMA, allow_unknown=False, require_all=True
         )
 
-        if not validator.validate(body):
+        if not validator.validate(query):
             logging.error("Bad json in test update %s", validator.errors)
             return http.response_client_error()
         document = validator.document

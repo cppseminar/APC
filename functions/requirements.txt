@@ -1,3 +1,4 @@
 azure-functions
 pymongo
 cerberus
+python-jose
