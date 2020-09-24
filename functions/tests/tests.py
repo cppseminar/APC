@@ -3,8 +3,9 @@ import base64
 import json
 import logging
 import os
+import urllib
 
-from ..shared import http, decorators, mongo, users, core
+from ..shared import http, decorators, mongo, users, core, common
 from . import validators
 
 import azure.functions as func
@@ -63,6 +64,9 @@ def post_test(req: func.HttpRequest, user: users.User, queue=None):
         roles = user.roles or []
     if body is None:
         return http.response_client_error()
+    if not (self_url := http.get_host_url(req)):
+        logging.error("Cannot build host url in post test.")
+        return http.response_server_error()
     # First let's check if test case exists
     test_case_id = ObjectId(body[validators.SCHEMA_CASE_ID])
     test_case = mongo.MongoTestCases.get_case(case_id=test_case_id, roles=roles)
@@ -103,7 +107,9 @@ def post_test(req: func.HttpRequest, user: users.User, queue=None):
     if not result:
         return http.response_server_error()
 
-    notification = json.dumps(dict(result), cls=core.MongoEncoder, indent=2)
+    this_test_url = urllib.parse.urljoin(self_url, f'/api/tests/{str(result._id)}')
+    notification =  common.encode_message(this_test_url, test_case_id, submission_id)
+
     queue.set(notification)
     return http.response_ok(result, code=201)
 

@@ -13,6 +13,7 @@ from functions.shared.core import (
     mongo_filter_errors
 )
 
+import functions.shared.common as common
 
 def test_validate_email():
     """Test our simple validator."""
@@ -169,3 +170,15 @@ class TestMongoFilterErrors:
         result = mongo_filter_errors(input_list, _func)
         assert list(result) == [1, 3]
 
+
+def test_message_encode_decode():
+    url = "http://locahost"
+    id1 = ObjectId()
+    id2 = ObjectId()
+
+    encoded = common.encode_message(url, id1, id2)
+
+    ret_url, ret_id1, ret_id2 = common.decode_message(encoded)
+
+    assert url == ret_url
+    assert (id1, id2, url) == (ret_id1, ret_id2, ret_url)
