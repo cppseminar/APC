@@ -2,6 +2,7 @@ import unittest.mock
 from unittest.mock import MagicMock
 import pytest
 
+import functions.shared.http as http
 from functions.shared.decorators import (
     login_required,
     validate_parameters,
@@ -9,7 +10,14 @@ from functions.shared.decorators import (
     VALIDATOR,
     DESTINATION,
 )
-from functions.shared.common import HEADER_EMAIL
+from functions.shared.common import (
+    HEADER_EMAIL,
+    HTTP_HEADER_HOST,
+    HTTP_HEADER_PORT,
+    HTTP_HEADER_PROTOCOL,
+)
+
+from azure.functions import HttpRequest
 
 
 class TestLoginRequired:
@@ -127,7 +135,6 @@ class TestValidateParameters:
         assert result == None
         assert call_result.status_code == 400
 
-
     def test_remap_param(self):
         result = None
         request = MagicMock()
@@ -136,7 +143,9 @@ class TestValidateParameters:
         def _validator(value):
             return int(value)
 
-        @validate_parameters(route_settings={"number": {VALIDATOR: _validator, DESTINATION: "abcd"}})
+        @validate_parameters(
+            route_settings={"number": {VALIDATOR: _validator, DESTINATION: "abcd"}}
+        )
         def _decorated(req, abcd=None):
             nonlocal result
             result = abcd
@@ -144,9 +153,42 @@ class TestValidateParameters:
         call_result = _decorated(request)
         assert result == 444
 
+
 def test_object_id_validator():
     with pytest.raises(Exception):
         object_id_validator("123")
     with pytest.raises(Exception):
         object_id_validator("asdf")
     assert object_id_validator("5f3172e94ccb2b29ecbf28e0")
+
+
+class TestGetHostUrl:
+    """Tests for parsing and constructing urls."""
+
+    url = "http://localhost:3214/api/test?code=2134&message=ahoj"
+
+    def test_x_all(self):
+        headers = {
+            HTTP_HEADER_HOST: "example.com",
+            HTTP_HEADER_PORT: "443",
+            HTTP_HEADER_PROTOCOL: "https",
+        }
+        req = HttpRequest(method="GET", url=self.url, headers=headers, body="")
+        assert "https://example.com:443" == http.get_host_url(req)
+
+    def test_x_missing_host(self):
+        headers = {
+            HTTP_HEADER_PORT: "443",
+            HTTP_HEADER_PROTOCOL: "https",
+        }
+        req = HttpRequest(method="GET", url=self.url, headers=headers, body="")
+        assert "http://localhost:3214" == http.get_host_url(req)
+
+
+    def test_missing_all(self):
+        headers = {
+            HTTP_HEADER_PORT: "443",
+            HTTP_HEADER_PROTOCOL: "https",
+        }
+        req = HttpRequest(method="GET", url="aa", headers=headers, body="")
+        assert "" == http.get_host_url(req)

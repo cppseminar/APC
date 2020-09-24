@@ -7,12 +7,13 @@ import json
 import contextlib
 import logging
 import typing
+import urllib
 
 import azure.functions as functions
 import bson.json_util
 import cerberus
 
-from . import core
+from . import core, common
 
 
 def response_ok(document: typing.Any, code=200):
@@ -111,3 +112,21 @@ def get_json(request: functions.HttpRequest, schema: dict, /):
     except Exception as error:
         logging.error("Error in handling json %s", error)
     return None
+
+def get_host_url(request: functions.HttpRequest):
+    """Tries to build url from request.
+
+    At first, tries to build it from x-forwarded headers. On failure reverts
+    to request url. If this fails too, returns empty string.
+    """
+    host = request.headers.get(common.HTTP_HEADER_HOST, None)
+    protocol = request.headers.get(common.HTTP_HEADER_PROTOCOL, "https")
+    if (port := request.headers.get(common.HTTP_HEADER_PORT, None)) and host:
+        host += f":{port}"
+
+    if not host:
+        _parts = urllib.parse.urlparse(request.url)
+        protocol, host = _parts[0], _parts[1]
+
+    parts = [protocol, host] + [""] * 4
+    return urllib.parse.urlunparse(tuple(parts))
