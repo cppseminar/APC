@@ -12,6 +12,7 @@ class TestCase(ModelBase):
     task_id: ObjectId
     name: str
     runs_allowed: int
+    docker: str
     roles: typing.List[str] = dataclasses.field(default_factory=list)
     does_count: bool = True
 
@@ -26,7 +27,7 @@ class TestCase(ModelBase):
 
     def filter_item(self, item):
         key, _ = item
-        if key in ["roles", "task_id"]:
+        if key in ["roles", "task_id", "docker"]:
             return False
         return True
 

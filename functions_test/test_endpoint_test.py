@@ -20,6 +20,7 @@ def mock_test_case():
         runs_allowed=2,
         roles=["student2020"],
         does_count=True,
+        docker="hello"
     )
 
 

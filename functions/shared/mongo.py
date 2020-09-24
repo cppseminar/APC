@@ -241,6 +241,7 @@ class MongoTestCases:
         result["task_id"] = result.get("taskId", "")
         result["runs_allowed"] = result["numRunsAllowed"]
         result["does_count"] = result["doesCount"]
+        result["docker"] = obj["docker"] # Mandatory
         return core.instantiate_dataclass(models.TestCase, **result)
 
     @staticmethod
