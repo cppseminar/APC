@@ -25,6 +25,9 @@ ENV_QUEUE_URL = "QUEUE_URL"
 ENV_QUEUE_SECRET = "QUEUE_SECRET"
 ENV_HOST_OVERRIDE = "DEBUG_HOST_OVERRIDE"
 
+# tests collection
+COL_TESTS_USER = "user"
+COL_TESTS_REQUESTED = "requested"
 
 def encode_message(url: str, case_id: ObjectId, submission_id: ObjectId):
     """Encodes parameters to string, so it may be processed by azure queue."""

@@ -241,7 +241,7 @@ class MongoTestCases:
         result["task_id"] = result.get("taskId", "")
         result["runs_allowed"] = result["numRunsAllowed"]
         result["does_count"] = result["doesCount"]
-        result["docker"] = obj["docker"] # Mandatory
+        result["docker"] = obj["docker"]  # Mandatory
         return core.instantiate_dataclass(models.TestCase, **result)
 
     @staticmethod
@@ -297,13 +297,22 @@ class MongoTests:
         if task_id:
             query["taskId"] = task_id
         collection = get_client().get_tests()
-        cursor = collection.find(query, {"description": 0})
+        cursor = (
+            collection.find(query, {"description": 0})
+            .sort(
+                [
+                    (common.COL_TESTS_USER, pymongo.ASCENDING),
+                    (common.COL_TESTS_REQUESTED, pymongo.DESCENDING),
+                ]
+            )
+            .limit(5)
+        )
         return core.mongo_filter_errors(cursor, MongoTests._to_model)
 
     @staticmethod
     def get_test(test_id, user=None):
         """Get one test run from db."""
-        query = {"_id" : test_id}
+        query = {"_id": test_id}
         if user:
             query["user"] = user
         collection = get_client().get_tests()
@@ -321,10 +330,10 @@ class MongoTests:
     ):
         collection = get_client().get_tests()
         document = {
-            "user": user,
+            common.COL_TESTS_USER: user,
             "submissionId": submission_id,
             "caseId": case_id,
-            "requested": datetime.datetime.now(datetime.timezone.utc),
+            common.COL_TESTS_REQUESTED: datetime.datetime.now(datetime.timezone.utc),
             "caseName": case_name,
             "taskName": task_name,
             "taskId": task_id,
@@ -354,9 +363,7 @@ class MongoTests:
         """Set new description (test result) for test."""
         collection = get_client().get_tests()
         query = {"_id": test_id}
-        update_query = {"$set": {
-            "description": description
-        }}
+        update_query = {"$set": {"description": description}}
 
         result = collection.update_one(query, update_query, upsert=False)
         return result.acknowledged and result.matched_count
