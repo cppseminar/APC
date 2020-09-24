@@ -37,7 +37,7 @@ def main(msg: func.QueueMessage) -> None:
         connection = http.client.HTTPConnection(
             os.environ[common.ENV_QUEUE_URL], timeout=10
         )
-        connection.request("POST", os.environ[common.ENV_QUEUE_URL], request)
+        connection.request("POST", "/", request)
         response = connection.getresponse()
         if response.status != 200:
             raise RuntimeError(f"Error status in queue {response.status}")
