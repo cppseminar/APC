@@ -122,7 +122,7 @@ def get_host_url(request: functions.HttpRequest):
     host = request.headers.get(common.HTTP_HEADER_HOST, None)
     protocol = request.headers.get(common.HTTP_HEADER_PROTOCOL, "https")
     if (port := request.headers.get(common.HTTP_HEADER_PORT, None)) and host:
-        host += f":{port}"
+        host = host.split(":")[0] +  f":{port}"
 
     if not host:
         _parts = urllib.parse.urlparse(request.url)

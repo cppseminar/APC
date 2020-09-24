@@ -192,3 +192,12 @@ class TestGetHostUrl:
         }
         req = HttpRequest(method="GET", url="aa", headers=headers, body="")
         assert "" == http.get_host_url(req)
+
+    def test_x_double_port(self):
+        headers = {
+            HTTP_HEADER_HOST: "example.com:443",
+            HTTP_HEADER_PORT: "443",
+            HTTP_HEADER_PROTOCOL: "https",
+        }
+        req = HttpRequest(method="GET", url=self.url, headers=headers, body="")
+        assert "https://example.com:443" == http.get_host_url(req)
