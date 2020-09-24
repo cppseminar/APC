@@ -21,6 +21,10 @@ SCHEMA_USER = SimpleNamespace(EMAIL="email", ROLES="roles", IS_ADMIN="is_admin",
 SCHEMA_TASKS_NAME = "name"
 SCHEMA_TASKS_DESCRIPTION = "description"
 
+ENV_QUEUE_URL = "QUEUE_URL"
+ENV_QUEUE_SECRET = "QUEUE_SECRET"
+ENV_HOST_OVERRIDE = "DEBUG_HOST_OVERRIDE"
+
 
 def encode_message(url: str, case_id: ObjectId, submission_id: ObjectId):
     """Encodes parameters to string, so it may be processed by azure queue."""

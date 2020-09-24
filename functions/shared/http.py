@@ -6,6 +6,7 @@ replacement for some authentication and request processing.
 import json
 import contextlib
 import logging
+import os
 import typing
 import urllib
 
@@ -119,6 +120,9 @@ def get_host_url(request: functions.HttpRequest):
     At first, tries to build it from x-forwarded headers. On failure reverts
     to request url. If this fails too, returns empty string.
     """
+    _debug = os.environ.get(common.ENV_HOST_OVERRIDE, None)
+    if _debug: # This is not nice, but at least we have unit tests
+        return _debug
     host = request.headers.get(common.HTTP_HEADER_HOST, None)
     protocol = request.headers.get(common.HTTP_HEADER_PROTOCOL, "https")
     if (port := request.headers.get(common.HTTP_HEADER_PORT, None)) and host:

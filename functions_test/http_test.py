@@ -15,6 +15,7 @@ from functions.shared.common import (
     HTTP_HEADER_HOST,
     HTTP_HEADER_PORT,
     HTTP_HEADER_PROTOCOL,
+    ENV_HOST_OVERRIDE,
 )
 
 from azure.functions import HttpRequest
@@ -201,3 +202,13 @@ class TestGetHostUrl:
         }
         req = HttpRequest(method="GET", url=self.url, headers=headers, body="")
         assert "https://example.com:443" == http.get_host_url(req)
+
+    def test_debug(self, monkeypatch):
+        headers = {
+            HTTP_HEADER_HOST: "example.com",
+            HTTP_HEADER_PORT: "443",
+            HTTP_HEADER_PROTOCOL: "https",
+        }
+        req = HttpRequest(method="GET", url=self.url, headers=headers, body="")
+        monkeypatch.setenv(ENV_HOST_OVERRIDE, "value", prepend=False)
+        assert "value" == http.get_host_url(req)

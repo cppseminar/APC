@@ -72,6 +72,7 @@ func processRequest(r *http.Request) int {
 	}
 
 	forwardReq, err := http.NewRequest("PATCH", sendTo, strings.NewReader(payload))
+	forwardReq.Header.Set("Accept", "*/*")
 	if err != nil {
 		log.Println("Cannot create request", err)
 		return http.StatusInternalServerError
