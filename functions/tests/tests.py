@@ -125,7 +125,7 @@ def patch_handler(request: func.HttpRequest, queue=None, test_id=None) -> func.H
         if test_id is None:
             return http.response_client_error()
         body = request.get_body()
-        secret_key64 = os.environ["QUEUE_SECRET"]
+        secret_key64 = os.environ[common.ENV_QUEUE_SECRET]
         decoded_key = base64.decodebytes(secret_key64.encode('utf-8'))
 
         query = json.loads(
