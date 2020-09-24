@@ -74,7 +74,7 @@ def get_valid_event(event: Any):
 def set_logger(name, console=True, filename=None):
     """Retrieve from logging NAME logger and set it appropriately."""
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.CRITICAL)
     if filename:
         raise NotImplementedError("C'mon")
     if console:

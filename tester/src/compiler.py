@@ -273,7 +273,7 @@ def gcc_stderr_to_lists(output: str):
         return warnings, errors
     except Exception as e:
         _logger.error(e)
-        return [], ["Error"]
+        return [], ["Unknown error, probably linker"]
 
 def gcc_compile(input_file, output_file, debug=False):
     """Run g++ to compile input_file."""
