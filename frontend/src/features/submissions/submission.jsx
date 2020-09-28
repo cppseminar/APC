@@ -20,7 +20,7 @@ const Submission = () => {
         setSubmission(val)
         setState('loaded')
       })
-      .catch(() => { debugger; setState('error') })
+      .catch(() => setState('error'))
   }, [submissionId])
 
   switch (state) {
