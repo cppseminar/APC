@@ -14,20 +14,19 @@ const LandingPage = () => {
       <Card>
         <Card.Img variant='top' src={Work} />
         <Card.Body>
-          <Card.Title>Tasks</Card.Title>
+          <Card.Title>Assignments</Card.Title>
           <Card.Text>
-            Your assigment tasks for every week. There you can also send
-            submissions and run tests. Although much of that is not working...
+            All your assignments are here, you can submit your solution and run some basic tests.
           </Card.Text>
         </Card.Body>
         <Card.Footer>
-          <Button as={Link} to='/task' size='lg' block>Tasks</Button>
+          <Button as={Link} to='/task' size='lg' block>Assignments</Button>
         </Card.Footer>
       </Card>
       <Card>
         <Card.Img variant='top' src={Lecture} />
         <Card.Body>
-          <Card.Title>Course page</Card.Title>
+          <Card.Title>Lecture page</Card.Title>
           <Card.Text>
             Contains information, lecture slides and other materials. Complete
             task descriotion with comments and deadlines can also be found here.

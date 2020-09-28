@@ -70,7 +70,7 @@ const TaskView = () => {
           </Row>
           <Row className='my-1 mb-5'>
             <Col>
-              <Button as={Link} to={'/submission/' + taskId}>Submissions</Button>
+              <Button as={Link} to={'/submission/' + taskId}>View submissions</Button>
             </Col>
           </Row>
           <Row className='my-1'>
