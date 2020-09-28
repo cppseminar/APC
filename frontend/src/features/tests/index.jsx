@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { submitTest } from 'services/testCases'
 
 import Container from 'react-bootstrap/Container'
@@ -18,6 +18,10 @@ const Tests = ({ taskId }) => {
 
   let notification = null
 
+  useEffect(() => {
+    setCode(null)
+  }, [submissionId])
+  
   if (retCode) {
     notification = <Alert variant="danger ">Unknown error</Alert>
   }

@@ -99,7 +99,7 @@ const Tasks = () => {
         <Container>
           <Row>
             <Col>
-              <h1 className='display-3'>Assigments</h1>
+              <h1 className='display-3'>Assignments</h1>
               <p>
                 All your tasks are listed here.
               </p>
