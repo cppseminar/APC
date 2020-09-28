@@ -24,9 +24,11 @@ const Tasks = () => {
 
   const loadTasks = useCallback(() => {
     getTasks()
-      .then((response) => setTasks(response))
-      .catch(() => setTasks(null))
-      .finally(() => setState('loaded'))
+      .then((response) => {
+        setState('loaded')
+        setTasks(response)
+      })
+      .catch(() => setState('error'))
   }, [])
 
   const refreshTasks = () => {
@@ -38,6 +40,12 @@ const Tasks = () => {
   useEffect(() => {
     loadTasks()
   }, [user, loadTasks])
+
+  const errorMessage = (
+    <p>
+      Tasks cannot be loaded. There were and error on the server or you are not logged in.
+    </p>
+  )
 
   const tasksList = (
     <div style={{ position: 'relative' }}>
@@ -80,6 +88,7 @@ const Tasks = () => {
       case 'loading': return skeleton
       case 'loaded':
       case 'reloading': return tasksList
+      case 'error': return errorMessage
       default: return null
     }
   })()
@@ -90,14 +99,14 @@ const Tasks = () => {
         <Container>
           <Row>
             <Col>
-              <h1 className='display-3'>Tasks</h1>
+              <h1 className='display-3'>Assigments</h1>
               <p>
                 All your tasks are listed here.
               </p>
             </Col>
             <Col sm='auto'>
-              <Button onClick={refreshTasks} disabled={state !== 'loaded'}>
-                {state === 'loaded' ? 'Refresh' : 'Loading...'}
+              <Button onClick={refreshTasks} disabled={state !== 'loaded' && state !== 'error'}>
+                {state === 'loaded' || state === 'error' ? 'Refresh' : 'Loading...'}
               </Button>
             </Col>
           </Row>

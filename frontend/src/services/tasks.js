@@ -5,7 +5,6 @@ const verifyResponse = (response) => {
 }
 
 const catchError = (error) => {
-  console.log(error)
   return Promise.reject(error.response)
 }
 

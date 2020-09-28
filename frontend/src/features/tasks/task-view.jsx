@@ -32,7 +32,7 @@ const TaskView = () => {
           setError(response)
         })
     } else {
-      setError({ statusText: 'Task not specified' })
+      setError({ statusText: 'Task not specified, please select one.' })
     }
   }, [taskId])
 

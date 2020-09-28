@@ -5,7 +5,6 @@ const verifyResponse = (response) => {
 }
 
 const catchError = (response) => {
-  console.log(response)
   return null
 }
 
