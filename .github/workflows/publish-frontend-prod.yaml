@@ -1,0 +1,33 @@
+name: Publish production frontend 
+
+on:
+  push:
+    branches: [ production ]
+env:
+  REACT_APP_GOOGLE_CLIENT_ID: '${{secrets.PROD_GOOGLE}}'
+  REACT_APP_API_DOMAIN: "${{secrets.PROD_API}}"
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - name: Checkout source code
+      uses: actions/checkout@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.18.3
+    - name: Run npm build
+      run: |
+        cd frontend
+        npm install
+        npm run build
+    - name: Push to azure
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.9.1
+        inlineScript: |
+          az storage blob sync -s $GITHUB_WORKSPACE/frontend/build/ -c '$web' --connection-string "${{secrets.PROD_STORAGE}}"
