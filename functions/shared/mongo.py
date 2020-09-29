@@ -119,6 +119,25 @@ class MongoUsers:
         roles = list(entry.get(common.SCHEMA_USER.ROLES, []))
         return users.User(email=email, is_admin=is_admin, roles=roles)
 
+    @staticmethod
+    def create_user(email: str, role=""):
+        """Create user if doesn't exist."""
+        if not isinstance(role, str):
+            raise ValueError(f"Bad arg f{role=}. must be str")
+        collection = get_client().get_users()
+        query = {common.SCHEMA_USER.EMAIL: email}
+        update = {
+            "$setOnInsert": {
+                common.SCHEMA_USER.EMAIL: email,
+                common.SCHEMA_USER.IS_ADMIN: False,
+            },
+            "$addToSet" : {
+                common.SCHEMA_USER.ROLES: role
+            }
+        }
+        result = collection.update_one(query, update, upsert=True)
+        return result.acknowledged
+
 
 class MongoSubmissions:
     """Manipulation of submissions."""

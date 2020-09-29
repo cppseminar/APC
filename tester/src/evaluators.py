@@ -153,7 +153,8 @@ class DiffEvaluator(infrastructure.Module):
     @staticmethod
     def get_file_iter(file_name):
         with open(file_name, "r") as f:
-            yield f.readline().rstrip()
+            for line in f:
+                yield line.rstrip()
 
 
 if __name__ == '__main__':
