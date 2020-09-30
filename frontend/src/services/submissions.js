@@ -1,4 +1,5 @@
 import api from '../app/api'
+import store from '../app/store'
 
 const verifyResponse = (response) => {
   return response.data
@@ -23,7 +24,8 @@ export const postSubmission = async (content, taskId) => {
 export const getSubmissions = async (taskId) => {
   return api.get('/api/submissions', {
     params: {
-      task: taskId
+      task: taskId,
+      user: store.getState().auth.email || ''
     }
   }).then(verifyResponse).catch(catchError)
 }

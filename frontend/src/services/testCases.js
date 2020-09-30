@@ -1,5 +1,7 @@
-import api from '../app/api'
+import pickBy from 'lodash/pickBy'
 
+import api from '../app/api'
+import store from '../app/store'
 
 export const getCases = (taskId) => {
   return api.get('/api/cases', {
@@ -17,14 +19,15 @@ export const submitTest = (testCaseId, submissionId) => {
 }
 
 export const listTests = ({ submissionId, taskId }) => {
-  let params = {}
-  if (submissionId) {
-    params = { submission: submissionId }
+  const params = {
+    submission: submissionId,
+    task: taskId,
+    user: store.getState().auth.email
   }
-  if (taskId) {
-    params = Object.assign(params, { task: taskId })
-  }
-  return api.get('/api/tests', { params })
+
+  return api.get('/api/tests', { 
+    params: pickBy(params, v => v != null) 
+  })
     .then(result => result.data)
 }
 
