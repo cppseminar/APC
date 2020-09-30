@@ -5,7 +5,7 @@
 We will compile with C++17 without any extensions, so the basic command live will looks like
 
 ```
-g++ main.cpp -pedantic -std=c++17 -pthread -fmax-errors=3
+g++ main.cpp -pedantic -std=c++17 -pthread
 ```
 
 ## Warning levels
