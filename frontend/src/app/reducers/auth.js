@@ -8,14 +8,11 @@ export const authSlice = createSlice({
     name: '',
     img: '',
     firstSilentLoginRunning: true,
-    isAdmin: true
+    isAdmin: false
   },
   reducers: {
     setUser: (state, action) => {
-      state.token = action.payload.token
-      state.email = action.payload.email
-      state.name = action.payload.name
-      state.img = action.payload.img
+      return action.payload
     },
     removeUser: (state) => {
       state.token = ''

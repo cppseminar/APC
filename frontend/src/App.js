@@ -15,6 +15,7 @@ import Header from './features/header'
 import LandingPage from './features/landing-page'
 import Tasks from './features/tasks'
 import Submissions from './features/submissions'
+import CallbackPage from './features/google-login/callback-page'
 
 if (process.env.NODE_ENV === 'development') {
   console.log('Current environment ', process.env)
@@ -46,6 +47,11 @@ const App = () => {
 
   return (
     <Router>
+      <Switch>
+        <Route path='/.auth/google/login'>
+          <CallbackPage />
+        </Route>
+      </Switch>
       <Header />
       <Container>
         <Row>
