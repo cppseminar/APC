@@ -100,6 +100,7 @@ if __name__ == "__main__":
     script.add_class(runner.RunnerModule)
     script.add_class(evaluators.HuffmanEvaluator)
     script.add_class(evaluators.DiffEvaluator)
+    script.add_class(evaluators.OutputReplaceByFile)
 
     with open("./config.ini", "r") as f:
         script.load_ini_settings(f)

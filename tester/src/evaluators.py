@@ -2,6 +2,7 @@
 import argparse
 import collections
 import contextlib
+import dataclasses
 import difflib
 import itertools
 import os
@@ -155,6 +156,39 @@ class DiffEvaluator(infrastructure.Module):
         with open(file_name, "r") as f:
             for line in f:
                 yield line.rstrip()
+
+class OutputReplaceByFile(infrastructure.Module):
+    """Reads output from file and replaces run values for input."""
+    SETTINGS = {
+        "filename": infrastructure.AnyStringParser(),
+        "input_identificator": infrastructure.AnyStringParser(),
+        "output_identificator": infrastructure.AnyStringParser(),
+    }
+
+    def __init__(self, name):
+        """Register event."""
+        super().__init__(name)
+        self.register_event(runner.RunOutput)
+
+
+    def handle_internal(self, event: runner.RunOutput):
+        """Create new event, with original values, but exchange output."""
+        if event.identification != self.settings['input_identificator']:
+            return False
+        identificator = f"[OutputFile] {self.name}"
+        # This is correct event, so let's check if output file even exists
+        if not os.path.exists(self.settings["filename"]):
+            self.notify(infrastructure.Notification(
+                identificator + " - Output file not created",
+                infrastructure.MessageSeverity.ERROR
+            ))
+        changes = {
+            "identification": self.settings["output_identificator"],
+            "output_file": self.settings["filename"]
+        }
+        new_event = dataclasses.replace(event, **changes)
+        self.send(new_event)
+
 
 
 if __name__ == '__main__':

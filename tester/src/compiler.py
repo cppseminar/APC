@@ -242,7 +242,7 @@ _GCC_OPS = [
     "-Wundef",
     "-Wno-unused",
     "-Wzero-as-null-pointer-constant",
-    "-fmax-errors=3",
+    # "-fmax-errors=3",
     "-Wnull-dereference",
     "-Wimplicit-fallthrough=5",
     "-Wuninitialized",
@@ -252,7 +252,8 @@ _GCC_OPS = [
     "-Wcast-align=strict",
     "-Wparentheses",
     "-Wlogical-op",
-    "-Wno-multichar"
+    "-Wno-multichar",
+    "-std=c++17",
 ]
 
 _COMPILED_OK = "Compilation successful"
@@ -273,6 +274,7 @@ def gcc_stderr_to_lists(output: str):
         return warnings, errors
     except Exception as e:
         _logger.error(e)
+        _logger.info(output)
         return [], ["Unknown error, probably linker"]
 
 def gcc_compile(input_file, output_file, debug=False):
@@ -289,8 +291,7 @@ def gcc_compile(input_file, output_file, debug=False):
 
 class Gcc(infrastructure.Module):
     """Gcc compilation on linux."""
-    SETTINGS = {
-    }
+    SETTINGS = {}
 
     def __init__(self, name):
         super().__init__(name)
