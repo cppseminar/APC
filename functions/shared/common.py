@@ -1,5 +1,6 @@
-from types import SimpleNamespace
+import os
 import json
+from types import SimpleNamespace
 
 from bson import ObjectId
 
@@ -8,8 +9,14 @@ HTTP_HEADER_PORT = "X-FORWARDED-PORT"
 HTTP_HEADER_PROTOCOL = "X-FORWARDED-PROTO"
 
 ENV_CONNECTION_STRING = "MyCosmosDBConnectionString"
+ENV_QUEUE_URL = "QUEUE_URL"
+ENV_QUEUE_SECRET = "QUEUE_SECRET"
+ENV_HOST_OVERRIDE = "DEBUG_HOST_OVERRIDE"
+ENV_DB_NAME = "COSMOS_DB"
+ENV_QUEUE_NAME = "QUEUE_NAME"
+
 HEADER_EMAIL = "X-REQUEST-EMAIL"
-DB_NAME = "development"
+DB_NAME =  os.getenv(ENV_DB_NAME) or "development"
 COL_USERS = "users"
 COL_SUBMISSIONS = "submissions"
 COL_TASKS = "tasks"
@@ -21,9 +28,6 @@ SCHEMA_USER = SimpleNamespace(EMAIL="email", ROLES="roles", IS_ADMIN="is_admin",
 SCHEMA_TASKS_NAME = "name"
 SCHEMA_TASKS_DESCRIPTION = "description"
 
-ENV_QUEUE_URL = "QUEUE_URL"
-ENV_QUEUE_SECRET = "QUEUE_SECRET"
-ENV_HOST_OVERRIDE = "DEBUG_HOST_OVERRIDE"
 
 # tests collection
 COL_TESTS_USER = "user"
