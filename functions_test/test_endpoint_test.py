@@ -68,7 +68,7 @@ def create_post_request(body=None):
 @pytest.fixture(autouse=True)
 def patch_users(monkeypatch):
     mock = MagicMock()
-    mock.get_user.return_value = users.User(email=EMAIL1)
+    mock.get_user.return_value = users.User(email=EMAIL1, _id=ObjectId())
     mock.get_case.return_value = mock_test_case()
     mock.create_test.return_value = mock_test_run()
     mock.get_test.return_value = mock_test_run()
@@ -114,7 +114,7 @@ class TestGetTest:
 
     def test_admin(self, monkeypatch):
         mock = MagicMock()
-        mock.get_user.return_value = users.User(email=EMAIL1, is_admin=True)
+        mock.get_user.return_value = users.User(email=EMAIL1, is_admin=True, _id=ObjectId())
         monkeypatch.setattr(mongo.MongoTests, "get_test", mock)
         monkeypatch.setattr(mongo, "MongoUsers", mock)
         ret = tests.main(create_get_request(route={"id": ObjectId()}), MagicMock())
