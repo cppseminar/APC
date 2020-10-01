@@ -2,15 +2,22 @@
 import dataclasses
 import typing
 
-from . import mongo
+from . import mongo, core
 
 
 @dataclasses.dataclass
-class User:
+class User(core.ModelBase):
     """Representation of authenticated user."""
     email: str
     is_admin: bool = False
     roles: typing.List = dataclasses.field(default_factory=list)
+
+    def filter_item(self, item):
+        key, _ = item
+        if key in ["_id"]:
+            return False
+        return True
+
 
 
 def get_user(email: str):

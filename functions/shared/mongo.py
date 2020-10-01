@@ -6,6 +6,7 @@ time there is new connection request (this is actually throttled to 20
 seconds), we try one simple command at first, so if connection is no longer
 working, we can open new one.  This is done to prevent failure in real requests.
 """
+import contextlib
 import datetime
 import logging
 import os
@@ -98,13 +99,22 @@ class MongoUsers:
     """Collection of methods for working with users collection."""
 
     @staticmethod
+    def _to_model(obj: dict):
+        kwargs = core.empty_dataclass_dict(users.User)
+        kwargs["is_admin"] = obj[common.SCHEMA_USER.IS_ADMIN]
+        kwargs["email"] = obj[common.SCHEMA_USER.EMAIL]
+        kwargs["roles"] = obj[common.SCHEMA_USER.ROLES]
+        return core.instantiate_dataclass(users.User, **kwargs)
+
+    @staticmethod
     def get_user(email: str):
         """Get or create user defined by email."""
         collection = get_client().get_users()
         entry = collection.find_one({common.SCHEMA_USER.EMAIL: email}) or {}
+        object_id = None
         if not entry:
             # Solve race condition during new user creation by upsert
-            collection.update_one(
+            result = collection.update_one(
                 {common.SCHEMA_USER.EMAIL: email},
                 {
                     "$setOnInsert": {
@@ -115,9 +125,13 @@ class MongoUsers:
                 },
                 upsert=True,
             )
+            with contextlib.suppress(Exception):
+                object_id = result.upserted_id
+        else:
+            object_id = entry["_id"]
         is_admin = bool(entry.get(common.SCHEMA_USER.IS_ADMIN, False))
         roles = list(entry.get(common.SCHEMA_USER.ROLES, []))
-        return users.User(email=email, is_admin=is_admin, roles=roles)
+        return users.User(email=email, is_admin=is_admin, roles=roles, _id=object_id)
 
     @staticmethod
     def create_user(email: str, role=""):
@@ -131,12 +145,21 @@ class MongoUsers:
                 common.SCHEMA_USER.EMAIL: email,
                 common.SCHEMA_USER.IS_ADMIN: False,
             },
-            "$addToSet" : {
-                common.SCHEMA_USER.ROLES: role
-            }
+            "$addToSet": {common.SCHEMA_USER.ROLES: role},
         }
         result = collection.update_one(query, update, upsert=True)
         return result.acknowledged
+
+    @staticmethod
+    def get_users():
+        """List all users.
+
+        This call is for admins only, so right now, we are not limiting number
+        of entries."""
+        collection = get_client().get_users()
+        cursor = collection.find({}).sort("email", pymongo.ASCENDING)
+        return core.mongo_filter_errors(cursor, MongoUsers._to_model)
+
 
 
 class MongoSubmissions:

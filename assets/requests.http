@@ -96,3 +96,8 @@ Accept: */*
 {
         "description": "abcdef\n[ok] test ruw"
 }
+
+#####
+GET {{baseUrl}}/api/users/ HTTP/1.1
+Accept: */*
+X-request-email: {{admin}}
