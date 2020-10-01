@@ -1,4 +1,4 @@
-name: Publish functions production
+name: Production - publish api
 
 on:
   push:

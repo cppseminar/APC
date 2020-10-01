@@ -1,4 +1,4 @@
-name: Publish new api
+name: Development - publish api
 
 on:
   push:

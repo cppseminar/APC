@@ -1,4 +1,4 @@
-name: Publish production frontend 
+name: Production - publish frontend
 
 on:
   push:

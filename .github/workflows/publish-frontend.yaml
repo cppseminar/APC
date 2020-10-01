@@ -1,4 +1,4 @@
-name: Publish new frontend
+name: Development - publish frontend
 
 on:
   push:
