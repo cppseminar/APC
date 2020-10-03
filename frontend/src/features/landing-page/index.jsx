@@ -4,11 +4,16 @@ import Card from 'react-bootstrap/Card'
 import Button from 'react-bootstrap/Button'
 import { Link } from 'react-router-dom'
 
+import { isLoggedIn } from '../../app/selectors'
+
 import Standard from '../../assets/jpg/frederick-tubiermont-fJSRg-r7LuI-unsplash.jpg'
 import Lecture from '../../assets/jpg/miguel-henriques-RfiBK6Y_upQ-unsplash.jpg'
 import Work from '../../assets/jpg/clark-young-fQxMGkYXqFU-unsplash.jpg'
+import { useSelector } from 'react-redux'
 
 const LandingPage = () => {
+  const loggedIn = useSelector(isLoggedIn)
+
   return (
     <CardDeck className='mt-5'>
       <Card>
@@ -20,7 +25,7 @@ const LandingPage = () => {
           </Card.Text>
         </Card.Body>
         <Card.Footer>
-          <Button as={Link} to='/task' size='lg' block>Assignments</Button>
+          <Button as={loggedIn ? Link : null} to='/task' size='lg' disabled={!loggedIn} block>Assignments</Button>
         </Card.Footer>
       </Card>
       <Card>
