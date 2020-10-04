@@ -74,6 +74,8 @@ def get_handler(
 @shared.decorators.login_required
 def post_handler(req: func.HttpRequest, user=None):
     """Handle new submissions."""
+    if not user:
+        return http.response_server_error()
     document = http.get_json(req, POST_SCHEMA)
     # TODO: Tasks must have time interval for submissions
     if not document:
@@ -82,15 +84,19 @@ def post_handler(req: func.HttpRequest, user=None):
     roles = None
     if not user.is_admin:
         roles = user.roles or []
-    result = mongo.MongoTasks.get_task(ObjectId(document["taskId"]), roles=roles)
-    if not result:
+    task = mongo.MongoTasks.get_task(ObjectId(document["taskId"]), roles=roles)
+    if not task:
         return http.response_client_error()
-    # User has right to do this
+    # User has access to task. Let's check if we are still in timeframe
+    if task.valid_until and not user.is_admin:
+        time_now = datetime.datetime.utcnow()
+        if time_now > task.valid_until:
+            return http.response_payment()
+
     result = mongo.MongoSubmissions.submit(
         user=user.email,
         files=document["files"],
         task_id=ObjectId(document["taskId"]),
-        name=result.get("name", ""),
-    )
+        name=task.name)
 
     return http.response_ok(result, code=201)
