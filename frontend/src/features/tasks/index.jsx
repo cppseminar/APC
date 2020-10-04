@@ -55,7 +55,7 @@ const Tasks = () => {
           <Col sm={3}>
             <ListGroup>
               {(tasks ?? []).map(val => (
-                <ListGroup.Item key={val._id} as={NavLink} action to={`${data.path}/${val._id}`}>
+                <ListGroup.Item key={val.id} as={NavLink} action to={`${data.path}/${val.id}`}>
                   {val.name}
                 </ListGroup.Item>
               ))}

@@ -248,6 +248,14 @@ class MongoTasks:
     """Manipulation with tasks in db."""
 
     @staticmethod
+    def _to_model(obj):
+        """Convert db object to model."""
+        kwargs = core.empty_dataclass_dict(models.Task)
+        kwargs.update(obj)
+        kwargs["valid_until"] = obj.get("validUntil", None)
+        return core.instantiate_dataclass(models.Task, **kwargs)
+
+    @staticmethod
     def get_task(task_id, roles: typing.List = None):
         """Get task with task_id, if has roles."""
         query = {"_id": task_id}
@@ -257,7 +265,8 @@ class MongoTasks:
             query["roles"] = {"$in": roles}
 
         collection = get_client().get_tasks()
-        return collection.find_one(query)
+        document = collection.find_one(query)
+        return core.mongo_filter_errors(document, MongoTasks._to_model)
 
     @staticmethod
     def get_tasks(roles: typing.List = None):
@@ -269,7 +278,8 @@ class MongoTasks:
             query["roles"] = {"$in": roles}
 
         collection = get_client().get_tasks()
-        return collection.find(query, {"name": 1})
+        cursor = collection.find(query, {"name": 1})
+        return core.mongo_filter_errors(cursor, MongoTasks._to_model)
 
 
 class MongoTestCases:

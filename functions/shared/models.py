@@ -95,3 +95,27 @@ class TestRun(ModelBase):
         if key == "description" and not value:
             return False
         return super().filter_item(item)
+
+
+@dataclasses.dataclass
+class Task(ModelBase):
+    """Representation of one assignment in out system."""
+    name: str
+    description: str = ""
+    roles: typing.List[str] = dataclasses.field(default_factory=list)
+    valid_until: typing.Optional[datetime.datetime] = None
+
+    def map_item(self, item):
+        key, value = item
+        mapper = {
+            "_id": "id",
+        }
+        if key in mapper:
+            return mapper[key], value
+        return super().map_item(item)
+
+    def filter_item(self, item):
+        key, _ = item
+        if key in ["valid_until", "roles"]:
+            return False
+        return super().filter_item(item)
