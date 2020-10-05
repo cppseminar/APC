@@ -26,10 +26,14 @@ const TaskView = () => {
 
     if (taskId) {
       getTask(taskId)
-        .then(task => setTask(task))
-        .catch(response => {
+        .then(task => {
+          setTask(task)
+          setError(null)
+        })
+        .catch(error => {
+          console.log('Error ', error)
           setTask(null)
-          setError(response)
+          setError(error)
         })
     } else {
       setError({ statusText: 'Task not specified, please select one.' })

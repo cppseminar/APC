@@ -10,12 +10,11 @@ const ResultStyle = {
   "color": "white",
 }
 
-const Status = {
+const Status = Object.freeze({
   INIT: 0,
   LOADING: 1,
   LOADED: 2,
-
-}
+})
 
 const TestRun = (props) => {
   const { caseName, taskName, user, requested, id } = props.data
@@ -31,9 +30,9 @@ const TestRun = (props) => {
   }
 
   const buttons = {
-    [Status.INIT]: <Button onClick={showDetails} >Show details</Button>,
+    [Status.INIT]: <Button onClick={showDetails}>Show details</Button>,
     [Status.LOADING]: <Button disabled>Loading ... </Button>,
-    [Status.LOADED]: <Button onClick={showDetails} >Refresh</Button>,
+    [Status.LOADED]: <Button onClick={showDetails}>Refresh</Button>,
   }
 
   // Formatting of test run results

@@ -10,6 +10,7 @@
     "@testing-library/user-event": "^12.1.6",
     "ace-builds": "^1.4.12",
     "axios": "^0.20.0",
+    "axios-auth-refresh": "^3.0.0",
     "bootstrap": "^4.5.2",
     "lodash": "^4.17.20",
     "oidc-client": "^1.10.1",

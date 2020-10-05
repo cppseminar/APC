@@ -1,12 +1,31 @@
 import axios from 'axios'
+import createAuthRefreshInterceptor from 'axios-auth-refresh'
 
 import store from './store'
+import { refreshToken } from './auth'
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_DOMAIN,
   timeout: 60000,
   params: {},
   headers: {}
+})
+
+const refreshAuthLogic = async failedRequest => {
+  try {
+    const user = await refreshToken()
+
+    failedRequest.response.config.headers['Authorization'] = 'Bearer ' + user.id_token
+
+    return Promise.resolve()
+  } catch (e) {
+    return Promise.reject(failedRequest)
+  }
+}
+
+createAuthRefreshInterceptor(api, refreshAuthLogic, {
+  pauseInstanceWhileRefreshing: true,
+  statusCodes: [ 401 ]
 })
 
 const changeAuthentication = () => {

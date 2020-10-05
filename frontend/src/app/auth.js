@@ -49,4 +49,9 @@ export function login() {
   })
 }
 
+export function refreshToken() {
+  return um.signinSilent()
+    .catch(() => { store.dispatch(removeUser()) })
+}
+
 export default um
