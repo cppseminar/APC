@@ -8,7 +8,9 @@ import Col from 'react-bootstrap/Col'
 import Jumbotron from 'react-bootstrap/Jumbotron'
 import ListGroup from 'react-bootstrap/ListGroup'
 
-import { getSubmissions } from 'services/submissions'
+import { getSubmissions } from '../../services/submissions'
+import { getSelectedUser } from '../../app/selectors'
+
 import Submission from './submission'
 import Tests from '../tests'
 
@@ -18,7 +20,7 @@ const Submissions = () => {
   const match = useRouteMatch()
   const taskId = match?.params.taskId
 
-  const user = useSelector(state => state.auth.token)
+  const user = useSelector(getSelectedUser)
 
   const refreshSubmissions = (taskId) => {
     getSubmissions(taskId)

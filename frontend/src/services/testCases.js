@@ -2,6 +2,7 @@ import pickBy from 'lodash/pickBy'
 
 import api from '../app/api'
 import store from '../app/store'
+import { getSelectedUser } from '../app/selectors'
 
 export const getCases = (taskId) => {
   return api.get('/api/cases', {
@@ -22,11 +23,11 @@ export const listTests = ({ submissionId, taskId }) => {
   const params = {
     submission: submissionId,
     task: taskId,
-    user: store.getState().auth.email
+    user: getSelectedUser(store.getState())
   }
 
-  return api.get('/api/tests', { 
-    params: pickBy(params, v => v != null) 
+  return api.get('/api/tests', {
+    params: pickBy(params, v => v != null)
   })
     .then(result => result.data)
 }

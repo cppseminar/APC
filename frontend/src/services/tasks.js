@@ -1,5 +1,6 @@
 import api from '../app/api'
 import store from '../app/store'
+import { getSelectedUser } from '../app/selectors'
 
 const verifyResponse = (response) => {
   return response.data
@@ -12,7 +13,7 @@ const catchError = (error) => {
 export const getTasks = async () => {
   return api.get('/api/tasks', {
     params: {
-      user: store.getState().auth.email || ''
+      user: getSelectedUser(store.getState())
     }
   }).then(verifyResponse).catch(catchError)
 }
@@ -20,7 +21,7 @@ export const getTasks = async () => {
 export const getTask = async (taskId) => {
   return api.get('/api/tasks/' + taskId, {
     params: {
-      user: store.getState().auth.email || ''
+      user: getSelectedUser(store.getState())
     }
   }).then(verifyResponse).catch(catchError)
 }

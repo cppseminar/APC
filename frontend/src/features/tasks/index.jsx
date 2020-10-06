@@ -9,7 +9,9 @@ import ListGroup from 'react-bootstrap/ListGroup'
 import Jumbotron from 'react-bootstrap/Jumbotron'
 import Skeleton from 'react-loading-skeleton'
 
-import { getTasks } from 'services/tasks'
+import { getTasks } from '../../services/tasks'
+
+import { getSelectedUser } from '../../app/selectors'
 
 import TaskView from './task-view'
 import LoadingOverlay from '../loading-overlay'
@@ -20,7 +22,7 @@ const Tasks = () => {
 
   const data = useRouteMatch()
 
-  const user = useSelector(state => state.auth.token)
+  const user = useSelector(getSelectedUser)
 
   const loadTasks = useCallback(() => {
     getTasks()

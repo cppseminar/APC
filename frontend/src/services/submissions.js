@@ -1,5 +1,6 @@
 import api from '../app/api'
 import store from '../app/store'
+import { getSelectedUser } from '../app/selectors'
 
 const verifyResponse = (response) => {
   return response.data
@@ -25,7 +26,7 @@ export const getSubmissions = async (taskId) => {
   return api.get('/api/submissions', {
     params: {
       task: taskId,
-      user: store.getState().auth.email || ''
+      user: getSelectedUser(store.getState())
     }
   }).then(verifyResponse).catch(catchError)
 }
