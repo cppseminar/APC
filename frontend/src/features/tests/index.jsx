@@ -10,7 +10,6 @@ import TestList from './tests'
 import TestCases from './testCases'
 import { submitTest } from 'services/testCases'
 import { isAdmin, getSelectedUser, getLoggedUser } from '../../app/selectors'
-import UserSelector from 'features/user-selector'
 
 const Tests = ({ taskId }) => {
   const [hidden, setHidden] = useState(false)

@@ -1,8 +1,6 @@
 import pickBy from 'lodash/pickBy'
 
 import api from '../app/api'
-import store from '../app/store'
-import { getSelectedUser } from '../app/selectors'
 
 export const getCases = (taskId) => {
   return api.get('/api/cases', {
