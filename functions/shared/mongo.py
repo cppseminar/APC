@@ -161,7 +161,6 @@ class MongoUsers:
         return core.mongo_filter_errors(cursor, MongoUsers._to_model)
 
 
-
 class MongoSubmissions:
     """Manipulation of submissions."""
 
@@ -278,7 +277,7 @@ class MongoTasks:
             query["roles"] = {"$in": roles}
 
         collection = get_client().get_tasks()
-        cursor = collection.find(query, {"name": 1})
+        cursor = collection.find(query, {"name": 1}).sort("name", pymongo.ASCENDING)
         return core.mongo_filter_errors(cursor, MongoTasks._to_model)
 
 
