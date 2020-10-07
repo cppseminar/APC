@@ -175,6 +175,8 @@ class OutputReplaceByFile(infrastructure.Module):
         """Create new event, with original values, but exchange output."""
         if event.identification != self.settings['input_identificator']:
             return False
+        if event.timeout:
+            return False
         identificator = f"[OutputFile] {self.name}"
         # This is correct event, so let's check if output file even exists
         if not os.path.exists(self.settings["filename"]):
