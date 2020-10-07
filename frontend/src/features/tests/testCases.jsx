@@ -6,9 +6,9 @@ import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 
 
-const TestCase = (props) => {
-  const { name, numRunsAllowed } = props.data
-  const runTest = props.runTestCallback
+const TestCase = ({ data, runTestCallback }) => {
+  const { name, numRunsAllowed } = data
+  const runTest = runTestCallback
 
   return (<ListGroup.Item as="div">
     <Row>
@@ -35,7 +35,7 @@ const TestCases = ({ taskId, runCaseCallback }) => {
   }, [taskId])
 
   return (
-    <ListGroup variant="flush">
+    <ListGroup variant='flush'>
       {cases.map(val => (<TestCase key={val.id} data={val} runTestCallback={() => runCaseCallback(val.id)} />))}
     </ListGroup>
   )

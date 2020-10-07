@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react'
+import styled from 'styled-components'
 import { listTests, getTest } from 'services/testCases'
 import ListGroup from 'react-bootstrap/ListGroup'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
 
-const ResultStyle = {
-  "padding": "0.3em",
-  "color": "white",
-}
+const Result = styled.pre`
+  padding: 0.3em;
+  color: white;
+  background: #2A363B;
+`
 
 const Status = Object.freeze({
   INIT: 0,
@@ -39,11 +41,9 @@ const TestRun = (props) => {
   let details = (
     <Row>
       <Col>
-        <div style={{ "background": "#2A363B" }}>
-          <pre style={ResultStyle}>
-            {detail}
-          </pre>
-        </div>
+        <Result>
+          {detail}
+        </Result>
       </Col>
     </Row>)
 
@@ -77,15 +77,17 @@ const TestRun = (props) => {
   )
 }
 
-const TestList = ({ submissionId, refresh, taskId }) => {
+const TestList = ({ submissionId, refresh, taskId, user }) => {
   const [testRuns, setRuns] = useState([])
 
   useEffect(() => {
-    listTests({ submissionId, taskId })
+    listTests({ submissionId, taskId, user })
       .then(result => setRuns(result))
       .catch(error => console.error(error)) // TODO: Better error handling
-  }, [submissionId, refresh, taskId])
+  }, [submissionId, refresh, taskId, user])
 
+
+  console.log(testRuns)
   if (!testRuns.length) {
     return null
   }

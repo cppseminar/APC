@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { submitTest } from 'services/testCases'
-
+import { useSelector } from 'react-redux'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
@@ -9,6 +8,9 @@ import { useParams } from 'react-router-dom'
 
 import TestList from './tests'
 import TestCases from './testCases'
+import { submitTest } from 'services/testCases'
+import { isAdmin, getSelectedUser, getLoggedUser } from '../../app/selectors'
+import UserSelector from 'features/user-selector'
 
 const Tests = ({ taskId }) => {
   const [hidden, setHidden] = useState(false)
@@ -16,12 +18,18 @@ const Tests = ({ taskId }) => {
   const [refresh, setRefresh] = useState(0)
   const { submissionId } = useParams()
 
+  const user = useSelector(getSelectedUser)
+
+  const admin = useSelector(state => {
+    return isAdmin(state) && getSelectedUser(state) !== getLoggedUser(state) ? getLoggedUser(state) : null
+  })
+
   let notification = null
 
   useEffect(() => {
     setCode(null)
   }, [submissionId])
-  
+
   if (retCode) {
     notification = <Alert variant="danger ">Unknown error</Alert>
   }
@@ -32,34 +40,46 @@ const Tests = ({ taskId }) => {
   }
 
   // Network and set return code
-  const memoizedCb = useCallback((caseId) => {
+  const memoizedCb = useCallback(caseId => {
     setHidden(true)
-    const f = (caseId) => {
-      submitTest(caseId, submissionId).then(result => {
-        setHidden(false)
-        setCode(Number(result.status))
+
+    submitTest(caseId, submissionId)
+      .then(result => {
+        setCode(+result.status)
         setRefresh(refresh + 1)
-      }).catch(error => {
-        setHidden(false)
+      })
+      .catch(error => {
         if (error.response.status) {
           setCode(error.response.status)
         } else {
           setCode(500)
         }
       })
-    }
-    f(caseId)
+      .finally(() => {
+        setHidden(false)
+      })
   }, [submissionId, refresh])
 
   if (hidden) {
     return null
   }
 
+  const adminTestRuns = admin ? (
+    <Row>
+      <Col>
+        <h3>Admin test runs</h3>
+        <TestList submissionId={submissionId} refresh={refresh} user={admin} />
+      </Col>
+    </Row>
+  ) : null
+
+
   return (
     <Container>
+      {adminTestRuns}
       <Row>
         <Col>
-          <TestList submissionId={submissionId} refresh={refresh} />
+          <TestList submissionId={submissionId} refresh={refresh} user={user} />
         </Col>
       </Row>
       <Row>

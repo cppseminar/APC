@@ -19,11 +19,11 @@ export const submitTest = (testCaseId, submissionId) => {
   })
 }
 
-export const listTests = ({ submissionId, taskId }) => {
+export const listTests = ({ submissionId, taskId, user }) => {
   const params = {
     submission: submissionId,
     task: taskId,
-    user: getSelectedUser(store.getState())
+    user
   }
 
   return api.get('/api/tests', {
