@@ -182,12 +182,14 @@ class OutputReplaceByFile(infrastructure.Module):
                 identificator + " - Output file not created",
                 infrastructure.MessageSeverity.ERROR
             ))
+            return False
         changes = {
             "identification": self.settings["output_identificator"],
             "output_file": self.settings["filename"]
         }
         new_event = dataclasses.replace(event, **changes)
         self.send(new_event)
+        return True
 
 
 
