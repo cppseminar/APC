@@ -37,16 +37,17 @@ def get_handler(req, user: users.User, submission_id=None, user_filter=None):
         roles = None if user.is_admin else user.roles
         return get_task(submission_id, roles)
 
-    if user_filter and user_filter != user.email:
-        # We suppport query only for our own email
-        return http.response_forbidden()
-    if not user_filter and not user.is_admin:
+    roles = user.roles
+
+    if not user.is_admin and (not user_filter or user_filter != user.email):
         # Only admin can query all
         return http.response_forbidden()
-    roles = None
-    if user_filter:  # If this is not set, user is admin. We checked that
-        roles = user.roles
-    # AUTH is done
+
+    if user.is_admin and not user_filter:
+        roles = None
+    elif user.is_admin:  # Admin is impersonating someone
+        roles = mongo.MongoUsers().get_user(user_filter).roles  # upsert
+
     result = mongo.MongoTasks.get_tasks(roles=roles)
     return http.response_ok(list(result))
 

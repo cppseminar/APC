@@ -56,7 +56,12 @@ X-request-email: miro@example.com
 ##### Jozo is admin
 GET {{baseUrl}}/api/tasks HTTP/1.1
 Accept: */*
-X-request-email: jozo@example.com
+X-request-email: {{admin}}
+
+####
+GET {{baseUrl}}/api/tasks?user=miro@example.com HTTP/1.1
+Accept: */*
+X-request-email: {{admin}}
 
 ####
 GET {{baseUrl}}/api/tasks/5f3944f1bf1bb81e48bae8fa HTTP/1.1
