@@ -340,6 +340,7 @@ class Gcc(infrastructure.Module):
                     _COMPILED_CONFIG, infrastructure.MessageSeverity.ERROR
                 )
             )
+            return False
         elif errors:
             self.notify(
                 infrastructure.Notification(
@@ -348,6 +349,7 @@ class Gcc(infrastructure.Module):
                     payload=payload,
                 )
             )
+            return False
         elif warnings:  # Now exe_path definitely exists
             self.notify(
                 infrastructure.Notification(
@@ -356,27 +358,19 @@ class Gcc(infrastructure.Module):
                     payload=payload,
                 )
             )
-            self.send(
-                CompilerEvent(
-                    exe_path,
-                    warnings=warnings,
-                    errors=errors,
-                    platform=Platform.x64_Release,
-                )
-            )
         else:
             self.notify(infrastructure.Notification(_COMPILED_OK))
-            platform = (
-                Platform.x64_Debug if self.settings["debug"] else Platform.x64_Release
+        platform = (
+            Platform.x64_Debug if self.settings["debug"] else Platform.x64_Release
+        )
+        self.send(
+            CompilerEvent(
+                exe_path,
+                warnings=warnings,
+                errors=errors,
+                platform=platform,
             )
-            self.send(
-                CompilerEvent(
-                    exe_path,
-                    warnings=warnings,
-                    errors=errors,
-                    platform=platform,
-                )
-            )
+        )
 
     def compile(self, input_file, output_file):
         with contextlib.suppress(Exception):
