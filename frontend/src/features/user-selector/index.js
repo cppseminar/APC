@@ -2,13 +2,13 @@ import React, { useEffect } from 'react'
 import Form from 'react-bootstrap/Form'
 import { useSelector, useDispatch } from 'react-redux'
 
-import { isAdmin, getStudents } from '../../app/selectors'
+import { getAdmin, getStudents } from '../../app/selectors'
 import { setUsers, selectUser } from '../../app/reducers/users'
 
 import { getUsers } from '../../services/users'
 
 const UserSelector = () => {
-  const admin = useSelector(isAdmin)
+  const admin = useSelector(getAdmin)
   const dispatch = useDispatch()
   const students = useSelector(getStudents)
 

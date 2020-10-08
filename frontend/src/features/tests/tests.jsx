@@ -86,8 +86,6 @@ const TestList = ({ submissionId, refresh, taskId, user }) => {
       .catch(error => console.error(error)) // TODO: Better error handling
   }, [submissionId, refresh, taskId, user])
 
-
-  console.log(testRuns)
   if (!testRuns.length) {
     return null
   }

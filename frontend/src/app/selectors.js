@@ -10,6 +10,11 @@ const isAdmin = createSelector(
   isAdmin => isAdmin
 )
 
+const getAdmin = createSelector(
+  state => state,
+  state => isAdmin(state) && getSelectedUser(state) !== getLoggedUser(state) ? getLoggedUser(state) : null
+)
+
 const getStudents = createSelector(
   state => state.users.all,
   users => users.map(x => x.email)
@@ -25,4 +30,4 @@ const getLoggedUser = createSelector(
   auth => auth.email || ''
 )
 
-export { isLoggedIn, isAdmin, getStudents, getSelectedUser, getLoggedUser }
+export { isLoggedIn, isAdmin, getStudents, getSelectedUser, getLoggedUser, getAdmin }

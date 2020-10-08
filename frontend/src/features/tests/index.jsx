@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom'
 import TestList from './tests'
 import TestCases from './testCases'
 import { submitTest } from 'services/testCases'
-import { isAdmin, getSelectedUser, getLoggedUser } from '../../app/selectors'
+import { getAdmin, getSelectedUser } from '../../app/selectors'
 
 const Tests = ({ taskId }) => {
   const [hidden, setHidden] = useState(false)
@@ -19,9 +19,7 @@ const Tests = ({ taskId }) => {
 
   const user = useSelector(getSelectedUser)
 
-  const admin = useSelector(state => {
-    return isAdmin(state) && getSelectedUser(state) !== getLoggedUser(state) ? getLoggedUser(state) : null
-  })
+  const admin = useSelector(getAdmin)
 
   let notification = null
 
