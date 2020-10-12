@@ -17,12 +17,15 @@ export const authSlice = createSlice({
     removeUser: (state) => {
       state.token = ''
     },
+    refreshToken: (state, action) => {
+      state.token = action.payload
+    },
     firstSilentLoginFinished: (state) => {
       state.firstSilentLoginRunning = false
     }
   }
 })
 
-export const { setUser, removeUser, firstSilentLoginFinished } = authSlice.actions
+export const { setUser, removeUser, firstSilentLoginFinished, refreshToken } = authSlice.actions
 
 export const authReducer = authSlice.reducer

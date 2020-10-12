@@ -3,7 +3,7 @@ import { Button } from 'react-bootstrap'
 
 import { useSelector } from 'react-redux'
 
-import { silentLogin, switchUser, login } from '../../app/auth'
+import { gapiInit, gapiSignIn, gapiSwitchUser } from '../../app/auth'
 
 const GoogleLogin = () => {
   const { token, email, name, img } = useSelector(state => {
@@ -11,15 +11,20 @@ const GoogleLogin = () => {
   })
 
   useEffect(() => {
-    silentLogin()
+    const script = document.createElement('script')
+    script.src = 'https://apis.google.com/js/platform.js'
+    script.id = 'googleAuth';
+
+    document.head.appendChild(script);
+    script.onload = gapiInit
   }, [])
 
-  const firstLogin = (<Button onClick={login}>Login</Button>)
+  const firstLogin = (<Button onClick={gapiSignIn}>Login</Button>)
   const loggedOn = (
     <>
       {name + ' (' + email + ') '}
       {img ? <img height='30px' alt='avatar' src={img} /> : ''}{' '}
-      <Button size='sm' onClick={switchUser}>Switch user</Button>
+      <Button size='sm' onClick={gapiSwitchUser}>Switch user</Button>
     </>
   )
 

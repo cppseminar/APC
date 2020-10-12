@@ -2,7 +2,7 @@ import axios from 'axios'
 import createAuthRefreshInterceptor from 'axios-auth-refresh'
 
 import store from './store'
-import { refreshToken } from './auth'
+import { gapiRefreshToken } from './auth'
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_DOMAIN,
@@ -13,7 +13,7 @@ const api = axios.create({
 
 const refreshAuthLogic = async failedRequest => {
   try {
-    const user = await refreshToken()
+    const user = await gapiRefreshToken()
 
     failedRequest.response.config.headers['Authorization'] = 'Bearer ' + user.id_token
 

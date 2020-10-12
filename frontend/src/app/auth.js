@@ -1,57 +1,82 @@
-import { UserManager, Log } from 'oidc-client'
-
 import store from './store'
-import { setUser, removeUser, firstSilentLoginFinished } from './reducers/auth'
+import { setUser, removeUser, refreshToken, firstSilentLoginFinished } from './reducers/auth'
 
-if (process.env.NODE_ENV !== 'production') {
-  Log.logger = console
-  Log.level = Log.INFO
-}
+function userChangedHandler(user) {
+  const profile = user.getBasicProfile()
 
-const config = {
-  authority: 'https://accounts.google.com/',
-  client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
-  redirect_uri: window.location.protocol + '//' + window.location.host + '/.auth/google/login',
-  scope: 'email profile openid',
-  automaticSilentRenew: true
-}
+  console.log(user.getAuthResponse())
 
-const um = new UserManager(config)
-
-um.events.addUserLoaded((user) => {
   const payload = {
-    token: user.id_token,
-    name: user.profile.name ?? '',
-    email: user.profile.email ?? '',
-    img: user.profile.picture ?? ''
+    token: user.getAuthResponse().id_token,
+    name: profile.getName() ?? '',
+    email: profile.getEmail() ?? '',
+    img: profile.getImageUrl() ?? ''
   }
 
   store.dispatch(setUser(payload))
-})
-
-um.events.addUserUnloaded(() => { store.dispatch(removeUser()) })
-
-export function silentLogin() {
-  um.signinSilent()
-    .catch(() => { store.dispatch(removeUser()) })
-    .finally(() => { store.dispatch(firstSilentLoginFinished()) })
 }
 
-export function switchUser() {
-  um.signinPopup({ prompt: 'select_account' }).catch((reason) => {
-    console.log('Failed to switch user! ' + reason)
+export function gapiSignIn() {
+  const instance = window.gapi.auth2.getAuthInstance()
+
+  instance.signIn()
+    .then(user => userChangedHandler(user))
+    .catch(error => {
+      console.log(error.error)
+      store.dispatch(removeUser())
+    })
+}
+
+export function gapiSwitchUser() {
+  const instance = window.gapi.auth2.getAuthInstance()
+
+  instance.signIn({
+    prompt: 'select_account'
+  }).then(user => userChangedHandler(user))
+    .catch(error => {
+      console.log(error.error)
+      if (error.error !== 'popup_closed_by_user') {
+        store.dispatch(removeUser())
+      }
+    })
+}
+
+export async function gapiRefreshToken() {
+  const instance = window.gapi.auth2.getAuthInstance()
+
+  if (instance.isSignedIn.get()) {
+    const user = instance.currentUser.get()
+    return user.reloadAuthResponse()
+      .then(response => {
+        console.log(response)
+        store.dispatch(refreshToken(response.id_token))
+
+        return response
+      })
+      .catch(error => {
+        console.log(error.error)
+        store.dispatch(removeUser())
+      })
+  }
+
+  throw new Error('User not signed in.')
+}
+
+export function gapiInit() {
+  window.gapi.load('auth2', () => {
+    window.gapi.auth2.init({
+      client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+      scope: 'email profile openid',
+      ux_mode: 'popup',
+      redirect_uri: window.location.protocol + '//' + window.location.host + '/.auth/google/login',
+    }).then((instance) => {
+      if (instance.isSignedIn.get()) {
+        userChangedHandler(instance.currentUser.get())
+      }
+
+      store.dispatch(firstSilentLoginFinished)
+    }, (error) => {
+      console.error("Initialization of gapi failed", error)
+    })
   })
 }
-
-export function login() {
-  um.signinPopup().catch((reason) => {
-    console.log('Failed to log in! ' + reason)
-  })
-}
-
-export function refreshToken() {
-  return um.signinSilent()
-    .catch(() => { store.dispatch(removeUser()) })
-}
-
-export default um
