@@ -10,10 +10,10 @@ g++ main.cpp -pedantic -std=c++17 -pthread
 
 ## Warning levels
 
-For compiling of students projects we will us following g++ warning settings. 
+For compiling of students projects we will us following g++ warning settings.
 
 ```
--Wall -Wextra -Wformat=2 -Wlogical-op -Wmissing-include-dirs -Wredundant-decls -Wsign-conversion -Wstrict-overflow=2 -Wundef -Wnull-dereference -Wuninitialized -Walloca  -Wcast-qual
+-Wall -Wextra -Wformat=2 -Wlogical-op -Wmissing-include-dirs -Wredundant-decls -Wstrict-overflow=2 -Wundef -Wnull-dereference -Wuninitialized -Walloca -Wcast-qual -Werror=vla
 ```
 
 ### Additional warnings (possible added throughout semester)
@@ -27,7 +27,7 @@ For compiling of students projects we will us following g++ warning settings.
 
 ## Others
 
-By using address sanitization and/or debug containers we can catch a lot of problems in the code without actually reading the code. Changes of false positives in such small programs are almost zero. 
+By using address sanitization and/or debug containers we can catch a lot of problems in the code without actually reading the code. Changes of false positives in such small programs are almost zero.
 
 ```
 -fsanitize=address -D_GLIBCXX_DEBUG
@@ -37,7 +37,7 @@ Up to debate are `-Wsign-conversion` and `-Wsign-compare` (included in `-Wextra`
 
 # Valgrind
 
-Using **Valgrind** will ensure, there are no memory leaks and to some extent races between threads. 
+Using **Valgrind** will ensure, there are no memory leaks and to some extent races between threads.
 
 - `valgrind <app>` will check for memory access errors and leaks. (maybe obsolete with `-fsanitize=address` added to build)
 - `valgrind --tool=helgrind <app>` will check for races and inconsistencies in locking
