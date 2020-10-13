@@ -7,7 +7,7 @@
     "@reduxjs/toolkit": "^1.4.0",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.0.4",
-    "@testing-library/user-event": "^12.1.6",
+    "@testing-library/user-event": "^12.1.7",
     "ace-builds": "^1.4.12",
     "axios": "^0.20.0",
     "axios-auth-refresh": "^3.0.0",
