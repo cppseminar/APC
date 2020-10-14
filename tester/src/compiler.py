@@ -256,7 +256,7 @@ _GCC_OPS = [
     "-Walloca",
     "-Wcast-qual",
     "-O2",
-    # "-Wold-style-cast",
+    "-Wold-style-cast",
     # "-Wshadow=local",
     # "-Wzero-as-null-pointer-constant",
     # "-Wimplicit-fallthrough=5",
