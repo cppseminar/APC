@@ -1,59 +1,23 @@
-// go get github.com/xeipuuv/gojsonschema
-
 package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
+	"net/http"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/stdcopy"
+	"services/queue/docker"
 	"github.com/xeipuuv/gojsonschema"
+
 )
 
-type dockerConfig struct {
-	// File path to folder mounted as /source (should contain source files)
-	volume dockerVolume
-	// Name of docker image, that will be run
-	dockerImage string
-}
 
-type dockerVolume struct {
-	dirPath string
-	volume  string
-	rmDir   bool
-}
 
-func (volume dockerVolume) Cleanup() {
-	if volume.rmDir {
-		panic("Not implemented tmp folder deletion")
-	}
 
-	d, err := os.Open(volume.dirPath)
-	if err != nil {
-		return
-	}
-	defer d.Close()
-	names, err := d.Readdirnames(-1)
-	if err != nil {
-		return
-	}
-	for _, name := range names {
-		err = os.RemoveAll(filepath.Join(volume.dirPath, name))
-	}
-}
 
 type requestMessage struct {
 	ReturnURL   string
@@ -128,101 +92,11 @@ const schemaStr = `
 	"additionalProperties": false
   }`
 
-func waitExit(ctx context.Context, dockerCli *client.Client, containerID string) <-chan int {
-	if len(containerID) == 0 {
-		// containerID can never be empty
-		panic("Internal Error: waitExit needs a containerID as parameter")
-	}
-
-	// WaitConditionNextExit is used to wait for the next time the state changes
-	// to a non-running state. If the state is currently "created" or "exited",
-	// this would cause Wait() to block until either the container runs and exits
-	// or is removed.
-	resultC, errC := dockerCli.ContainerWait(ctx, containerID, container.WaitConditionNextExit)
-
-	statusC := make(chan int)
-	go func() {
-		select {
-		case result := <-resultC:
-			if result.Error != nil {
-				statusC <- 125
-			} else {
-				statusC <- int(result.StatusCode)
-			}
-		case <-errC:
-			log.Println("Error in attach to container")
-			statusC <- 125
-		}
-	}()
-
-	return statusC
-}
-
-func formatVolume(volume dockerVolume) string {
-	if volume.volume != "" {
-		return volume.volume + `:/sources`
-	}
-	return volume.dirPath + `:/sources`
-}
-
-func dockerExec(config dockerConfig) (string, error) {
-	var errorMessage = errors.New("Error occured tests were not executed")
-
-	formattedVolume := formatVolume(config.volume)
-
-	// TODO: Context should be cancellable, for docker timeout
-	ctx := context.Background()
-	cli, err := client.NewEnvClient()
-
-	if err != nil {
-		log.Printf("Error while creating docker client: %v", err)
-		return "", errorMessage
-	}
-
-	var dockerContainerConfig = &container.Config{Image: config.dockerImage}
-	var dockerHostConfig = &container.HostConfig{Binds: []string{formattedVolume}}
-
-	container, err := cli.ContainerCreate(ctx, dockerContainerConfig, dockerHostConfig, nil, "")
-	if err != nil {
-		log.Printf("Error while creating docker image (%v): %v",
-			config.dockerImage, err)
-		return "", errorMessage
-	}
-	var containerWaitC = waitExit(ctx, cli, container.ID)
-
-	// This should delete all not running containers
-	defer cli.ContainersPrune(ctx, filters.Args{})
-
-	response, err := cli.ContainerAttach(ctx, container.ID,
-		types.ContainerAttachOptions{
-			Stdout: true,
-			Stream: true,
-			Stderr: true,
-		})
-
-	if err != nil {
-		log.Printf("Error on docker attach: %v", err)
-		return "", errorMessage
-	}
-
-	err = cli.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
-
-	if err != nil {
-		log.Printf("Error on docker image (%v) start: %v", config.dockerImage, err)
-		return "", errorMessage
-	}
-	// Wait for container to finish
-	<-containerWaitC
-	stdout, stderr := strings.Builder{}, strings.Builder{}
-	stdcopy.StdCopy(&stdout, &stderr, response.Reader)
-	return stdout.String(), nil
-}
-
 // Determine if this run should use volumes, instead of direct tmp paths
 // For using volumes there are 2 preconditions:
 //  1. Env variable must be set, with name of docker volume
 //  2. Directory /volume should be created
-func getVolume() dockerVolume {
+func getVolume() docker.DockerVolume {
 	const dirPath = "/volume"
 	var envVolume = os.Getenv("VOLUME_NAME")
 	var volumeExists bool = func(dirName string) bool {
@@ -241,12 +115,13 @@ func getVolume() dockerVolume {
 	}
 
 	// We are in docker environment
-	return dockerVolume{
-		dirPath: dirPath,
-		volume:  envVolume,
-		rmDir:   false,
+	return docker.DockerVolume{
+		DirPath: dirPath,
+		Volume:  envVolume,
+		RmDir:   false,
 	}
 }
+
 
 func getSchema() *gojsonschema.Schema {
 	schemaLoader := gojsonschema.NewStringLoader(schemaStr)
@@ -267,7 +142,7 @@ func processMessages() {
 
 		func() {
 			var volume = getVolume()
-			var dir = volume.dirPath
+			var dir = volume.DirPath
 
 			defer volume.Cleanup()
 
@@ -282,11 +157,11 @@ func processMessages() {
 			}
 
 			log.Println("Docker exec is starting")
-			var config = dockerConfig{
-				volume:      volume,
-				dockerImage: msg.DockerImage,
+			var config = docker.DockerConfig{
+				Volume:      volume,
+				DockerImage: msg.DockerImage,
 			}
-			result, err := dockerExec(config)
+			result, err := docker.DockerExec(config)
 			log.Println("Docker exec finished")
 
 			if err != nil {
