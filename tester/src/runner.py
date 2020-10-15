@@ -85,7 +85,8 @@ class RunnerModule(infrastructure.Module):
         'args': infrastructure.JsonListParser(),
         # 'run_times': [1, 3, 5],  # in init
         'max_time': infrastructure.AnyIntParser(default=10),
-        # 'cleanup' = [True, False],  # In init
+        # 'cleanup' = [True, False],  # In init,
+        'stdin': compiler.FilePathParser(),
     }
 
     def __init__(self, name):
@@ -139,6 +140,13 @@ class RunnerModule(infrastructure.Module):
                                                   delete=False)
 
         ret = None
+        stdin = self.settings["stdin"]
+        if stdin == "None":
+            stdin = None
+        else:
+            stdin = open(stdin, "r")
+            weakref.finalize(stdin, lambda: stdin.close())
+
         try:  # Try - exception on timeout
             run_time = time.time()
             process = subprocess.run([event.exe_path] + arguments,
@@ -147,6 +155,7 @@ class RunnerModule(infrastructure.Module):
                                      cwd=folder,
                                      stdout=stdout_file,
                                      stderr=stderr_file,
+                                     stdin=stdin,
                                      check=False)
             run_time = time.time() - run_time
             ret = RunOutput(output_file=stdout_file.name,
