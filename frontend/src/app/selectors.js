@@ -12,7 +12,7 @@ const isAdmin = createSelector(
 
 const getAdmin = createSelector(
   state => state,
-  state => isAdmin(state) && getSelectedUser(state) !== getLoggedUser(state) ? getLoggedUser(state) : null
+  state => isAdmin(state) && (getLoggedUser(state) ?? null)
 )
 
 const getStudents = createSelector(
