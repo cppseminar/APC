@@ -26,6 +26,8 @@ var schema *gojsonschema.Schema
 
 var queue = make(chan requestMessage, 100)
 
+const envVolumeName = "VOLUME_NAME"
+
 const schemaStr = `
 {
 	"$schema": "http://json-schema.org/draft-07/schema",
@@ -93,30 +95,44 @@ const schemaStr = `
 //  1. Env variable must be set, with name of docker volume
 //  2. Directory /volume should be created
 func getVolume() docker.DockerVolume {
-	const dirPath = "/volume" // We assume volume location here. This should
-	// Only be the case, if  we are running in docker container.  You are free
-	// to change this via environment variable or smth else. But check compose
-	var envVolume = os.Getenv("VOLUME_NAME")
+	var rmDir bool = false
+	var dirPath = "/volume" // We assume volume location here. This should
+	// only be the case, if  we are running in docker container.  You are free
+	// to change this via environment variable or smth else. But check compose!
+	var envVolume = os.Getenv(envVolumeName)
 	var volumeExists bool = func(dirName string) bool {
 		// TODO: There is not check, if directory is actually writable
 		volumeInfo, err := os.Stat(dirName)
 		if err != nil {
-			return false
+			return false // Probably doesn't exists
 		}
 		return volumeInfo.IsDir()
 	}(dirPath)
 
-	if envVolume == "" || !volumeExists {
+	if len(envVolume) > 0 && !volumeExists { // This is basically error config
+		const errMessage = "Misconfigured docker volume (folder doesn't exists)"
+		log.Println(errMessage)
+		panic(errMessage)
+	}
+
+	// Now either envVolume is set and exists, or is not set
+
+	if envVolume == "" {
+		var err error
 		// Create tmp folder
-		log.Println(envVolume, volumeExists)
-		panic("Not implemented tmp folder mapping :(")
+		dirPath, err = ioutil.TempDir("", "dockerVolume*")
+		if err != nil {
+			log.Println(err)
+			panic("Cannot create tmp folder")
+		}
+		rmDir = true
 	}
 
 	// We are in docker environment
 	return docker.DockerVolume{
 		DirPath: dirPath,
 		Volume:  envVolume,
-		RmDir:   false,
+		RmDir:   rmDir,
 	}
 }
 

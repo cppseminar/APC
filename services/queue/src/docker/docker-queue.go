@@ -35,10 +35,6 @@ type DockerVolume struct {
 
 // Cleanup should be called on DockerVolume deletion
 func (volume DockerVolume) Cleanup() {
-	if volume.RmDir {
-		panic("Not implemented tmp folder deletion")
-	}
-
 	d, err := os.Open(volume.DirPath)
 	if err != nil {
 		return
@@ -50,6 +46,12 @@ func (volume DockerVolume) Cleanup() {
 	}
 	for _, name := range names {
 		err = os.RemoveAll(filepath.Join(volume.DirPath, name))
+	}
+	if volume.RmDir {
+		err = os.Remove(volume.DirPath)
+		if err != nil {
+			log.Printf("Error deleting tmp folder %v %v", volume.DirPath, err)
+		}
 	}
 
 }
