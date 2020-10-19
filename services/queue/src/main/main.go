@@ -5,19 +5,15 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
-	"net/http"
 	"time"
 
 	"services/queue/docker"
+
 	"github.com/xeipuuv/gojsonschema"
-
 )
-
-
-
-
 
 type requestMessage struct {
 	ReturnURL   string
@@ -97,7 +93,9 @@ const schemaStr = `
 //  1. Env variable must be set, with name of docker volume
 //  2. Directory /volume should be created
 func getVolume() docker.DockerVolume {
-	const dirPath = "/volume"
+	const dirPath = "/volume" // We assume volume location here. This should
+	// Only be the case, if  we are running in docker container.  You are free
+	// to change this via environment variable or smth else. But check compose
 	var envVolume = os.Getenv("VOLUME_NAME")
 	var volumeExists bool = func(dirName string) bool {
 		// TODO: There is not check, if directory is actually writable
@@ -121,7 +119,6 @@ func getVolume() docker.DockerVolume {
 		RmDir:   false,
 	}
 }
-
 
 func getSchema() *gojsonschema.Schema {
 	schemaLoader := gojsonschema.NewStringLoader(schemaStr)
@@ -171,7 +168,6 @@ func processMessages() {
 				result = err.Error()
 			}
 
-
 			body, err := json.Marshal(map[string]string{"description": result})
 			if err != nil {
 				log.Println("Cannot create json", err)
@@ -208,8 +204,21 @@ var tr = &http.Transport{
 
 var httpClient = &http.Client{Transport: tr}
 
-func main() {
+func logInit() {
 	log.Println("Queue is starting")
+	volume := getVolume()
+	// This volume logging is important, or else there would be hard to explain
+	// errors inside other docker containers.
+	if volume.Volume == "" {
+		log.Println("Volumes not configured, using tmp folders")
+	} else {
+		log.Printf("Using volume mapping: %v\n", volume.Volume)
+	}
+	volume.Cleanup()
+}
+
+func main() {
+	logInit() // Print init info
 	schema = getSchema()
 
 	srv := &http.Server{

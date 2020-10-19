@@ -1,13 +1,12 @@
 package docker
 
 import (
-	"log"
-	"errors"
 	"context"
-	"strings"
+	"errors"
+	"log"
 	"os"
 	"path/filepath"
-
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -29,9 +28,9 @@ type DockerVolume struct {
 	// Path of directory in this filesystem
 	DirPath string
 	// Volume under which is this path known, or empty
-	Volume  string
+	Volume string
 	// Whether Cleanup should wipe dirPath folder
-	RmDir   bool
+	RmDir bool
 }
 
 // Cleanup should be called on DockerVolume deletion
@@ -52,6 +51,7 @@ func (volume DockerVolume) Cleanup() {
 	for _, name := range names {
 		err = os.RemoveAll(filepath.Join(volume.DirPath, name))
 	}
+
 }
 
 func waitExit(ctx context.Context, dockerCli *client.Client, containerID string) <-chan int {
@@ -145,4 +145,3 @@ func DockerExec(config DockerConfig) (string, error) {
 	stdcopy.StdCopy(&stdout, &stderr, response.Reader)
 	return stdout.String(), nil
 }
-
