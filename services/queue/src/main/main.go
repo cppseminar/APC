@@ -170,7 +170,7 @@ func processMessages() {
 			}
 
 			log.Println("Docker exec is starting")
-			var memory int64 = 1024 * 1024 * 500 // 0.5 GB
+			var memory int64 = 1024 * 1024 * 500 // 0.5 GB by default
 			var config = docker.DockerConfig{
 				Volume:      volume,
 				DockerImage: msg.DockerImage,

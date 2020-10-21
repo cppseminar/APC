@@ -11,7 +11,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 )
@@ -163,9 +162,14 @@ func DockerExec(config DockerConfig) (string, error) {
 		return "", errorMessage
 	}
 
-	var dockerContainerConfig = &container.Config{Image: config.DockerImage}
+	var dockerContainerConfig = &container.Config{
+		Image:           config.DockerImage,
+		NetworkDisabled: true,
+	}
 	var dockerHostConfig = &container.HostConfig{
-		Binds: []string{formattedVolume},
+		Binds:       []string{formattedVolume},
+		AutoRemove:  true,
+		NetworkMode: "none",
 		Resources: container.Resources{
 			Memory: memory,
 		},
@@ -177,9 +181,6 @@ func DockerExec(config DockerConfig) (string, error) {
 			config.DockerImage, err)
 		return "", errorMessage
 	}
-
-	// This should delete all not running containers
-	defer cli.ContainersPrune(ctx, filters.Args{})
 
 	stdout, _, err := runDocker(ctx, cli, container.ID)
 
