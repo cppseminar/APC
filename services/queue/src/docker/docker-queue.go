@@ -3,6 +3,7 @@ package docker
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -77,7 +78,7 @@ func waitExit(ctx context.Context, dockerCli *client.Client, containerID string)
 		select {
 		case result := <-resultC:
 			if result.Error != nil || result.StatusCode != 0 {
-				log.Printf("Container returned error return code %#v\n", result)
+				log.Printf("Container returned error code\n\t%#v\n", result)
 				statusC <- false
 				return
 			}
@@ -102,6 +103,45 @@ func formatVolume(volume DockerVolume) string {
 	return volume.DirPath + `:/sources`
 }
 
+// Run container identified by containerID. Returns stdout, stderr, error
+// This function doesn't log anything, insteads returns detailed error messages
+func runDocker(ctx context.Context, dockerCli *client.Client, containerID string) (string, string, error) {
+	var containerWaitC <-chan bool = waitExit(ctx, dockerCli, containerID)
+
+	response, err := dockerCli.ContainerAttach(ctx, containerID,
+		types.ContainerAttachOptions{
+			Stdout: true,
+			Stream: true,
+			Stderr: true,
+		})
+
+	if err != nil {
+		// TODO: Cancel ctx here
+		eMessage := fmt.Sprintf("Error on docker attach: %v", err.Error())
+		return "", "", errors.New(eMessage)
+	}
+
+	err = dockerCli.ContainerStart(ctx, containerID, types.ContainerStartOptions{})
+	if err != nil {
+		// TODO: Cancel ctx here
+		// Also try to stop container here
+		eMessage := fmt.Sprintf("Error on docker containerstart: %v", err.Error())
+		return "", "", errors.New(eMessage)
+	}
+
+	var returnSuccess bool = <-containerWaitC
+
+	if !returnSuccess {
+		// Container run returned nonzero return code. This is potentially
+		// dangerous, so let's log everything and return error
+		return "", "", errors.New("Container exited incorrectly")
+	}
+
+	stdout, stderr := strings.Builder{}, strings.Builder{}
+	stdcopy.StdCopy(&stdout, &stderr, response.Reader)
+	return stdout.String(), stderr.String(), nil
+}
+
 // DockerExec Execute docker image, identified by config.
 // This is blocking call. In the end, stdout will be returned by output string
 func DockerExec(config DockerConfig) (string, error) {
@@ -119,7 +159,7 @@ func DockerExec(config DockerConfig) (string, error) {
 	cli, err := client.NewEnvClient()
 
 	if err != nil {
-		log.Printf("Error while creating docker client: %v", err)
+		log.Printf("Error while creating docker client: %v\n", err)
 		return "", errorMessage
 	}
 
@@ -133,7 +173,7 @@ func DockerExec(config DockerConfig) (string, error) {
 
 	container, err := cli.ContainerCreate(ctx, dockerContainerConfig, dockerHostConfig, nil, "")
 	if err != nil {
-		log.Printf("Error while creating docker image (%v): %v",
+		log.Printf("Error while creating docker image (%v): %v\n",
 			config.DockerImage, err)
 		return "", errorMessage
 	}
@@ -141,41 +181,11 @@ func DockerExec(config DockerConfig) (string, error) {
 	// This should delete all not running containers
 	defer cli.ContainersPrune(ctx, filters.Args{})
 
-	var containerWaitC <-chan bool = waitExit(ctx, cli, container.ID)
-
-	response, err := cli.ContainerAttach(ctx, container.ID,
-		types.ContainerAttachOptions{
-			Stdout: true,
-			Stream: true,
-			Stderr: true,
-		})
+	stdout, _, err := runDocker(ctx, cli, container.ID)
 
 	if err != nil {
-		log.Printf("Error on docker attach: %v", err)
+		log.Printf("Error: %v\n\tConfig: %#v\n", err.Error(), config)
 		return "", errorMessage
 	}
-
-	err = cli.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
-
-	if err != nil {
-		log.Printf("Error on docker image (%v) start: %v", config.DockerImage, err)
-		return "", errorMessage
-	}
-	// Wait for container to finish
-	var returnSuccess bool = <-containerWaitC
-
-	if !returnSuccess {
-		// Container run returned nonzero return code. This is potentially
-		// dangerous, so let's log everything and return error
-		log.Printf("Container exited incorrectly. Config: %#v\n", config)
-		return "", errorMessage
-	}
-
-	stdout, stderr := strings.Builder{}, strings.Builder{}
-	stdcopy.StdCopy(&stdout, &stderr, response.Reader)
-	if stderr.String() != "" {
-		log.Println("Docker container has output on stderr")
-		log.Println(stderr.String())
-	}
-	return stdout.String(), nil
+	return stdout, nil
 }
