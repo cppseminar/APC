@@ -170,9 +170,12 @@ func processMessages() {
 			}
 
 			log.Println("Docker exec is starting")
+			var memory int64 = 1024 * 1024 * 500 // 0.5 GB
 			var config = docker.DockerConfig{
 				Volume:      volume,
 				DockerImage: msg.DockerImage,
+				Timeout:     10,
+				Memory:      &memory,
 			}
 			result, err := docker.DockerExec(config)
 			log.Println("Docker exec finished")

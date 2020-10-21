@@ -21,6 +21,10 @@ type DockerConfig struct {
 	Volume DockerVolume
 	// Name of docker image, that will be run
 	DockerImage string
+	// Timeout in seconds, container will be killed after expiring
+	Timeout int64
+	// Max ram, either nil, or pointer to string specifying memory in bytes
+	Memory *int64
 }
 
 // DockerVolume This type should have DockerVolume.Cleanup() called on deletion
@@ -56,10 +60,10 @@ func (volume DockerVolume) Cleanup() {
 
 }
 
-func waitExit(ctx context.Context, dockerCli *client.Client, containerID string) <-chan int {
+func waitExit(ctx context.Context, dockerCli *client.Client, containerID string) <-chan bool {
 	if len(containerID) == 0 {
 		// containerID can never be empty
-		panic("Internal Error: waitExit needs a containerID as parameter")
+		panic("Error: waitExit needs a containerID as parameter")
 	}
 
 	// WaitConditionNextExit is used to wait for the next time the state changes
@@ -68,18 +72,20 @@ func waitExit(ctx context.Context, dockerCli *client.Client, containerID string)
 	// or is removed.
 	resultC, errC := dockerCli.ContainerWait(ctx, containerID, container.WaitConditionNextExit)
 
-	statusC := make(chan int)
+	statusC := make(chan bool, 1)
 	go func() {
 		select {
 		case result := <-resultC:
-			if result.Error != nil {
-				statusC <- 125
-			} else {
-				statusC <- int(result.StatusCode)
+			if result.Error != nil || result.StatusCode != 0 {
+				log.Printf("Container returned error return code %#v\n", result)
+				statusC <- false
+				return
 			}
+			statusC <- true
+
 		case <-errC:
 			log.Println("Error in attach to container")
-			statusC <- 125
+			statusC <- false
 		}
 	}()
 
@@ -87,6 +93,9 @@ func waitExit(ctx context.Context, dockerCli *client.Client, containerID string)
 }
 
 func formatVolume(volume DockerVolume) string {
+	// This /sources value is where I usually put source code in tester scripts.
+	// There is nothing preventing you from changing this convention, or
+	// parametrizing this....
 	if volume.Volume != "" {
 		return volume.Volume + `:/sources`
 	}
@@ -96,7 +105,12 @@ func formatVolume(volume DockerVolume) string {
 // DockerExec Execute docker image, identified by config.
 // This is blocking call. In the end, stdout will be returned by output string
 func DockerExec(config DockerConfig) (string, error) {
-	var errorMessage = errors.New("Error occured tests were not executed")
+	var errorMessage = errors.New("Error occured and tests were not executed!")
+	var memory int64 = 0 // Infinite memory by default
+
+	if config.Memory != nil {
+		memory = *config.Memory
+	}
 
 	formattedVolume := formatVolume(config.Volume)
 
@@ -110,7 +124,12 @@ func DockerExec(config DockerConfig) (string, error) {
 	}
 
 	var dockerContainerConfig = &container.Config{Image: config.DockerImage}
-	var dockerHostConfig = &container.HostConfig{Binds: []string{formattedVolume}}
+	var dockerHostConfig = &container.HostConfig{
+		Binds: []string{formattedVolume},
+		Resources: container.Resources{
+			Memory: memory,
+		},
+	}
 
 	container, err := cli.ContainerCreate(ctx, dockerContainerConfig, dockerHostConfig, nil, "")
 	if err != nil {
@@ -118,10 +137,11 @@ func DockerExec(config DockerConfig) (string, error) {
 			config.DockerImage, err)
 		return "", errorMessage
 	}
-	var containerWaitC = waitExit(ctx, cli, container.ID)
 
 	// This should delete all not running containers
 	defer cli.ContainersPrune(ctx, filters.Args{})
+
+	var containerWaitC <-chan bool = waitExit(ctx, cli, container.ID)
 
 	response, err := cli.ContainerAttach(ctx, container.ID,
 		types.ContainerAttachOptions{
@@ -142,8 +162,20 @@ func DockerExec(config DockerConfig) (string, error) {
 		return "", errorMessage
 	}
 	// Wait for container to finish
-	<-containerWaitC
+	var returnSuccess bool = <-containerWaitC
+
+	if !returnSuccess {
+		// Container run returned nonzero return code. This is potentially
+		// dangerous, so let's log everything and return error
+		log.Printf("Container exited incorrectly. Config: %#v\n", config)
+		return "", errorMessage
+	}
+
 	stdout, stderr := strings.Builder{}, strings.Builder{}
 	stdcopy.StdCopy(&stdout, &stderr, response.Reader)
+	if stderr.String() != "" {
+		log.Println("Docker container has output on stderr")
+		log.Println(stderr.String())
+	}
 	return stdout.String(), nil
 }
