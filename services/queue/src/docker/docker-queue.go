@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -22,7 +23,7 @@ type DockerConfig struct {
 	// Name of docker image, that will be run
 	DockerImage string
 	// Timeout in seconds, container will be killed after expiring
-	Timeout int64
+	Timeout uint16
 	// Max ram, either nil, or pointer to string specifying memory in bytes
 	Memory *int64
 }
@@ -83,8 +84,8 @@ func waitExit(ctx context.Context, dockerCli *client.Client, containerID string)
 			}
 			statusC <- true
 
-		case <-errC:
-			log.Println("Error in attach to container")
+		case err := <-errC:
+			log.Printf("Error in container wait: %v\n", err)
 			statusC <- false
 		}
 	}()
@@ -102,9 +103,42 @@ func formatVolume(volume DockerVolume) string {
 	return volume.DirPath + `:/sources`
 }
 
+// If ctx is expired, try to kill container
+// Do not reuse this function, it serves very specific use case
+func killContainerOnBadCtx(ctx context.Context, dockerCli *client.Client, containerID string) {
+	select {
+	case <-ctx.Done():
+		// This is already bad state, let's try to kill container and hope for
+		// the best
+		newCtx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
+		err := dockerCli.ContainerKill(newCtx, containerID, "KILL")
+		if err != nil {
+			if strings.Index(err.Error(), "is not running") != -1 {
+				// This is failsafe, there is small probability in timeouts going
+				// so funny, that after context expiry, this container would
+				// actually stop. In that case we don't want to panic
+				log.Printf("WARNING: Please research this case further")
+				return
+			} else if strings.Index(err.Error(), "No such container") != -1 {
+				// Same as above
+				log.Printf("WARNING: Please research this case further")
+				return
+			}
+
+			panic("Container kill after timeout failed!" + err.Error())
+		}
+		log.Printf("Container kill successful %v", containerID)
+	default:
+		// Context is not expired. This was just deffered call, but container is
+		// already dead
+	}
+}
+
 // Run container identified by containerID. Returns stdout, stderr, error
 // This function doesn't log anything, insteads returns detailed error messages
 func runDocker(ctx context.Context, dockerCli *client.Client, containerID string) (string, string, error) {
+	defer killContainerOnBadCtx(ctx, dockerCli, containerID)
 	var containerWaitC <-chan bool = waitExit(ctx, dockerCli, containerID)
 
 	response, err := dockerCli.ContainerAttach(ctx, containerID,
@@ -153,8 +187,13 @@ func DockerExec(config DockerConfig) (string, error) {
 
 	formattedVolume := formatVolume(config.Volume)
 
-	// TODO: Context should be cancellable, for docker timeout
-	ctx := context.Background()
+	// Let's always add 2 seconds to timeout, for startup and so on
+	context, cancelContext := context.WithTimeout(
+		context.Background(),
+		time.Duration(int64(config.Timeout)+2)*time.Second,
+	)
+	defer cancelContext()
+
 	cli, err := client.NewEnvClient()
 
 	if err != nil {
@@ -175,18 +214,33 @@ func DockerExec(config DockerConfig) (string, error) {
 		},
 	}
 
-	container, err := cli.ContainerCreate(ctx, dockerContainerConfig, dockerHostConfig, nil, "")
+	container, err := cli.ContainerCreate(context, dockerContainerConfig, dockerHostConfig, nil, "")
 	if err != nil {
 		log.Printf("Error while creating docker image (%v): %v\n",
 			config.DockerImage, err)
 		return "", errorMessage
 	}
 
-	stdout, _, err := runDocker(ctx, cli, container.ID)
+	stdout, _, err := runDocker(context, cli, container.ID)
+
+	select {
+	case <-context.Done():
+		// Timeout expired. Something must have gone very wrong.
+		// Let's prepend to error some text
+		if err == nil {
+			err = errors.New("")
+		}
+
+		err = errors.New("TIMEOUT expired!\n" + err.Error())
+	default:
+		// Happy path
+		// Fall through here
+	}
 
 	if err != nil {
 		log.Printf("Error: %v\n\tConfig: %#v\n", err.Error(), config)
 		return "", errorMessage
 	}
+
 	return stdout, nil
 }

@@ -32,7 +32,23 @@ for (int i =0; i < 4096; i++) {
 std::cout << "leak successfult" << std::endl;
 }
 """
-print(FILE1)
+
+FILE2 = """
+#include <iostream>
+
+int main() {
+for (int i =0; i < 4096; ) {
+
+	auto* p = new int[1024*1024];
+	p[1234] = 54;
+	p[4234] = 54;
+    delete p;
+}
+
+std::cout << "leak successfult" << std::endl;
+}
+"""
+
 
 def command0(port):
     message = {
@@ -45,7 +61,7 @@ def command0(port):
     }
     request = json.dumps(message)
     connection = http.client.HTTPConnection(
-        "localhost:10009", timeout=10
+        "localhost:"+str(port), timeout=10
     )
     connection.request("POST", "/", request)
     response = connection.getresponse()
@@ -62,12 +78,29 @@ def command1(port):
     }
     request = json.dumps(message)
     connection = http.client.HTTPConnection(
-        "localhost:10009", timeout=10
+        "localhost:"+str(port), timeout=10
     )
     connection.request("POST", "/", request)
     response = connection.getresponse()
     return f"Response status: {response.status}"
 
+
+def command2(port):
+    message = {
+        "returnUrl" : SELF_FULL_URL,
+        "dockerImage": "hello",
+        "maxRunTime": 10,
+        "files": {
+            "main.cpp": FILE2,
+        },
+    }
+    request = json.dumps(message)
+    connection = http.client.HTTPConnection(
+        "localhost:"+str(port), timeout=10
+    )
+    connection.request("POST", "/", request)
+    response = connection.getresponse()
+    return f"Response status: {response.status}"
 
 
 class ServerHandler(BaseHTTPRequestHandler):
@@ -123,6 +156,7 @@ def client(port):
     commands = [
         command0,
         command1,
+        command2,
     ]
     while True:
         prompt = input("Command> ")

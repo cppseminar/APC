@@ -148,10 +148,20 @@ func getSchema() *gojsonschema.Schema {
 }
 
 func processMessages() {
+	var msgPointer *requestMessage = nil
+
+	// This is to always log last request, in case something went terribly bad
+	defer func() {
+		r := recover()
+		if r != nil && msgPointer != nil {
+			log.Printf("Panicing %v\nOn message %v", r, *msgPointer)
+		}
+		panic("Dying after log")
+	}()
+
 	for {
 		msg := <-queue
-
-		log.Printf("%+v\n", msg)
+		msgPointer = &msg
 
 		func() {
 			var volume = getVolume()
@@ -169,21 +179,18 @@ func processMessages() {
 				}
 			}
 
-			log.Println("Docker exec is starting")
 			var memory int64 = 1024 * 1024 * 500 // 0.5 GB by default
 			var config = docker.DockerConfig{
 				Volume:      volume,
 				DockerImage: msg.DockerImage,
-				Timeout:     10,
+				Timeout:     60 * 5, // 5 minutes
 				Memory:      &memory,
 			}
 			result, err := docker.DockerExec(config)
-			log.Println("Docker exec finished")
 
 			if err != nil {
-				log.Println("Error occured during dockerExec")
-				// Let's send error as output. This should be replaced by
-				// template string
+				// There will be some logs already, so just log request json
+				log.Printf("%+v\n", msg)
 				result = err.Error()
 			}
 
