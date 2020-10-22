@@ -2,13 +2,18 @@
 import argparse
 import collections
 import contextlib
+import csv
 import dataclasses
 import difflib
 import itertools
+import json
+import operator
 import os
 import re
 
-from typing import Dict
+
+
+from typing import Dict, List, Any
 
 import infrastructure
 import runner
@@ -193,6 +198,89 @@ class OutputReplaceByFile(infrastructure.Module):
         self.send(new_event)
         return True
 
+class CsvSortEvaluator(infrastructure.Module):
+    """Validate csv sort."""
+
+    SETTINGS = {
+        "input_identification": infrastructure.AnyStringParser(),
+        "sort_indices": infrastructure.JsonListParser(),
+        "required_rows": infrastructure.AnyIntParser(1),
+        "required_columns": infrastructure.AnyIntParser(1),
+    }
+
+    def __init__(self, name):
+        """Register event."""
+        super().__init__(name)
+        self.register_event(runner.RunOutput)
+
+    @staticmethod
+    def sorted_csv(csv_file: List[List[Any]], sort_columns: List[int]):
+        ret = csv_file
+        for column in reversed(sort_columns):
+            ret = sorted(ret, key=operator.itemgetter(int(column - 1)))
+        return ret
+
+    def handle_internal(self, event: runner.RunOutput):
+        """Check if file is sorted according to sort indices."""
+        if event.identification != self.settings["input_identification"]:
+            return False
+        rows = int(self.settings["required_rows"])
+        columns = int(self.settings["required_columns"])
+        _temp = json.loads(self.settings["sort_indices"])
+        identificator = f"[{CsvSortEvaluator.__name__}] {self.name}"
+        sort_columns = []
+        for column_number in _temp:
+            column_number = int(column_number)
+            assert column_number > 0
+            assert column_number <= columns
+            sort_columns.append(column_number)
+
+        with open(event.output_file) as f:
+            reader = csv.reader(f, dialect="excel")
+            content = list(reader)
+
+        # Check number of rows
+        if len(content) != rows:
+            self.notify(
+                infrastructure.Notification(
+                    message=f"{identificator} - Bad number of rows {len(content)} expected {rows}",
+                    severity=infrastructure.MessageSeverity.ERROR,
+                )
+            )
+            return False
+
+        # Check line length
+        for index, line in enumerate(content):
+            if (line_len := len(line)) != columns:
+                self.notify(
+                    infrastructure.Notification(
+                        message=f"{identificator} - Line {index+1} bad column count {line_len} expected {columns}",
+                        severity=infrastructure.MessageSeverity.ERROR,
+                        payload=str(line),
+                    )
+                )
+                return False
+
+        # Sort lines again and compare with original
+        expected_content = self.sorted_csv(content, sort_columns)
+        for index, lines in enumerate(zip(content, expected_content)):
+            line1, line2 = lines
+            if line1 != line2:
+                self.notify(
+                    infrastructure.Notification(
+                        message=f"{identificator} - Line mismatch at line number {index+1}",
+                        severity=infrastructure.MessageSeverity.ERROR,
+                        payload=str(line1) + "\n" + str(line2),
+                    )
+                )
+                return False
+        self.notify(
+            infrastructure.Notification(
+                message=f"{identificator} - Sort correct",
+                severity=infrastructure.MessageSeverity.INFO,
+            )
+        )
+        return True
 
 
 if __name__ == '__main__':
