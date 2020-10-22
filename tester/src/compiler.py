@@ -248,7 +248,7 @@ _GCC_OPS = [
     "-Wlogical-op",
     "-Wmissing-include-dirs",
     "-Wredundant-decls",
-    "-Wsign-conversion",
+    # "-Wsign-conversion",
     "-Wstrict-overflow=2",
     "-Wundef",
     "-Wnull-dereference",
