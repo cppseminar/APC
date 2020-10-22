@@ -43,14 +43,28 @@ const Submissions = () => {
     return null
   }
 
+  const timeFormat = new Intl.DateTimeFormat({}, {
+      formatMatcher: "basic",
+      hour12: false,
+      year: "numeric",
+      month:"2-digit",
+      day:"2-digit",
+      hour:"2-digit",
+      minute:"2-digit",
+      second:"2-digit",
+    }
+  )
+
   const body = (
     <Container>
       <Row>
         <Col sm={3}>
           <ListGroup>
             {submissions.map(val => (
-              <ListGroup.Item key={val.id} as={NavLink} to={`${match.url}/${val.id}`}  action>
-                {new Date(val.date).toLocaleString()}{' '}
+              <ListGroup.Item key={val.id} as={NavLink} to={`${match.url}/${val.id}`} action>
+                  { timeFormat.format(new Date(val.date))}
+                  &nbsp;
+                  &nbsp;
                 { getBadge(val) }
               </ListGroup.Item>
             ))}
