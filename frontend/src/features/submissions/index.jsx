@@ -5,6 +5,7 @@ import Button from 'react-bootstrap/Button'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
+import Badge from 'react-bootstrap/Badge'
 import Jumbotron from 'react-bootstrap/Jumbotron'
 import ListGroup from 'react-bootstrap/ListGroup'
 
@@ -32,14 +33,15 @@ const Submissions = () => {
     refreshSubmissions(taskId)
   }, [user, taskId])
 
-  const getVariant = (value) => {
-    if (value > 0) {
-      return 'info'
-    }
-    return undefined
-  }
-
   const taskName = submissions[0]?.taskName ?? ''
+
+  const getBadge = (value) => {
+    if (value.testsRunCount > 0) {
+      return ( <Badge variant='info'>TEST</Badge> )
+    }
+
+    return null
+  }
 
   const body = (
     <Container>
@@ -47,8 +49,9 @@ const Submissions = () => {
         <Col sm={3}>
           <ListGroup>
             {submissions.map(val => (
-              <ListGroup.Item key={val.id} as={NavLink} to={`${match.url}/${val.id}`} variant={getVariant(val.testsRunCount)} action>
-                {new Date(val.date).toLocaleString()}
+              <ListGroup.Item key={val.id} as={NavLink} to={`${match.url}/${val.id}`}  action>
+                {new Date(val.date).toLocaleString()}{' '}
+                { getBadge(val) }
               </ListGroup.Item>
             ))}
           </ListGroup>
