@@ -16,7 +16,7 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 )
 
-// DockerConfig DockerExec configuration
+// DockerConfig configuration for one run of docker image. Used by DockerExec
 type DockerConfig struct {
 	// File path to folder mounted as /source (should contain source files)
 	Volume DockerVolume
@@ -24,7 +24,8 @@ type DockerConfig struct {
 	DockerImage string
 	// Timeout in seconds, container will be killed after expiring
 	Timeout uint16
-	// Max ram, either nil, or pointer to string specifying memory in bytes
+	// Memory Max ram that container can use. Either nil which means no limits,
+	// or number of bytes
 	Memory *int64
 }
 
@@ -131,17 +132,20 @@ func killContainerOnBadCtx(ctx context.Context, dockerCli *client.Client, contai
 		log.Printf("Container kill successful %v", containerID)
 	default:
 		// Context is not expired. This was just deffered call, but container is
-		// already dead
+		// already dead. This happens all the time and is expected.
 	}
 }
 
 // Run container identified by containerID. Returns stdout, stderr, error
 // This function doesn't log anything, insteads returns detailed error messages
 func runDocker(ctx context.Context, dockerCli *client.Client, containerID string) (string, string, error) {
-	defer killContainerOnBadCtx(ctx, dockerCli, containerID)
-	var containerWaitC <-chan bool = waitExit(ctx, dockerCli, containerID)
+	newCancelableContext, cancel := context.WithCancel(ctx)
+	defer cancel()
 
-	response, err := dockerCli.ContainerAttach(ctx, containerID,
+	defer killContainerOnBadCtx(newCancelableContext, dockerCli, containerID)
+	var containerWaitC <-chan bool = waitExit(newCancelableContext, dockerCli, containerID)
+
+	response, err := dockerCli.ContainerAttach(newCancelableContext, containerID,
 		types.ContainerAttachOptions{
 			Stdout: true,
 			Stream: true,
@@ -149,15 +153,14 @@ func runDocker(ctx context.Context, dockerCli *client.Client, containerID string
 		})
 
 	if err != nil {
-		// TODO: Cancel ctx here
+		cancel()
 		eMessage := fmt.Sprintf("Error on docker attach: %v", err.Error())
 		return "", "", errors.New(eMessage)
 	}
 
-	err = dockerCli.ContainerStart(ctx, containerID, types.ContainerStartOptions{})
+	err = dockerCli.ContainerStart(newCancelableContext, containerID, types.ContainerStartOptions{})
 	if err != nil {
-		// TODO: Cancel ctx here
-		// Also try to stop container here
+		cancel()
 		eMessage := fmt.Sprintf("Error on docker containerstart: %v", err.Error())
 		return "", "", errors.New(eMessage)
 	}
