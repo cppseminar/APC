@@ -19,9 +19,12 @@ const envPrivateKey string = "APC_PRIVATE_KEY"
 
 func getSigningKey() (string, error) {
 	var privateKey string = strings.TrimSpace(os.Getenv(envPrivateKey))
-	_, err := base64.StdEncoding.DecodeString(privateKey)
+	keyBytes, err := base64.StdEncoding.DecodeString(privateKey)
 	if err != nil {
 		return "", err
+	}
+	if len(keyBytes) == 0 {
+		return "", errors.New("Empty signing key")
 	}
 	return strings.TrimRight(privateKey, "="), nil
 }

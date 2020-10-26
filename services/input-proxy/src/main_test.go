@@ -11,7 +11,7 @@ func TestGetSignKey(t *testing.T) {
 	os.Setenv(envPrivateKey, "")
 	t.Run("Empty", func(t *testing.T) {
 		_, err := getSigningKey()
-		if err != nil {
+		if err == nil {
 			t.Fail()
 		}
 	})
