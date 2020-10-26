@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -14,6 +15,17 @@ import (
 	"gopkg.in/square/go-jose.v2"
 )
 
+const envPrivateKey string = "APC_PRIVATE_KEY"
+
+func getSigningKey() (string, error) {
+	var privateKey string = strings.TrimSpace(os.Getenv(envPrivateKey))
+	_, err := base64.StdEncoding.DecodeString(privateKey)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimRight(privateKey, "="), nil
+}
+
 func verifyJWSAndExtractPayload(body []byte) ([]byte, error) {
 	object, err := jose.ParseSigned(string(body))
 	if err != nil {
@@ -21,7 +33,10 @@ func verifyJWSAndExtractPayload(body []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	// this we should load from environment
+	privateKey, err := getSigningKey()
+	if err != nil {
+		panic(fmt.Sprintf("Bad env value for signing key %v", err))
+	}
 	var key jose.JSONWebKey
 	key.UnmarshalJSON([]byte(fmt.Sprintf(`{
     "kty": "oct",
@@ -30,7 +45,7 @@ func verifyJWSAndExtractPayload(body []byte) ([]byte, error) {
     "alg": "HS256"
 	}`, privateKey)))
 
-	// i'm kind of scared from jose, so I add here those paranoid checks
+	// i'm kind of scared from jose, so I added here these paranoid checks
 	// https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/?_ga=2.1739384.896580470.1599590522-1256792510.1597065586
 	if len(object.Signatures) != 1 {
 		return nil, errors.New("Only one signature is allowed!")
@@ -86,15 +101,13 @@ var tr = &http.Transport{
 var client = &http.Client{Transport: tr}
 
 // key should be base64 encoded
-var privateKey string = os.Getenv("APC_PRIVATE_KEY")
 
 func main() {
 	log.Println("Input-proxy is starting")
 
-	privateKey = strings.TrimSpace(privateKey)
-	// TODO: try deleting trailing padding from base64
-	if privateKey == "" {
-		log.Fatal("Cannot retrieve private key from env.")
+	_, err := getSigningKey()
+	if err != nil {
+		log.Fatalf("Cannot retrieve private key from env %v", err)
 	}
 
 	srv := &http.Server{
@@ -105,9 +118,9 @@ func main() {
 		Handler:      http.HandlerFunc(ServerHandler),
 	}
 
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
-		log.Fatal(err) // we cannot run the server this, is fatal
+		log.Fatal(err)
 	}
 }
 
