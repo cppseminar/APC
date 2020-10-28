@@ -20,6 +20,7 @@ services:
 
     input-proxy:
         env_file: .env
+        entrypoint: ["/src/input-proxy.exe", "--port", "10017", "--url", "http://queue:10009"]
         ports:
             - 10017:10017
         build:

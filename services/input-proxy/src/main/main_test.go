@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"net/url"
 	"testing"
 )
 
@@ -56,5 +57,22 @@ func TestGetSignKey(t *testing.T) {
 			t.Fail()
 		}
 	})
+
+}
+
+
+
+func TestBuildForwardUrl(t *testing.T) {
+
+	oldUrl := url.URL{
+		Host: "localhost:1234",
+		Path: "/some/file",
+	}
+
+	result := buildForwardURL(false, "queue:1234", oldUrl)
+
+	if result != "http://queue:1234/some/file" {
+		t.Error("Bad format of url")
+	}
 
 }
