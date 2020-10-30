@@ -102,6 +102,23 @@ def command2(port):
     response = connection.getresponse()
     return f"Response status: {response.status}"
 
+def command3(port):
+    message = {
+        "returnUrl" : SELF_FULL_URL,
+        "dockerImage": "hello",
+        "maxRunTime": 10,
+        "memory": 1000 * 1000 * 1000,
+        "files": {
+            "main.cpp": FILE2,
+        },
+    }
+    request = json.dumps(message)
+    connection = http.client.HTTPConnection(
+        "localhost:"+str(port), timeout=10
+    )
+    connection.request("POST", "/", request)
+    response = connection.getresponse()
+    return f"Response status: {response.status}"
 
 class ServerHandler(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -157,6 +174,7 @@ def client(port):
         command0,
         command1,
         command2,
+        command3,
     ]
     while True:
         prompt = input("Command> ")

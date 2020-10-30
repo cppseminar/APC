@@ -19,7 +19,8 @@ type requestMessage struct {
 	ReturnURL   string
 	DockerImage string
 	Files       map[string]string
-	MaxRunTime  int
+	MaxRunTime  int // in seconds
+	Memory      int // in megabytes
 }
 
 var schema *gojsonschema.Schema
@@ -34,13 +35,11 @@ const schemaStr = `
 	"$id": "http://example.com/example.json",
 	"type": "object",
 	"title": "The root schema",
-	"description": "The root schema comprises the entire JSON document.",
 	"default": {},
 	"required": [
 		"returnUrl",
 		"dockerImage",
-		"files",
-		"maxRunTime"
+		"files"
 	],
 	"properties": {
 		"returnUrl": {
@@ -60,7 +59,6 @@ const schemaStr = `
 			"$id": "#/properties/files",
 			"type": "object",
 			"title": "The files schema",
-			"description": "An explanation about the purpose of this instance.",
 			"minProperties": 1,
 			"maxProperties": 10,
 			"patternProperties": {
@@ -80,11 +78,19 @@ const schemaStr = `
 		"maxRunTime": {
 			"$id": "#/properties/maxRunTime",
 			"type": "number",
-			"title": "Maximum runnig time",
+			"title": "Maximum running time of docker image",
 			"description": "After this many seconds the test will break.",
 			"multipleOf": 1.0,
 			"minimum": 1,
 			"maximum": 900
+		},
+		"memory": {
+			"$id": "#/properties/memory",
+			"type": "number",
+			"title": "Maximum memory available to the docker",
+			"description": "In MB of memory.",
+			"multipleOf": 1.0,
+			"minimum": 50
 		}
 	},
 	"additionalProperties": false
@@ -179,11 +185,11 @@ func processMessages() {
 				}
 			}
 
-			var memory int64 = 1024 * 1024 * 500 // 0.5 GB by default
+			memory := int64(msg.Memory * 1024 * 1024)
 			var config = docker.DockerConfig{
 				Volume:      volume,
 				DockerImage: msg.DockerImage,
-				Timeout:     60 * 5, // 5 minutes
+				Timeout:     uint16(msg.MaxRunTime),
 				Memory:      &memory,
 			}
 			result, err := docker.DockerExec(config)
@@ -289,7 +295,10 @@ func processRequest(r *http.Request) int {
 	}
 
 	// so here the request is validated, we are good to go and create new message
-	var msg requestMessage
+	msg := requestMessage{
+		MaxRunTime: 300,
+		Memory:     512,
+	}
 	if err := json.Unmarshal(req, &msg); err != nil {
 		log.Println(err)
 		return http.StatusBadRequest
