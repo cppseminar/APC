@@ -272,6 +272,7 @@ func main() {
 
 func processRequest(r *http.Request) int {
 	if r.Method != "POST" {
+		log.Printf("Request with unsupported method received %#v", r)
 		return http.StatusBadRequest
 	}
 
