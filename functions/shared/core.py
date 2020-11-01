@@ -11,6 +11,7 @@ import re
 
 from bson import ObjectId
 from pymongo.cursor import Cursor
+from pymongo.command_cursor import CommandCursor
 
 
 def cerberus_object_id_validator(field, value, error):
@@ -146,6 +147,7 @@ def mongo_filter_errors(obj, converter):
 
 
 @mongo_filter_errors.register(Cursor)
+@mongo_filter_errors.register(CommandCursor)
 @mongo_filter_errors.register(list)
 def _mongo_list_ignore_errors(obj_list: Cursor, converter):
     for item in obj_list:

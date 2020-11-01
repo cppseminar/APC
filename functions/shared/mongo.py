@@ -242,6 +242,30 @@ class MongoSubmissions:
         document["_id"] = result.inserted_id
         return core.mongo_filter_errors(document, MongoSubmissions._to_model)
 
+    @staticmethod
+    def get_aggregate_submissions(task_id) -> typing.List[models.Submission]:
+        """Find most recent submission, for each user on task=task_id.
+
+        This method doesn't return complete objects, so some values are blank.
+        Only user and files are considered to be important.
+        """
+        collection = get_client().get_submissions()
+        pipeline = [
+            {"$sort": {"date": -1, "user": 1}},
+            {"$match": {"taskId": task_id}},
+            {
+                "$group": {
+                    "_id": "$user",
+                    "hack": {"$first": "$$ROOT"},
+                },
+
+            },
+            {"$replaceRoot": { "newRoot": "$hack" } }
+        ]
+        cursor = collection.aggregate(pipeline)
+        # return cursor
+        return core.mongo_filter_errors(cursor, MongoSubmissions._to_model)
+
 
 class MongoTasks:
     """Manipulation with tasks in db."""

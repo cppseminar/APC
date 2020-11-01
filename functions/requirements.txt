@@ -1,4 +1,5 @@
 azure-functions
+azure-storage-blob
 pymongo
 cerberus
 python-jose

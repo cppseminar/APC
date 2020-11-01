@@ -106,3 +106,10 @@ Accept: */*
 GET {{baseUrl}}/api/users/ HTTP/1.1
 Accept: */*
 X-request-email: {{admin}}
+
+#########################################
+# Download submissions
+#########################################
+GET {{baseUrl}}/api/download/submissions/5f3944f1bf1bb81e48bae8fa
+Accept: */*
+X-request-email: {{admin}}

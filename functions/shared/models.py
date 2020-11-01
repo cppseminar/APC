@@ -41,7 +41,7 @@ class Submission(ModelBase):
     date: datetime.datetime
     runs_count: int = 0
     is_final: bool = False
-    files: typing.Optional[typing.List[typing.Any]] = None
+    files: typing.List[typing.Any] = dataclasses.field(default_factory=list)
     task_name: str = ""
 
     def map_item(self, item):
