@@ -26,9 +26,9 @@ def main(msg: func.QueueMessage) -> None:
                 "files": files,
                 "maxRunTime": 20,
                 "dockerImage": test_case.docker,
+                "memory": test_case.memory,
             }
         )
-        logging.info("Ok %s", query)
         secret_key64 = os.environ[common.ENV_QUEUE_SECRET]
         decoded_key = base64.decodebytes(secret_key64.encode("utf-8"))
 

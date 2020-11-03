@@ -15,6 +15,7 @@ class TestCase(ModelBase):
     docker: str
     roles: typing.List[str] = dataclasses.field(default_factory=list)
     does_count: bool = True
+    memory: int = 100  # Megabytes (because of queue service api)
 
     def map_item(self, item):
         key, value = item
@@ -27,7 +28,7 @@ class TestCase(ModelBase):
 
     def filter_item(self, item):
         key, _ = item
-        if key in ["roles", "task_id", "docker"]:
+        if key in ["roles", "task_id", "docker", "memory"]:
             return False
         return True
 

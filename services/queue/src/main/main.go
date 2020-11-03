@@ -90,7 +90,7 @@ const schemaStr = `
 			"title": "Maximum memory available to the docker",
 			"description": "In MB of memory.",
 			"multipleOf": 1.0,
-			"minimum": 50
+			"minimum": 10
 		}
 	},
 	"additionalProperties": false
