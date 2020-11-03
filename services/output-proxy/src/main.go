@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -12,8 +14,19 @@ import (
 	"gopkg.in/square/go-jose.v2"
 )
 
-// key should be base64 encoded, without trailing '='
-var privateKey string = os.Getenv("APC_PRIVATE_KEY")
+const envPrivateKey string = "APC_PRIVATE_KEY"
+
+func getSigningKey() (string, error) {
+	var privateKey string = strings.TrimSpace(os.Getenv(envPrivateKey))
+	keyBytes, err := base64.StdEncoding.DecodeString(privateKey)
+	if err != nil {
+		return "", err
+	}
+	if len(keyBytes) == 0 {
+		return "", errors.New("Empty signing key")
+	}
+	return strings.TrimRight(privateKey, "="), nil
+}
 
 var tr = &http.Transport{
 	ResponseHeaderTimeout:  10 * time.Second,
@@ -24,6 +37,11 @@ var tr = &http.Transport{
 var client = &http.Client{Transport: tr}
 
 func sign(body []byte) (string, error) {
+	privateKey, err := getSigningKey()
+	if err != nil {
+		log.Fatal("Unable to retrieve signing key")
+	}
+
 	var key jose.JSONWebKey
 	key.UnmarshalJSON([]byte(fmt.Sprintf(`{
     "kty": "oct",
@@ -90,8 +108,8 @@ func processRequest(r *http.Request) int {
 
 func main() {
 	log.Println("Output-proxy is starting")
-	privateKey = strings.TrimSpace(privateKey)
-	if privateKey == "" {
+
+	if _, err := getSigningKey(); err != nil {
 		log.Fatal("Cannot retrieve private key from env.")
 	}
 
