@@ -18,6 +18,8 @@ from typing import Dict, List, Any
 import infrastructure
 import runner
 
+_logger = infrastructure.set_logger(__name__)
+
 
 class HuffmanEvaluator(infrastructure.Module):
     """Class for evaluating huffman codes excercise."""
@@ -158,9 +160,14 @@ class DiffEvaluator(infrastructure.Module):
 
     @staticmethod
     def get_file_iter(file_name):
-        with open(file_name, "r") as f:
-            for line in f:
-                yield line.rstrip()
+        try:
+            with open(file_name, "r") as f:
+                for line in f:
+                    yield line.rstrip()
+        except FileNotFoundError as error:
+            _logger.info("File not found %s", file_name)
+            # This will act as empty file
+
 
 class OutputReplaceByFile(infrastructure.Module):
     """Reads output from file and replaces run values for input."""
