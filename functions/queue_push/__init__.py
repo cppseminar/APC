@@ -24,7 +24,7 @@ def main(msg: func.QueueMessage) -> None:
             {
                 "returnUrl": url,
                 "files": files,
-                "maxRunTime": 20,
+                "maxRunTime": 60 * 5,
                 "dockerImage": test_case.docker,
                 "memory": test_case.memory,
             }
