@@ -8,14 +8,15 @@ import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 
+import { isAdmin } from '../../app/selectors'
 import { getTask } from 'services/tasks'
-
+import DownloadSubmissions from '../download-submissions'
 import Submission from '../submissions/submit-dialog'
 
 const TaskView = () => {
   const [task, setTask] = useState(null)
   const [error, setError] = useState(null)
-  const isAdmin = useSelector(state => state.auth.isAdmin)
+  const admin = useSelector(isAdmin)
 
   const match = useRouteMatch('/task/:taskId')
   const taskId = match?.params.taskId
@@ -64,7 +65,7 @@ const TaskView = () => {
               <h2>
                 {task.name}
               </h2>
-              {isAdmin && (<small className='text-muted'>Task id {taskId}</small>)}
+              {admin && <DownloadSubmissions taskId={taskId} />}
             </Col>
           </Row>
           <Row className='my-1'>

@@ -34,3 +34,7 @@ export const getSubmissions = async (taskId) => {
 export const getSubmission = async (submissionId) => {
   return api.get('/api/submissions/' + submissionId).then(verifyResponse).catch(catchError)
 }
+
+export const getDownloadSubmissionsLink = async (taskId) => {
+  return api.get('api/download/submissions/' + taskId).then(verifyResponse).catch(catchError)
+}
