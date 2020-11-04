@@ -289,6 +289,51 @@ class CsvSortEvaluator(infrastructure.Module):
         )
         return True
 
+class StderrCatcher(infrastructure.Module):
+    """Validate csv sort."""
+
+    SETTINGS = {
+    }
+
+    def __init__(self, name):
+        """Register event."""
+        super().__init__(name)
+        self.register_event(runner.RunOutput)
+
+
+
+    def handle_internal(self, event: runner.RunOutput):
+        """Check if file is sorted according to sort indices."""
+        if event.exit_code == 0:
+            return True
+        identificator = f"[{self.__class__.__name__}] {event.identification}"
+        if not event.error_file:
+            self.notify(
+                infrastructure.Notification(
+                    message=f"{identificator} - Exited without stderr file??",
+                    severity=infrastructure.MessageSeverity.WARNING,
+                )
+            )
+            return True
+        size = 0
+        with contextlib.suppress(OSError):
+            size = os.path.getsize(event.error_file)
+        if size == 0:
+            return True
+        # So stderr exists and is not empty
+        payload = ""
+        with open(event.error_file, "r") as error_file:
+            payload = error_file.read()
+        self.notify(
+            infrastructure.Notification(
+                message=f"{identificator} - Exited with stderr",
+                severity=infrastructure.MessageSeverity.WARNING,
+                payload=payload
+            )
+        )
+
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
