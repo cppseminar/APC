@@ -204,3 +204,42 @@ class RunnerModule(infrastructure.Module):
                     f'run time {event.run_time}s',
             severity=infrastructure.MessageSeverity.INFO)
 
+
+class StdPrinter(infrastructure.Module):
+    SETTINGS = {"input_identification": infrastructure.AnyStringParser()}
+ 
+    def __init__(self, name):
+        """Register event."""
+        super().__init__(name)
+        self.register_event(RunOutput)
+
+
+    def handle_internal(self, event: RunOutput):
+        """Check if file is sorted according to sort indices."""
+        if event.identification != self.settings["input_identification"]:
+            return False
+        identificator = "[" + self.__class__.__name__ + f"] - {self.name}"
+        content = ""
+
+        with open(event.output_file, "r") as stdout:
+            content = stdout.read()
+        if not content:
+            self.notify(
+                infrastructure.Notification(
+                    message=f"{identificator} - Empty output",
+                    severity=infrastructure.MessageSeverity.WARNING,
+                )
+            )
+            return True
+        self.notify(
+            infrastructure.Notification(
+                message=f"{identificator} - Showing output",
+                severity=infrastructure.MessageSeverity.INFO,
+                payload=content,
+            )
+        )
+        return True
+
+
+
+

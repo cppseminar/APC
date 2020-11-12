@@ -98,6 +98,7 @@ if __name__ == "__main__":
     script.add_class(infrastructure.ConsoleWriter)
     script.add_class(runner.CompilerFilter)
     script.add_class(runner.RunnerModule)
+    script.add_class(runner.StdPrinter)
     script.add_class(evaluators.HuffmanEvaluator)
     script.add_class(evaluators.DiffEvaluator)
     script.add_class(evaluators.OutputReplaceByFile)
