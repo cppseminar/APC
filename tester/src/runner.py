@@ -158,20 +158,24 @@ class RunnerModule(infrastructure.Module):
                                      stdin=stdin,
                                      check=False)
             run_time = time.time() - run_time
-            ret = RunOutput(output_file=stdout_file.name,
-                            error_file=stderr_file.name,
-                            run_time=run_time,
-                            timeout=False,
-                            exit_code=process.returncode,
-                            identification=self.settings['output_identification'],
-                            name=event.name)
+            ret = RunOutput(
+                output_file=stdout_file.name,
+                error_file=stderr_file.name,
+                run_time=run_time,
+                timeout=False,
+                exit_code=process.returncode,
+                identification=self.settings['output_identification'],
+                name=event.name)
             return ret
 
         except subprocess.TimeoutExpired:
-            ret = RunOutput(timeout=True,
-                        identification=self.settings['output_identification'],
-                        name=event.name)
-            return ret
+            return RunOutput(
+                timeout=True,
+                identification=self.settings['output_identification'],
+                name=event.name,
+                output_file=stdout_file.name,
+                error_file=stderr_file.name,
+            )
         finally:
             stdout_file.close()
             stderr_file.close()
