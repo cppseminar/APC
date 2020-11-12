@@ -292,8 +292,11 @@ def gcc_stderr_to_lists(output: str):
         return [], ["Unknown error, probably linker"]
 
 
-def gcc_compile(input_file, output_file, debug=False):
-    """Run g++ to compile input_file."""
+def gcc_compile(input_file, output_file, debug=False, user_ops=None):
+    """Run g++ to compile input_file.
+
+    User ops may be list of additional args to g++.
+    """
     compiler = shutil.which("g++")
     if compiler is None:
         return [], ["gcc compiler not found"]
@@ -302,7 +305,10 @@ def gcc_compile(input_file, output_file, debug=False):
         str(input_file),
         "-o",
         str(output_file),
+        # Here we will append user ops, due to library linking order with gcc
+        # which seems to be fucked up (must be after source files??)
     ]
+    additional_ops += user_ops if user_ops else []
     if debug:
         additional_ops = _GCC_OPS_DEBUG + additional_ops
     completed_process = subprocess.run(
@@ -314,7 +320,10 @@ def gcc_compile(input_file, output_file, debug=False):
 class Gcc(infrastructure.Module):
     """Gcc compilation on linux."""
 
-    SETTINGS = {"debug": [False, True]}
+    SETTINGS = {
+        "debug": [False, True],
+        "additional_args": infrastructure.JsonListParser(),
+    }
 
     def __init__(self, name):
         super().__init__(name)
@@ -373,6 +382,14 @@ class Gcc(infrastructure.Module):
         )
 
     def compile(self, input_file, output_file):
-        with contextlib.suppress(Exception):
-            return gcc_compile(input_file, output_file, debug=self.settings["debug"])
+        user_ops = list(json.loads(self.settings["additional_args"]))
+        try:
+            return gcc_compile(
+                input_file,
+                output_file,
+                debug=self.settings["debug"],
+                user_ops=user_ops,
+            )
+        except Exception as error:
+            _logger.warning("Compile error %s", error)
         return [], ["Unknown error"]
