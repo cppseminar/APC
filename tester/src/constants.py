@@ -1,9 +1,6 @@
 """Just constants for testscripts"""
 
 import types
-import colorama
-
-colorama.init()
 
 _CONFIG_TEXT = (f"# This is config file (ini format) for testscripts\n"
                 f"# This file was generated from testcripts. It shows\n"
@@ -32,11 +29,20 @@ CONFIG = types.SimpleNamespace(
     HTML_FOOTER="\n</div>\n</body>\n</html>",
 )
 
+
+try:
+    import colorama
+    colorama.init()
+    _STR_OK = colorama.Fore.LIGHTGREEN_EX + "OK" + colorama.Style.RESET_ALL
+    _STR_ERROR = colorama.Fore.LIGHTRED_EX + "ERROR" + colorama.Style.RESET_ALL
+    _STR_WARNING = colorama.Fore.BLUE + "WARNING" + colorama.Style.RESET_ALL
+except ImportError:
+    _STR_OK = "OK"
+    _STR_ERROR = "ERROR"
+    _STR_WARNING = "WARNING"
+
 KEYWORDS = types.SimpleNamespace(
-    WARNING="[" + colorama.Fore.LIGHTYELLOW_EX + "WARNING" +
-    colorama.Style.RESET_ALL + "]",
-    OK="[" + colorama.Fore.LIGHTGREEN_EX + "OK" + colorama.Style.RESET_ALL +
-    "]",
-    ERROR="[" + colorama.Fore.LIGHTRED_EX + "ERROR" +
-    colorama.Style.RESET_ALL + "]",
+    WARNING="[" + _STR_WARNING + "]",
+    OK="[" + _STR_OK + "]",
+    ERROR="[" + _STR_ERROR + "]",
 )
