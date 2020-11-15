@@ -169,13 +169,14 @@ class RunnerModule(infrastructure.Module):
             return ret
 
         except subprocess.TimeoutExpired:
-            return RunOutput(
+            ret = RunOutput(
                 timeout=True,
                 identification=self.settings['output_identification'],
                 name=event.name,
                 output_file=stdout_file.name,
                 error_file=stderr_file.name,
             )
+            return ret
         finally:
             stdout_file.close()
             stderr_file.close()
@@ -207,7 +208,7 @@ class RunnerModule(infrastructure.Module):
 
 class StdPrinter(infrastructure.Module):
     SETTINGS = {"input_identification": infrastructure.AnyStringParser()}
- 
+
     def __init__(self, name):
         """Register event."""
         super().__init__(name)
