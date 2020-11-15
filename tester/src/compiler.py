@@ -312,7 +312,7 @@ def gcc_compile(input_file, output_file, debug=False, user_ops=None):
     if debug:
         additional_ops = _GCC_OPS_DEBUG + additional_ops
     completed_process = subprocess.run(
-        [compiler] + _GCC_OPS + additional_ops, capture_output=True, timeout=30
+        [compiler] + _GCC_OPS + additional_ops, capture_output=True, timeout=60
     )
     return gcc_stderr_to_lists(completed_process.stderr)
 
