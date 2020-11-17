@@ -3,11 +3,6 @@ name: Production - publish frontend
 on:
   push:
     branches: [ production ]
-env:
-  REACT_APP_GOOGLE_CLIENT_ID: '${{secrets.PROD_GOOGLE}}'
-  REACT_APP_API_DOMAIN: "${{secrets.PROD_API}}"
-
-
 jobs:
   build:
     runs-on: ubuntu-latest

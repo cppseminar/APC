@@ -3,8 +3,6 @@ name: Production - publish api
 on:
   push:
     branches: [ production ]
-env:
-  PYTHON_VERSION: '3.8'
 
 jobs:
   # This workflow contains a single job called "build"
@@ -12,6 +10,10 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     steps:
+    - name: Set Environment
+      shell: bash
+      run: |
+        echo  PYTHON_VERSION=3.8 >> $GITHUB_ENV
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - name: Checkout repo
       uses: actions/checkout@v2

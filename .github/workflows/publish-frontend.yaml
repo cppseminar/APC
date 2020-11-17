@@ -3,10 +3,6 @@ name: Development - publish frontend
 on:
   push:
     branches: [ master ]
-env:
-  REACT_APP_GOOGLE_CLIENT_ID: '576929321854-c33uueff0j60au8i87lecabbqme5s3hj.apps.googleusercontent.com'
-  REACT_APP_API_DOMAIN: "https://api.l33t.party"
-
 
 jobs:
   build:

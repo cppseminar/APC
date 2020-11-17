@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - name: Set Environment
+      shell: bash
+      run: |
+        echo  PYTHON_VERSION=3.8 >> $GITHUB_ENV
     - name: Checkout repo
       uses: actions/checkout@v2
 
