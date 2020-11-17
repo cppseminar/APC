@@ -39,7 +39,7 @@ jobs:
       run: |
         python -m pytest functions_test
     - name: Publish functions
-      uses: Azure/functions-action@v1.1.4
+      uses: Azure/functions-action@v1
       with:
         # Name of the Azure Function App
         app-name: cppseminar-manduch-api
