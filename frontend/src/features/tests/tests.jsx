@@ -5,12 +5,42 @@ import ListGroup from 'react-bootstrap/ListGroup'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
+import _ from 'lodash'
 
 const Result = styled.pre`
   padding: 0.3em;
   color: white;
   background: #2A363B;
 `
+
+// This is called in _.map and adds returns react objects
+const colorizeInternal = (testLine) => {
+  testLine = String(testLine)
+
+  if (testLine.indexOf("[OK]") === 0) {
+    return <><span style={{color:"lightgreen"}}>[INFO]</span>{testLine.slice(4)}</>
+  }
+  if (testLine.indexOf("[INFO]") === 0) {
+    return <><span style={{color:"lightgreen"}}>[INFO]</span>{testLine.slice(6)}</>
+  }
+  if (testLine.indexOf("[WARNING]") === 0) {
+    return <><span style={{color:"orange"}}>[WARNING]</span>{testLine.slice(9)}</>
+  }
+  if (testLine.indexOf("[ERROR]") === 0) {
+    return <><span style={{color:"red"}}>[ERROR]</span>{testLine.slice(7)}</>
+  }
+  return <>{testLine}</>
+}
+
+const colorizeTestRun = (testRunString) => {
+  const plain = String(testRunString)
+  const lines = plain.split('\n')
+  const appendNewLine = (line, index) => {
+    return <span key={index}>{line}{"\n"}</span>
+  }
+  const colorized =  _.map(lines, colorizeInternal)
+  return _.map(colorized, appendNewLine)
+}
 
 const Status = Object.freeze({
   INIT: 0,
@@ -42,7 +72,7 @@ const TestRun = (props) => {
     <Row>
       <Col>
         <Result>
-          {detail}
+          {colorizeTestRun(detail)}
         </Result>
       </Col>
     </Row>)

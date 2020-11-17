@@ -33,7 +33,7 @@ const Submit = ({ taskId }) => {
     return (
       <>
         <div>
-          <div style={{ height: '30vh' }}>
+          <div style={{ height: '60vh' }}>
             <CodeEditor ref={editor} />
           </div>
           { message ? <p>{message}</p> : null}

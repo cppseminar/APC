@@ -32,7 +32,7 @@ const Submission = () => {
           return (
             <div key={x.id + x.fileName}>
               <h3>{x.fileName}</h3>
-              <div style={{ width: '100%', height: '60vh' }}>
+              <div style={{ width: '100%', height: '70vh' }}>
                 <CodeEditor readOnly defValue={x.fileContent} />
               </div>
             </div>
