@@ -8,6 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - name: Set Environment
+      shell: bash
+      run: |
+        echo  REACT_APP_GOOGLE_CLIENT_ID=${{secrets.PROD_GOOGLE}} >> $GITHUB_ENV
+        echo  REACT_APP_API_DOMAIN="${{secrets.PROD_API}}" >> $GITHUB_ENV
     - name: Checkout source code
       uses: actions/checkout@v2
 
