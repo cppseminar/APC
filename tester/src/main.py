@@ -104,6 +104,7 @@ if __name__ == "__main__":
     script.add_class(evaluators.OutputReplaceByFile)
     script.add_class(evaluators.CsvSortEvaluator)
     script.add_class(evaluators.StderrCatcher)
+    script.add_class(evaluators.HuffmanFormatEvaluator)
 
     with open("./config.ini", "r") as f:
         script.load_ini_settings(f)

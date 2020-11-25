@@ -332,7 +332,58 @@ class StderrCatcher(infrastructure.Module):
             )
         )
 
+class HuffmanFormatEvaluator(infrastructure.Module):
+    SETTINGS = {
+        "input_identification": infrastructure.AnyStringParser(),
+    }
 
+    def __init__(self, name):
+        """Register event."""
+        super().__init__(name)
+        self.register_event(runner.RunOutput)
+
+    def handle_internal(self, event: runner.RunOutput):
+        """Check if file is sorted according to sort indices."""
+        if event.identification != self.settings["input_identification"]:
+            return False
+        # This is copy of pattern from Huffman evaluator (should be above)
+        pattern = (
+            r'^\s*'
+            r'(?P<byte>\d{1,3})'
+            r'\s*:\s*'
+            r'(?P<frequency>[01]+)'
+            r'\s*$'
+        )
+        identificator = f"[{self.__class__.__name__}] {event.name}"
+
+        index = -1
+        with open(event.output_file, "r") as file_:
+            for index, line in enumerate(file_.readlines()):
+                #  = entry
+                if not re.match(pattern, line):
+                    self.notify(
+                        infrastructure.Notification(
+                            message=f"{identificator} - Invalid line {index + 1}",
+                            severity=infrastructure.MessageSeverity.ERROR,
+                            payload=str(line)
+                        )
+                    )
+                    return True
+        if index == -1:
+            self.notify(
+                infrastructure.Notification(
+                    message=f"{identificator} - empty output",
+                    severity=infrastructure.MessageSeverity.ERROR,
+                )
+            )
+            return True
+        self.notify(
+            infrastructure.Notification(
+                message=f"{identificator} - Format ok",
+                severity=infrastructure.MessageSeverity.INFO,
+            )
+        )
+        return True
 
 
 if __name__ == '__main__':
