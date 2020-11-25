@@ -13,7 +13,7 @@ jobs:
       shell: bash
       run: |
         echo  REACT_APP_GOOGLE_CLIENT_ID='576929321854-c33uueff0j60au8i87lecabbqme5s3hj.apps.googleusercontent.com' >> $GITHUB_ENV
-        echo  REACT_APP_API_DOMAIN="https://api.l33t.party" >> $GITHUB_ENV
+        echo  REACT_APP_API_DOMAIN="https://cppseminar-manduch.azure-api.net" >> $GITHUB_ENV
     - name: Checkout source code
       uses: actions/checkout@v2
 
