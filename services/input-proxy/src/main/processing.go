@@ -5,17 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gopkg.in/square/go-jose.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
+
+	"gopkg.in/square/go-jose.v2"
 )
 
 // Format of requests, which are accepted by this proxy
 type proxyRequest struct {
 	Timestamp int64       `json:"timestamp"`
-	URI       *string      `json:"uri"`
+	URI       *string     `json:"uri"`
 	Payload   interface{} `json:"payload"`
 }
 
@@ -54,7 +55,6 @@ func verifyJWSAndGetBody(body []byte, privateKey string) ([]byte, error) {
 
 var client = &http.Client{Transport: tr}
 
-
 // Checks signature, timestamp and request uri. Returns payload from message
 func verifyAndExtract(request *http.Request, signingKey string) ([]byte, error) {
 	body, err := ioutil.ReadAll(request.Body)
@@ -78,8 +78,14 @@ func verifyAndExtract(request *http.Request, signingKey string) ([]byte, error) 
 
 	var currentTime int64 = time.Now().Unix()
 
-	if parsedRequest.Timestamp+10 < currentTime || parsedRequest.Timestamp > currentTime {
-		return nil, errors.New("Invalid (expired?) timestamp")
+	// We are accepting dates from future, this is because in development there
+	// were situations, when this shit happened.  Idk about prod machines, but
+	// I hope it's fine
+	if parsedRequest.Timestamp+10 < currentTime || parsedRequest.Timestamp > currentTime+1 {
+		return nil, fmt.Errorf("Invalid (expired?) timestamp %v current %v",
+			parsedRequest.Timestamp,
+			currentTime,
+		)
 	}
 
 	// So we are kinda good here with timestamp. Now let's check, if requested
