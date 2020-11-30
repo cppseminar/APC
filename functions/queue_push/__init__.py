@@ -1,7 +1,9 @@
 import base64
+import datetime
 import http.client
 import json
 import logging
+import math
 import os
 
 import azure.functions as func
@@ -20,15 +22,17 @@ def main(msg: func.QueueMessage) -> None:
         # TODO: Change format on frontend backend db ...
         for file_entry in submission.files:
             files[file_entry["fileName"]] = file_entry["fileContent"]
-        query = json.dumps(
-            {
+        query = json.dumps({
+            "timestamp": math.floor(datetime.datetime.now().timestamp()),
+            "uri": "/",
+            "payload": {
                 "returnUrl": url,
                 "files": files,
                 "maxRunTime": 60 * 5,
                 "dockerImage": test_case.docker,
                 "memory": test_case.memory,
-            }
-        )
+            },
+        })
         secret_key64 = os.environ[common.ENV_QUEUE_SECRET]
         decoded_key = base64.decodebytes(secret_key64.encode("utf-8"))
 

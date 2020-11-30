@@ -144,7 +144,7 @@ def patch_handler(request: func.HttpRequest, queue=None, test_id=None) -> func.H
         document = validator.document
         update_result = mongo.MongoTests.update_test(
             test_id,
-            document[validators.SCHEMA_TEST_DESCRIPTION],
+            document[validators.SCHEMA_TEST_DESCRIPTION] or "<empty>",
         )
         if not update_result:
             logging.error("On patch test, update db fail (wrong id?)")
