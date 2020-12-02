@@ -1,15 +1,9 @@
-import base64
-import datetime
-import http.client
-import json
-import logging
-import math
 import os
+import logging
 
 import azure.functions as func
-from jose import jws
 
-from ..shared import common, mongo
+from ..shared import common, mongo, testers
 
 
 def main(msg: func.QueueMessage) -> None:
@@ -19,33 +13,21 @@ def main(msg: func.QueueMessage) -> None:
         submission = mongo.MongoSubmissions().get_submission(submission_id)
         test_case = mongo.MongoTestCases().get_case(case_id)
         files = dict()
-        # TODO: Change format on frontend backend db ...
         for file_entry in submission.files:
-            files[file_entry["fileName"]] = file_entry["fileContent"]
-        query = json.dumps({
-            "timestamp": math.floor(datetime.datetime.now().timestamp()),
-            "uri": "/",
-            "payload": {
-                "returnUrl": url,
-                "files": files,
-                "maxRunTime": 60 * 5,
-                "dockerImage": test_case.docker,
-                "memory": test_case.memory,
-            },
-        })
-        secret_key64 = os.environ[common.ENV_QUEUE_SECRET]
-        decoded_key = base64.decodebytes(secret_key64.encode("utf-8"))
+            files[str(file_entry["fileName"])] = file_entry["fileContent"]
 
-        request = jws.sign(query.encode("utf-8"), decoded_key, algorithm="HS256")
-
-        connection = http.client.HTTPConnection(
-            os.environ[common.ENV_QUEUE_URL], timeout=10
+        signed_message = testers.build_message(
+            return_url=url,
+            files=files,
+            docker_image=test_case.docker,
+            memory=test_case.memory
         )
-        connection.request("POST", "/", request)
-        response = connection.getresponse()
-        if response.status != 200:
-            raise RuntimeError(f"Error status in queue {response.status}")
-
+        tester = testers.get_tester_config(name="default")
+        if not testers.send_message(signed_message, tester):
+            # Message was not sent. Vm may be turned of
+            logging.warning("Cannot send message to tester %s", tester.name)
+            # Here launch orchestrator
+            # But for now raise error
+            raise Exception("Cannot send message to tester")
     except Exception as error:
         logging.error("Error during queue processing %s", error)
-        raise

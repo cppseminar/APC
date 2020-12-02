@@ -52,4 +52,4 @@ def decode_message(message: str):
         result["url"],
         ObjectId(result["caseId"]),
         ObjectId(result["submissionId"])
-        )
+    )
