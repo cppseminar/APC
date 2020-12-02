@@ -79,7 +79,10 @@ def get_tester_config(*, name: str) -> TesterConfig:
 
 
 def send_message(message: bytes, tester: TesterConfig) -> bool:
-    """Sends message to tester and returns boolean indicating success."""
+    """Sends message to tester and returns boolean indicating success.
+
+    We swallow all kinds of errors.
+    """
     try:
         connection = http.client.HTTPConnection(
             tester.url, timeout=10
