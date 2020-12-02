@@ -9,8 +9,11 @@ import math
 import os
 from typing import Dict, Any
 
-from jose import jws
 from ..shared import common
+
+from jose import jws
+from azure.cosmosdb.table.tableservice import TableService
+from azure.cosmosdb.table.models import Entity
 
 @dataclasses.dataclass
 class TesterConfig:
@@ -19,9 +22,10 @@ class TesterConfig:
     start_url: str
     stop_url: str
     start_time: datetime.datetime
+    secret: bytes
 
 def build_message(
-    *, return_url: str, files: Dict[str, Any], docker_image: str, memory: int
+    *, return_url: str, files: Dict[str, Any], docker_image: str, memory: int, key: bytes
 ) -> bytes:
     """Returns signed message, which should be sent to vm.
 
@@ -40,9 +44,7 @@ def build_message(
             },
         }
     )
-    secret_key64 = os.environ[common.ENV_QUEUE_SECRET]
-    decoded_key = base64.decodebytes(secret_key64.encode("utf-8"))
-    signed = jws.sign(formatted_message.encode("utf-8"), decoded_key, algorithm="HS256")
+    signed = jws.sign(formatted_message.encode("utf-8"), key, algorithm="HS256")
     return signed.encode("utf-8")
 
 def get_tester_config(*, name: str) -> TesterConfig:
@@ -51,15 +53,30 @@ def get_tester_config(*, name: str) -> TesterConfig:
     If vm doesn't exists, or it's entry is somehow corrupted, error will be
     raised.
     """
-    if name != "default":
-        raise Exception("Wrong tester name")
-    return TesterConfig(
-        name="default",
-        start_time=datetime.datetime.now(),
-        url=os.environ[common.ENV_QUEUE_URL],
-        stop_url="",
-        start_url="",
-    )
+    try:
+        table_service = TableService(
+            connection_string=os.environ[common.ENV_STORAGE_STRING]
+        )
+        tester_entry = table_service.get_entity(
+            common.TABLE_VM_NAME,
+            name,
+            "config",
+            timeout=10,
+            select="secret,startURL,stopURL,startTime,url,PartitionKey"
+        )
+        return TesterConfig(
+            name=tester_entry["PartitionKey"],
+            start_time=tester_entry["startTime"],
+            url=tester_entry["url"],
+            stop_url=tester_entry["stopURL"],
+            start_url=tester_entry["startURL"],
+            secret=base64.decodebytes(tester_entry["secret"].encode("utf-8"))
+        )
+    except Exception as error:
+        logging.error("Unable to query Tables for %s tester. %s %s", name, type(error), error)
+        raise
+
+
 
 def send_message(message: bytes, tester: TesterConfig) -> bool:
     """Sends message to tester and returns boolean indicating success."""
