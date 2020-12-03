@@ -130,6 +130,7 @@ class DiffEvaluator(infrastructure.Module):
     SETTINGS = {
         "expected_output": infrastructure.FileNameParser(),
         "input_identification": infrastructure.AnyStringParser(),
+        "payload" : [True, False],
     }
 
     def __init__(self, name):
@@ -151,6 +152,9 @@ class DiffEvaluator(infrastructure.Module):
                 diffs = difflib.ndiff((values[0],), (values[1],))
                 err = f"Line:{index+1} (starting 1)\n" +"\n".join(diffs)
 
+                if not self.settings["payload"]:
+                    err = None
+
                 self.notify(infrastructure.Notification(
                     f"{identificator} Error wrong output",
                     infrastructure.MessageSeverity.ERROR,
@@ -167,7 +171,6 @@ class DiffEvaluator(infrastructure.Module):
         except FileNotFoundError as error:
             _logger.info("File not found %s", file_name)
             # This will act as empty file
-
 
 class OutputReplaceByFile(infrastructure.Module):
     """Reads output from file and replaces run values for input."""
