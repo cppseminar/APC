@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"services/queue/docker"
@@ -23,9 +24,19 @@ type requestMessage struct {
 	Memory      int // in megabytes
 }
 
+type statusResponse struct {
+	Running   bool
+	TimeStamp time.Time
+}
+
 var schema *gojsonschema.Schema
 
 var queue = make(chan requestMessage, 100)
+
+var mtx sync.Mutex
+
+var requests int = 0
+var lastRequest time.Time
 
 const envVolumeName = "VOLUME_NAME"
 
@@ -153,6 +164,28 @@ func getSchema() *gojsonschema.Schema {
 	return schema
 }
 
+// it returns false it service is ending and we should not continue
+func requestStarted() bool {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	if requests == -1 {
+		return false
+	}
+
+	requests++
+	return true
+}
+
+func requestFinished() {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	requests-- // another one bites the dust...
+
+	lastRequest = time.Now()
+}
+
 func processMessages() {
 	var msgPointer *requestMessage = nil
 
@@ -170,6 +203,8 @@ func processMessages() {
 		msgPointer = &msg
 
 		func() {
+			defer requestFinished()
+
 			var volume = getVolume()
 			var dir = volume.DirPath
 
@@ -270,12 +305,7 @@ func main() {
 	}
 }
 
-func processRequest(r *http.Request) int {
-	if r.Method != "POST" {
-		log.Printf("Request with unsupported method received %#v", r)
-		return http.StatusBadRequest
-	}
-
+func processTestRequestInternal(r *http.Request) int {
 	req, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return http.StatusInternalServerError
@@ -315,6 +345,78 @@ func processRequest(r *http.Request) int {
 	return http.StatusOK
 }
 
+func processTestRequest(r *http.Request) int {
+	shouldRun := requestStarted()
+	if !shouldRun {
+		return http.StatusServiceUnavailable
+	}
+
+	status := processTestRequestInternal(r)
+	if status != http.StatusOK {
+		requestFinished()
+	}
+
+	return status
+}
+
+func processStopRequest() int {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	if requests == 0 {
+		requests = -1 // this will signalize end of the queue
+		return http.StatusAccepted
+	}
+
+	return http.StatusExpectationFailed
+}
+
+func processStartRequest() int {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	if requests == -1 {
+		requests = 0 // now we can start accepting requests
+		return http.StatusAccepted
+	}
+
+	return http.StatusExpectationFailed
+}
+
+func processStatusRequest(w http.ResponseWriter) int {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	body, err := json.Marshal(&statusResponse{
+		Running:   requests != -1,
+		TimeStamp: map[bool]time.Time{true: time.Now(), false: lastRequest}[requests > 0],
+	})
+
+	if err != nil {
+		log.Println(err)
+		return http.StatusInternalServerError
+	}
+
+	_, err = w.Write(body)
+	if err != nil {
+		log.Println(err)
+		return http.StatusInsufficientStorage
+	}
+
+	return http.StatusOK
+}
+
 func ServerHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(processRequest(r))
+	if r.URL.Path == "/test" && r.Method == "POST" {
+		w.WriteHeader(processTestRequest(r))
+	} else if r.URL.Path == "/stop" && r.Method == "POST" {
+		w.WriteHeader(processStopRequest())
+	} else if r.URL.Path == "/start" && r.Method == "POST" {
+		w.WriteHeader(processStartRequest())
+	} else if r.URL.Path == "/status" && r.Method == "GET" {
+		processStatusRequest(w)
+	} else {
+		log.Printf("Unsupported request %v %v", r.Method, r.URL.Path)
+		w.WriteHeader(http.StatusNotFound)
+	}
 }

@@ -19,13 +19,14 @@ query = r"""{
 message = {
     "timestamp": int(datetime.datetime.timestamp(datetime.datetime.now())),
     "payload": json.loads(query),
-    "uri": "/abcd"
+    "uri": "/status"
 }
 
 secret_key64 = "aaaa"
 decoded_key = base64.decodebytes(secret_key64.encode("utf-8"))
 request = jws.sign(json.dumps(message).encode("utf-8"), decoded_key, algorithm="HS256")
 connection = http.client.HTTPConnection("localhost:10017", timeout=10)
-connection.request("POST", "/abcd", request)
+connection.request("GET", "/status", request)
 response = connection.getresponse()
 print(response.status)
+print(response.readline())

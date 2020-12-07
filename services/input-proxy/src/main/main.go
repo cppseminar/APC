@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -8,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"bytes"
 	"strings"
 	"time"
 
@@ -125,7 +125,7 @@ func createHandler(forwardURL string) (func(http.ResponseWriter, *http.Request),
 		payload, err := verifyAndExtract(r, privateKey)
 		if err != nil {
 			log.Printf("Error %v \nWrong request:\n%#v", err, r)
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
@@ -137,12 +137,11 @@ func createHandler(forwardURL string) (func(http.ResponseWriter, *http.Request),
 		// built few lines above.
 		forwardURL, _ := url.Parse(parsedURL)
 
-
-		queueURL := buildForwardURL(forwardURL.Scheme == "https",forwardURL.Host, *r.URL)
+		queueURL := buildForwardURL(forwardURL.Scheme == "https", forwardURL.Host, *r.URL)
 		internalRequest, err := http.NewRequest(r.Method, queueURL, bytes.NewReader(payload))
-		if  err != nil {
+		if err != nil {
 			log.Printf("Cannot create forward request %v", err)
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
@@ -153,12 +152,11 @@ func createHandler(forwardURL string) (func(http.ResponseWriter, *http.Request),
 			return
 		}
 
-
 		defer internalResponse.Body.Close()
 
 		responseBody := bytes.Buffer{}
 
-		if _ ,err = responseBody.ReadFrom(internalResponse.Body); err != nil {
+		if _, err = responseBody.ReadFrom(internalResponse.Body); err != nil {
 			log.Println("Error reading response from queue")
 			log.Println(*internalRequest)
 			log.Println(err)
