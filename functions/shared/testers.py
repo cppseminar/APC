@@ -34,7 +34,7 @@ def build_message(
     formatted_message = json.dumps(
         {
             "timestamp": math.floor(datetime.datetime.now().timestamp()),
-            "uri": "/",
+            "uri": "/test",
             "payload": {
                 "returnUrl": return_url,
                 "files": files,
@@ -46,6 +46,7 @@ def build_message(
     )
     signed = jws.sign(formatted_message.encode("utf-8"), key, algorithm="HS256")
     return signed.encode("utf-8")
+
 
 def get_tester_config(*, name: str) -> TesterConfig:
     """Given vm name finds tester in db and retuns it's configuration.
@@ -87,7 +88,7 @@ def send_message(message: bytes, tester: TesterConfig) -> bool:
         connection = http.client.HTTPConnection(
             tester.url, timeout=10
         )
-        connection.request("POST", "/", message)
+        connection.request("POST", "/test", message)
         response = connection.getresponse()
         if response.status != 200:
             logging.warning("Tester %s returned status %s", tester.name, response.status)
