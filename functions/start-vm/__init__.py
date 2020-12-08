@@ -12,10 +12,7 @@ def main(name: str) -> str:
     if not tester.start_url:
         raise ValueError(f"Start url for tester {tester.name} is empty")
 
-
     url_parts = urllib.parse.urlparse(tester.start_url)
-    logging.info("New url is %s", url_parts)
-
     # Remove protocol from url
     uri = urllib.parse.urlunparse(["", *url_parts[1:]]).lstrip('/')
     # Remove also HOST, but not slash after HOST
@@ -40,8 +37,9 @@ def main(name: str) -> str:
                 tester.name
             )
             raise PermissionError("Unable to turn on virtual machine {tester.name}")
+        logging.info("Succesfully started job (turn on) tester %s", tester.name)
         return True
     except TimeoutError:
-        logging.error(f"Azure automation to wake up {tester.name} timed out")
+        logging.error("Azure automation to wake up %s timed out", tester.name)
         raise
 

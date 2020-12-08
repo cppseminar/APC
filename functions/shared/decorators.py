@@ -24,10 +24,10 @@ def login_required(func: typing.Callable):
 
     @functools.wraps(func)
     def _user_wrapper(req: functions.HttpRequest, *args, **keyword_args):
-        email = req.headers.get(common.HEADER_EMAIL, "")
+        email = req.headers.get(common.HTTP_HEADER_EMAIL, "")
         if not core.is_email(email):
             logging.warning(
-                "Rejecting not an email %s in %s field", email, common.HEADER_EMAIL
+                "Rejecting not an email %s in %s field", email, common.HTTP_HEADER_EMAIL
             )
             return response_server_error()
         # User is authenticated, now get his details, if function is interested

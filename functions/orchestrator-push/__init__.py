@@ -9,22 +9,17 @@ from ..shared import common, mongo, testers
 
 def main(message: str) -> str:
     try:
-        url, case_id, submission_id = common.decode_message(message)
-        submission = mongo.MongoSubmissions().get_submission(submission_id)
-        test_case = mongo.MongoTestCases().get_case(case_id)
-        files = dict()
-        for file_entry in submission.files:
-            files[str(file_entry["fileName"])] = file_entry["fileContent"]
-
+        request = testers.message_to_request(message.encode("utf-8"))
         tester = testers.get_tester_config(name="default")
-        signed_message = testers.build_message(
-            return_url=url,
-            files=files,
-            docker_image=test_case.docker,
-            memory=test_case.memory,
-            key=tester.secret
-        )
-        return testers.send_message(signed_message, tester)
+        try:
+            code, _ = testers.send_message(dict(request), "/test", tester)
+        except TimeoutError:
+            return False
+        if code < 200 or code > 299:
+            logging.error("Tester %s returned code %s after wake up", tester.name, code)
+            raise RuntimeError(f"Tester {tester.name} failed to send message")
+        logging.warning("DELETE ME - MESSAGE PROPAGATED")
+        return True  # We sent message ok
     except Exception as error:
         logging.error("Error with processing message %s %s", error, message)
         raise
