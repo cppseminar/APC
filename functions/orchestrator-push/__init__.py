@@ -18,7 +18,6 @@ def main(message: str) -> str:
         if code < 200 or code > 299:
             logging.error("Tester %s returned code %s after wake up", tester.name, code)
             raise RuntimeError(f"Tester {tester.name} failed to send message")
-        logging.warning("DELETE ME - MESSAGE PROPAGATED")
         return True  # We sent message ok
     except Exception as error:
         logging.error("Error with processing message %s %s", error, message)

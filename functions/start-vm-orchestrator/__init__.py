@@ -13,7 +13,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     message = context.get_input()
     _ = common.decode_message(message)  # Test if message format is ok
     current_time = context.current_utc_datetime
-    for timeout in [60, 60 + 90, 60 + 90 + 300]:  # Timeouts 60, 90, 300
+    for timeout in [90, 90 + 180, 90 + 180 + 320]:  # Timeouts 90, 180, 320
         # Launch vm if possible
         task1 = context.call_activity("start-vm", message)
         # sleep

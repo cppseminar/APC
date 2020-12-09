@@ -25,11 +25,11 @@ TABLE_VM_NAME = "testers"
 
 TESTER_PARTITION_KEY = "PartitionKey"
 TESTER_ROW_KEY       = "RowKey"
-TESTER_START_URL     = "startURL"
-TESTER_STOP_URL      = "stopURL"
+TESTER_START_URL     = "startURL" # Optional: Required by stopAfter
+TESTER_STOP_URL      = "stopURL" # Optional: Required by stopAfter
 TESTER_URL           = "url"
 TESTER_SECRET        = "secret"
-TESTER_STOP_AFTER    = "stopAfter"
+TESTER_STOP_AFTER    = "stopAfter" # Optional: Number of seconds to keep alive
 ##################################
 
 DB_NAME =  os.getenv(ENV_DB_NAME) or "development"  # Mongo db name

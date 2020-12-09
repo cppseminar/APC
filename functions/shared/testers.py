@@ -9,6 +9,7 @@ import logging
 import math
 import os
 import socket
+import urllib.parse
 from typing import Dict, Any, Optional, Tuple
 
 from ..shared import common, core, mongo
@@ -77,7 +78,7 @@ def send_message(message: dict, path: str, tester: TesterConfig, method="POST") 
         str_response = response.read()
         return response.getcode(), str_response.decode("utf-8")
     except (ConnectionRefusedError, TimeoutError, socket.timeout):
-        logging.warning("Connection to tester %s refused.", tester.name)
+        logging.warning("Connection to vm %s (%s) timeout", tester.name, path)
         raise TimeoutError(f"Tester {tester.name} is offline")
     except Exception as error:
         logging.error(
@@ -158,3 +159,33 @@ def dict_to_tester(entry: dict):
         stop_after=stop_after or None,
     )
 
+def start_automation_job(url: str) -> bool:
+    """Posts to azure automation."""
+    url = str(url)
+    url_parts = urllib.parse.urlparse(url)
+    # Remove protocol from url
+    uri = urllib.parse.urlunparse(["", *url_parts[1:]]).lstrip('/')
+    # Remove also HOST, but not slash after HOST
+    uri = uri.replace(url_parts.netloc, "", 1)
+
+    connection = None
+    if url_parts[0] != "https" or not url_parts.netloc:
+        raise ValueError(f"Bad url format/protocol {url}")
+    connection = http.client.HTTPSConnection(
+        url_parts.netloc, timeout=10
+    )
+
+    try:
+        connection.request("POST", uri , bytes())
+        response = connection.getresponse()
+        if response.status > 299:
+            logging.error(
+                "Azure automation returned http %s for %s",
+                response.status,
+                url
+            )
+            return False
+        return True
+    except (TimeoutError, ConnectionRefusedError, socket.timeout):
+        logging.error("Azure automation to wake up %s timed out", tester.name)
+        return False
