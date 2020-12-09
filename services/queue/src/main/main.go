@@ -25,18 +25,20 @@ type requestMessage struct {
 }
 
 type statusResponse struct {
-	Running   bool
-	TimeStamp time.Time
+	Running   bool  `json:"running"`
+	TimeStamp int64 `json:"timestamp"`
 }
 
 var schema *gojsonschema.Schema
 
 var queue = make(chan requestMessage, 100)
 
+// mtx protects requests and lastRequest
 var mtx sync.Mutex
-
 var requests int = 0
-var lastRequest time.Time
+var lastRequest int64 = time.Now().Unix()
+
+/////////////////////////////////////////
 
 const envVolumeName = "VOLUME_NAME"
 
@@ -183,7 +185,7 @@ func requestFinished() {
 
 	requests-- // another one bites the dust...
 
-	lastRequest = time.Now()
+	lastRequest = time.Now().Unix()
 }
 
 func processMessages() {
@@ -293,7 +295,7 @@ func main() {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
-		Handler:      http.HandlerFunc(ServerHandler),
+		Handler:      http.HandlerFunc(serverHandler),
 	}
 
 	// start process messages queue
@@ -384,12 +386,17 @@ func processStartRequest() int {
 }
 
 func processStatusRequest(w http.ResponseWriter) int {
-	mtx.Lock()
-	defer mtx.Unlock()
 
 	body, err := json.Marshal(&statusResponse{
-		Running:   requests != -1,
-		TimeStamp: map[bool]time.Time{true: time.Now(), false: lastRequest}[requests > 0],
+		Running: requests != -1,
+		TimeStamp: func() int64 {
+			mtx.Lock()
+			defer mtx.Unlock()
+			if requests > 0 {
+				return time.Now().Unix()
+			}
+			return lastRequest
+		}(),
 	})
 
 	if err != nil {
@@ -406,7 +413,7 @@ func processStatusRequest(w http.ResponseWriter) int {
 	return http.StatusOK
 }
 
-func ServerHandler(w http.ResponseWriter, r *http.Request) {
+func serverHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/test" && r.Method == "POST" {
 		w.WriteHeader(processTestRequest(r))
 	} else if r.URL.Path == "/stop" && r.Method == "POST" {
