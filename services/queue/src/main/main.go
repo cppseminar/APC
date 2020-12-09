@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"services/queue/docker"
@@ -23,9 +24,21 @@ type requestMessage struct {
 	Memory      int // in megabytes
 }
 
+type statusResponse struct {
+	Running   bool  `json:"running"`
+	TimeStamp int64 `json:"timestamp"`
+}
+
 var schema *gojsonschema.Schema
 
 var queue = make(chan requestMessage, 100)
+
+// mtx protects requests and lastRequest
+var mtx sync.Mutex
+var requests int = 0
+var lastRequest int64 = time.Now().Unix()
+
+/////////////////////////////////////////
 
 const envVolumeName = "VOLUME_NAME"
 
@@ -153,6 +166,28 @@ func getSchema() *gojsonschema.Schema {
 	return schema
 }
 
+// it returns false it service is ending and we should not continue
+func requestStarted() bool {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	if requests == -1 {
+		return false
+	}
+
+	requests++
+	return true
+}
+
+func requestFinished() {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	requests-- // another one bites the dust...
+
+	lastRequest = time.Now().Unix()
+}
+
 func processMessages() {
 	var msgPointer *requestMessage = nil
 
@@ -170,6 +205,8 @@ func processMessages() {
 		msgPointer = &msg
 
 		func() {
+			defer requestFinished()
+
 			var volume = getVolume()
 			var dir = volume.DirPath
 
@@ -258,7 +295,7 @@ func main() {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
-		Handler:      http.HandlerFunc(ServerHandler),
+		Handler:      http.HandlerFunc(serverHandler),
 	}
 
 	// start process messages queue
@@ -270,11 +307,7 @@ func main() {
 	}
 }
 
-func processRequest(r *http.Request) int {
-	if r.Method != "POST" {
-		return http.StatusBadRequest
-	}
-
+func processTestRequestInternal(r *http.Request) int {
 	req, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return http.StatusInternalServerError
@@ -314,6 +347,83 @@ func processRequest(r *http.Request) int {
 	return http.StatusOK
 }
 
-func ServerHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(processRequest(r))
+func processTestRequest(r *http.Request) int {
+	shouldRun := requestStarted()
+	if !shouldRun {
+		return http.StatusServiceUnavailable
+	}
+
+	status := processTestRequestInternal(r)
+	if status != http.StatusOK {
+		requestFinished()
+	}
+
+	return status
+}
+
+func processStopRequest() int {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	if requests == 0 {
+		requests = -1 // this will signalize end of the queue
+		return http.StatusAccepted
+	}
+
+	return http.StatusExpectationFailed
+}
+
+func processStartRequest() int {
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	if requests == -1 {
+		requests = 0 // now we can start accepting requests
+		return http.StatusAccepted
+	}
+
+	return http.StatusExpectationFailed
+}
+
+func processStatusRequest(w http.ResponseWriter) int {
+
+	body, err := json.Marshal(&statusResponse{
+		Running: requests != -1,
+		TimeStamp: func() int64 {
+			mtx.Lock()
+			defer mtx.Unlock()
+			if requests > 0 {
+				return time.Now().Unix()
+			}
+			return lastRequest
+		}(),
+	})
+
+	if err != nil {
+		log.Println(err)
+		return http.StatusInternalServerError
+	}
+
+	_, err = w.Write(body)
+	if err != nil {
+		log.Println(err)
+		return http.StatusInsufficientStorage
+	}
+
+	return http.StatusOK
+}
+
+func serverHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/test" && r.Method == "POST" {
+		w.WriteHeader(processTestRequest(r))
+	} else if r.URL.Path == "/stop" && r.Method == "POST" {
+		w.WriteHeader(processStopRequest())
+	} else if r.URL.Path == "/start" && r.Method == "POST" {
+		w.WriteHeader(processStartRequest())
+	} else if r.URL.Path == "/status" && r.Method == "GET" {
+		processStatusRequest(w)
+	} else {
+		log.Printf("Unsupported request %v %v", r.Method, r.URL.Path)
+		w.WriteHeader(http.StatusNotFound)
+	}
 }

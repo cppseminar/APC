@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -14,8 +13,6 @@ import (
 	"time"
 
 	"services/input-proxy/cmd"
-
-	"gopkg.in/square/go-jose.v2"
 )
 
 const envPrivateKey string = "APC_PRIVATE_KEY"
@@ -32,81 +29,15 @@ func getSigningKey() (string, error) {
 	return strings.TrimRight(privateKey, "="), nil
 }
 
-func buildForwardURL(secure bool, host string, originalUrl url.URL) (string) {
-	var scheme string  = "https"
+func buildForwardURL(secure bool, host string, originalURL url.URL) string {
+	var scheme string = "https"
 	if !secure {
 		scheme = "http"
 	}
-	originalUrl.Scheme = scheme
-	originalUrl.Host = host
-	originalUrl.User = nil
-	return originalUrl.String()
-}
-
-func verifyJWSAndExtractPayload(body []byte) ([]byte, error) {
-	object, err := jose.ParseSigned(string(body))
-	if err != nil {
-		log.Println("Cannot parse body as JWS '", string(body), "'.")
-		return nil, err
-	}
-
-	privateKey, err := getSigningKey()
-	if err != nil {
-		panic(fmt.Sprintf("Bad env value for signing key %v", err))
-	}
-	var key jose.JSONWebKey
-	key.UnmarshalJSON([]byte(fmt.Sprintf(`{
-    "kty": "oct",
-    "use": "sig",
-    "k": "%v",
-    "alg": "HS256"
-	}`, privateKey)))
-
-	// i'm kind of scared from jose, so I added here these paranoid checks
-	// https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/?_ga=2.1739384.896580470.1599590522-1256792510.1597065586
-	if len(object.Signatures) != 1 {
-		return nil, errors.New("only one signature is allowed")
-	}
-
-	if object.Signatures[0].Header.Algorithm != "HS256" {
-		return nil, errors.New("only HS256 is allowed as signing algorithm")
-	}
-
-	output, err := object.Verify(&key)
-	if err != nil {
-		return nil, err
-	}
-
-	return output, nil
-}
-
-func processRequest(r *http.Request, destination string) int {
-	if r.Method != "POST" {
-		log.Println("Only post requests are supported!")
-		return http.StatusBadRequest
-	}
-
-	req, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Println(err)
-		return http.StatusInternalServerError
-	}
-
-	payload, err := verifyJWSAndExtractPayload(req)
-	if err != nil {
-		log.Println(err)
-		return http.StatusUnauthorized
-	}
-
-	// so here the request is verified, we are good to go
-	resp, err := client.Post(destination, "text/json", bytes.NewReader(payload))
-	if err != nil {
-		log.Println(err)
-		return http.StatusInternalServerError
-	}
-
-	// forward the error code
-	return resp.StatusCode
+	originalURL.Scheme = scheme
+	originalURL.Host = host
+	originalURL.User = nil
+	return originalURL.String()
 }
 
 var tr = &http.Transport{
@@ -114,11 +45,6 @@ var tr = &http.Transport{
 	IdleConnTimeout:        30 * time.Second,
 	MaxResponseHeaderBytes: 1024,
 }
-
-var client = &http.Client{Transport: tr}
-
-// key should be base64 encoded
-
 
 func main() {
 	port, queueURL := cmd.Execute()
@@ -166,10 +92,11 @@ func parseParamURL(rawURL string) (string, error) {
 	}
 	return (&url.URL{
 		Scheme: parsedURL.Scheme,
-		Host: parsedURL.Host,
+		Host:   parsedURL.Host,
 	}).String(), nil
 }
 
+// Crates handler for http.Server. Handler will forward requests to forwardURL
 func createHandler(forwardURL string) (func(http.ResponseWriter, *http.Request), error) {
 	var parsedURL string
 	var err error
@@ -180,8 +107,7 @@ func createHandler(forwardURL string) (func(http.ResponseWriter, *http.Request),
 
 	log.Printf("Proxy will forward requests to %v", parsedURL)
 
-
-	handler := func (w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		// limit body size to something sensible https://stackoverflow.com/q/28282370/4807781
 		r.Body = http.MaxBytesReader(w, r.Body, 100000)
 		err := r.ParseForm()
@@ -191,20 +117,55 @@ func createHandler(forwardURL string) (func(http.ResponseWriter, *http.Request),
 			return
 		}
 
-		status := processRequest(r, parsedURL)
-		if status != http.StatusOK {
-			log.Println("Request",
-				r.Method,
-				r.Host,
-				r.Proto,
-				"remote addr", r.RemoteAddr,
-				"ended up with status", status)
+		privateKey, err := getSigningKey()
+		if err != nil {
+			panic(fmt.Sprintf("Bad env value for signing key %v", err))
 		}
 
-		w.WriteHeader(status)
+		payload, err := verifyAndExtract(r, privateKey)
+		if err != nil {
+			log.Printf("Error %v \nWrong request:\n%#v", err, r)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		client := http.Client{
+			Timeout: 5 * time.Second,
+		}
+
+		// Here we really don't expect ANY errors, because this url was just
+		// built few lines above.
+		forwardURL, _ := url.Parse(parsedURL)
+
+		queueURL := buildForwardURL(forwardURL.Scheme == "https", forwardURL.Host, *r.URL)
+		internalRequest, err := http.NewRequest(r.Method, queueURL, bytes.NewReader(payload))
+		if err != nil {
+			log.Printf("Cannot create forward request %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		internalResponse, err := client.Do(internalRequest)
+		if err != nil {
+			log.Printf("Forward request error %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		defer internalResponse.Body.Close()
+
+		responseBody := bytes.Buffer{}
+
+		if _, err = responseBody.ReadFrom(internalResponse.Body); err != nil {
+			log.Println("Error reading response from queue")
+			log.Println(*internalRequest)
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		} else {
+			w.WriteHeader(internalResponse.StatusCode)
+			w.Write(responseBody.Bytes())
+		}
 	}
-
-
 	return handler, nil
 }
-

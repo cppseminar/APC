@@ -403,6 +403,11 @@ class MongoTests:
         task_name="",
         case_name="",
     ):
+        description = (
+            "Test run is not finished."
+            "\nPlease come back later."
+            "\nIf you see this message for more than 10 minutes, contact admin."
+        )
         collection = get_client().get_tests()
         document = {
             common.COL_TESTS_USER: user,
@@ -412,7 +417,7 @@ class MongoTests:
             "caseName": case_name,
             "taskName": task_name,
             "taskId": task_id,
-            "description": "Test run is not finished.\nCheck back later.",
+            "description": description,
         }
         result = collection.insert_one(document)
 

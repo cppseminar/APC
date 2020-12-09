@@ -11,7 +11,7 @@ from functions.shared.decorators import (
     DESTINATION,
 )
 from functions.shared.common import (
-    HEADER_EMAIL,
+    HTTP_HEADER_EMAIL,
     HTTP_HEADER_HOST,
     HTTP_HEADER_PORT,
     HTTP_HEADER_PROTOCOL,
@@ -40,7 +40,7 @@ class TestLoginRequired:
     def test_login(self, mock):
         call_count = 0
         request = MagicMock()
-        request.headers = {HEADER_EMAIL: "abcd@efg.hij"}
+        request.headers = {HTTP_HEADER_EMAIL: "abcd@efg.hij"}
 
         def _fnc(req):
             nonlocal call_count
@@ -50,7 +50,7 @@ class TestLoginRequired:
         assert call_count == 1
 
         # We don't accept this as email
-        request.headers = {HEADER_EMAIL: "abcd@efg"}
+        request.headers = {HTTP_HEADER_EMAIL: "abcd@efg"}
         login_required(_fnc)(request)
         assert call_count == 1
         assert mock.call_count == 0
@@ -59,7 +59,7 @@ class TestLoginRequired:
     def test_login_user_param(self, mock):
         call_count = 0
         request = MagicMock()
-        request.headers = {HEADER_EMAIL: "abcd@efg.hij"}
+        request.headers = {HTTP_HEADER_EMAIL: "abcd@efg.hij"}
 
         @login_required
         def _fnc(req, user=None):

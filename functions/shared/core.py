@@ -19,15 +19,11 @@ def cerberus_object_id_validator(field, value, error):
     if not ObjectId.is_valid(value):
         error(field, "value doesn't seem like object id")
 
-
-@dataclasses.dataclass
-class ModelBase(ABC):
+class DataclassDict(ABC):
     """Base class for all of our mongo models.
 
     map_item and filter_item can be overriden, to modify output.
     """
-
-    _id: ObjectId
 
     def __iter__(self):
         return iter(
@@ -46,6 +42,11 @@ class ModelBase(ABC):
         """Called before map_items. You can disable output for some fields, by
         returning False."""
         return True
+
+@dataclasses.dataclass
+class ModelBase(DataclassDict):
+    _id: ObjectId
+
 
 
 class MongoEncoder(json.JSONEncoder):
