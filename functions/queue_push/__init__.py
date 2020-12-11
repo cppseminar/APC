@@ -30,6 +30,9 @@ async def main(msg: func.QueueMessage, starter: str) -> None:
                 body,
             )
     except TimeoutError as error:
+        if tester.start_url is None:
+            logging.error("Tester %s turned off. Autostart unavailable",tester.name)
+            return
         logging.info("Starting vm tester %s", tester.name)
         client = DurableOrchestrationClient(starter)
         await client.start_new("start-vm-orchestrator", client_input=body.decode("utf-8"))

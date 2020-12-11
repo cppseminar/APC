@@ -48,3 +48,12 @@ class TestTesterConstruct:
         with pytest.raises(ValueError):
             result = testers.dict_to_tester(entry)
 
+
+    def test_not_configured(self):
+        """When stop after is not configured, start and stop must be None."""
+        entry = self.get_dict()
+        result = testers.dict_to_tester(entry)
+        assert result.name
+        assert result.stop_after is None
+        assert result.stop_url is None
+        assert result.start_url is None

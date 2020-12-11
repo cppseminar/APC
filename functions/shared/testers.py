@@ -12,14 +12,15 @@ import socket
 import urllib.parse
 from typing import Dict, Any, Optional, Tuple
 
-from ..shared import common, core, mongo
-
 from jose import jws
 from azure.cosmosdb.table.tableservice import TableService
-from azure.cosmosdb.table.models import Entity
+
+from ..shared import common, core, mongo
+
 
 @dataclasses.dataclass
 class TesterConfig:
+    """Configurations of tester vms loaded from azure tables."""
     name: str
     url: str
     secret: bytes
@@ -29,6 +30,9 @@ class TesterConfig:
 
 @dataclasses.dataclass
 class TestRequest(core.DataclassDict):
+    """Fields required by testers.
+
+    This class is thanks to it's parent, castable to dict."""
     return_url: str
     files: Dict[str, Any]
     docker_image: str
@@ -44,8 +48,7 @@ class TestRequest(core.DataclassDict):
             "memory": "memory",
         }
         key, value = item
-        if key in mapper:
-            key = mapper[key]
+        key = mapper.get(key, key)
         return key, value
 
 
@@ -140,7 +143,7 @@ def dict_to_tester(entry: dict):
     url = entry.get(common.TESTER_URL)
     stop_url = entry.get(common.TESTER_STOP_URL)
     start_url = entry.get(common.TESTER_START_URL)
-    secret = base64.decodebytes(entry.get(common.TESTER_SECRET,"").encode("utf-8"))
+    secret = base64.decodebytes(entry.get(common.TESTER_SECRET, "").encode("utf-8"))
     with contextlib.suppress(ValueError):
         stop_after = -1
         stop_after = int(entry.get(common.TESTER_STOP_AFTER, 0))
@@ -148,8 +151,9 @@ def dict_to_tester(entry: dict):
         raise ValueError(f"Url and Secret are required for vm f{name}")
     if stop_after > 0 and (not start_url or not stop_url):
         raise ValueError(f"Missing start and stop urls for f{name}")
-    if not stop_after > 0:  # Stop after not set, or set to invalid value
+    if stop_after <= 0:  # Stop after not set, or set to invalid value
         stop_after = 0
+        start_url = stop_url = None
     return TesterConfig(
         name=name,
         url=url,
@@ -176,7 +180,7 @@ def start_automation_job(url: str) -> bool:
     )
 
     try:
-        connection.request("POST", uri , bytes())
+        connection.request("POST", uri, bytes())
         response = connection.getresponse()
         if response.status > 299:
             logging.error(
@@ -187,5 +191,5 @@ def start_automation_job(url: str) -> bool:
             return False
         return True
     except (TimeoutError, ConnectionRefusedError, socket.timeout):
-        logging.error("Azure automation to wake up %s timed out", tester.name)
+        logging.error("Azure automation to wake up timed out - %s", url)
         return False
