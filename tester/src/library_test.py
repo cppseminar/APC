@@ -1,6 +1,7 @@
 """Module containing tests for library module."""
 
 import contextlib
+import io
 import pathlib
 import tempfile
 import os
@@ -188,3 +189,29 @@ class TestGlobalTmpFolder:
         assert os.path.exists(folder)
         del library.GlobalTmpFolder._DELETER
         assert not os.path.exists(folder)
+
+class TestBinaryDiff:
+    def test_empty(self):
+        stream1 = io.BytesIO(bytes())
+        stream2 = io.BytesIO(bytes())
+        result, _ = library.binary_diff(stream1, stream2)
+        assert result == True
+
+    def test_unequal_size(self):
+        stream1 = io.BytesIO(b"ahoj ako sa mas")
+        stream2 = io.BytesIO(b"ahoj mam sa dobre")
+        result, _ = library.binary_diff(stream1, stream2)
+        assert result == False
+
+    def test_unequal(self):
+        stream1 = io.BytesIO(b"ahoj mas sa dobre?")
+        stream2 = io.BytesIO(b"ahoj mam sa dobre!")
+        result, message = library.binary_diff(stream1, stream2)
+        assert message == "6a | 20 | 6d | 61 | 73!=6d on position 8"
+        assert result == False
+
+    def test_equal(self):
+        stream1 = io.BytesIO(b"ahoj mam sa dobre!")
+        stream2 = io.BytesIO(b"ahoj mam sa dobre!")
+        result, _ = library.binary_diff(stream1, stream2)
+        assert result == True

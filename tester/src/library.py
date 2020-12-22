@@ -1,12 +1,13 @@
 """Module containing useful functions used across testscripts."""
 import collections
 import contextlib
+import io
 import itertools
 import pathlib
 import re
 import tempfile
 import weakref
-from typing import List, Iterable, Optional, Tuple
+from typing import List, Iterable, Optional, Tuple, Deque
 
 # pylint: disable=no-self-use
 # pylint: disable=too-few-public-methods
@@ -159,3 +160,30 @@ class GlobalTmpFolder:
     def __str__(self):
         """Behave as mkdtemp result, ie. return file path."""
         return self.name
+
+
+def binary_diff(stream1: io.RawIOBase, stream2: io.RawIOBase) -> Tuple[bool, str]:
+    """Given two streams, checks binary equivalence.
+
+    Returns boolean indicating whether streams are equivalent and human readable
+    message.
+    """
+    old_bytes: Deque[int]  = collections.deque(maxlen=4)
+    total_size, chunk_size = 0, 4096
+    while True:
+        chunk1 = stream1.read(chunk_size)
+        chunk2 = stream2.read(chunk_size)
+        assert isinstance(chunk1, bytes)
+        assert isinstance(chunk2, bytes)
+        if size_diff := (len(chunk1) - len(chunk2)):
+            return False, f"Unequal size. Difference is {abs(size_diff)}"
+        if not len(chunk1):
+            return True, "Streams are equivalent"
+        for i in range(len(chunk1)):
+            if chunk1[i] != chunk2[i]:
+                message = " | ".join(map(lambda x: f"{x:02x}", old_bytes))
+                message += f" | {chunk1[i]:02x}!={chunk2[i]:02x}"
+                message += f" on position {total_size + i + 1}"
+                return False, message
+            old_bytes.append(chunk1[i])
+        total_size += len(chunk1)
