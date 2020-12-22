@@ -17,6 +17,7 @@ from typing import Dict, List, Any
 
 import infrastructure
 import runner
+import library
 
 _logger = infrastructure.set_logger(__name__)
 
@@ -388,8 +389,103 @@ class HuffmanFormatEvaluator(infrastructure.Module):
         )
         return True
 
+class PbmEvaluator(infrastructure.Module):
+    """Compares if different pgm images are actually the same when displayed.
+
+    This class requires python pgmagick library.
+    """
+    SETTINGS = {
+        "input_identification": infrastructure.AnyStringParser(),
+        "required_format": ["P1", "P2", "P3", "P4", "P5", "P6"],
+        "expected_image": infrastructure.FileNameParser(),
+        "payload": [True, False],
+    }
+
+    def __init__(self, name):
+        """Register event and check if pgmagick is installed."""
+        super().__init__(name)
+        self.register_event(runner.RunOutput)
+        import pgmagick  # Try if it is importable
+        self.register_setting(
+            "folder",
+            parser=infrastructure.TmpFolderCreator(
+                name_parts=["pgm"], cleanup=True
+            ),
+        )
+
+    def notify(self, notification):
+        if self.settings["payload"]:
+            super().notify(notification)
+        else:
+            new_notification = infrastructure.Notification(
+                notification.message,
+                notification.severity
+            )
+            super().notify(new_notification)
+
+    def handle_internal(self, event: runner.RunOutput):
+        """Check image."""
+        if event.identification != self.settings['input_identification']:
+            return False
+        identification = f"[{self.__class__.__name__}] {self.name}"
+        with open(event.output_file, "r") as _image:
+            image_format = _image.read(2)
+            if self.settings["required_format"] != image_format:
+                self.notify(
+                    infrastructure.Notification(
+                        f"{identification} Bad format",
+                        infrastructure.MessageSeverity.ERROR,
+                        (
+                            f"Got {image_format} "
+                            f"Expected {self.settings['required_format']}"
+                        ),
+                    )
+                )
+                return True
+        # Ok image format is correct, now let's check if images are equivalent
+        import pgmagick
+        try:
+            image1 = pgmagick.Image(self.settings["expected_image"])
+            image1.channelDepth(pgmagick.ChannelType.AllChannels, 8)
+            image2 = pgmagick.Image(event.output_file)
+            image2.channelDepth(pgmagick.ChannelType.AllChannels, 8)
+            tmp_path = self.settings["folder"]
+            path1 = os.path.join(tmp_path, "image1.bmp")
+            path2 = os.path.join(tmp_path, "image2.bmp")
+            image1.write(path1)
+            image2.write(path2)
+            with open(path1, "rb") as f1, open(path2, "rb") as f2:
+                result, message = library.binary_diff(f1, f2)
+            if result:
+                self.notify(
+                    infrastructure.Notification(
+                        f"{identification} - Correct",
+                        infrastructure.MessageSeverity.INFO,
+                    )
+                )
+            else:
+                self.notify(
+                    infrastructure.Notification(
+                        f"{identification} - diff error",
+                        infrastructure.MessageSeverity.ERROR,
+                        message,
+                    )
+                )
+        except Exception as error:
+            _logger.error("Error %s", error)
+            self.notify(
+                infrastructure.Notification(
+                    f"{identification} - Test failure",
+                    infrastructure.MessageSeverity.ERROR,
+                )
+            )
+
 
 if __name__ == '__main__':
+    from pgmagick import Image
+    image = Image("image.pbm")
+    image.write("image.bmp")
+    exit(0)
     parser = argparse.ArgumentParser()
     parser.description = ('This script calculates expected file size '
                           'after encoded by  huffman coding.')

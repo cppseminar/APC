@@ -105,12 +105,13 @@ if __name__ == "__main__":
     script.add_class(evaluators.CsvSortEvaluator)
     script.add_class(evaluators.StderrCatcher)
     script.add_class(evaluators.HuffmanFormatEvaluator)
+    script.add_class(evaluators.PbmEvaluator)
 
     with open("./config.ini", "r") as f:
         script.load_ini_settings(f)
 
-    with open("./test.ini", "w") as f:
-        script.dump_ini_settings(f)
+    # with open("./test.ini", "w") as f:
+    #    script.dump_ini_settings(f)
 
     script.add_event('start')
     script.run()
