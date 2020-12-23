@@ -392,7 +392,7 @@ class HuffmanFormatEvaluator(infrastructure.Module):
 class PbmEvaluator(infrastructure.Module):
     """Compares if different pgm images are actually the same when displayed.
 
-    This class requires python pgmagick library.
+    This class requires python opencv (cv2) library.
     """
     SETTINGS = {
         "input_identification": infrastructure.AnyStringParser(),
@@ -402,10 +402,10 @@ class PbmEvaluator(infrastructure.Module):
     }
 
     def __init__(self, name):
-        """Register event and check if pgmagick is installed."""
+        """Register event and check if cv2 is installed."""
         super().__init__(name)
         self.register_event(runner.RunOutput)
-        import pgmagick  # Try if it is importable
+        import cv2  # Try if it is importable
         self.register_setting(
             "folder",
             parser=infrastructure.TmpFolderCreator(
@@ -445,17 +445,15 @@ class PbmEvaluator(infrastructure.Module):
                 )
                 return True
         # Ok image format is correct, now let's check if images are equivalent
-        import pgmagick
+        import cv2
         try:
-            image1 = pgmagick.Image(self.settings["expected_image"])
-            image1.magick("BMP")
-            image2 = pgmagick.Image(event.output_file)
-            image2.magick("BMP")
+            image1 = cv2.imread(self.settings["expected_image"])
+            image2 = cv2.imread(event.output_file)
             tmp_path = self.settings["folder"]
             path1 = os.path.join(tmp_path, "image1.bmp")
             path2 = os.path.join(tmp_path, "image2.bmp")
-            image1.write(path1)
-            image2.write(path2)
+            cv2.imwrite(path1, image1)
+            cv2.imwrite(path2, image2)
             with open(path1, "rb") as f1, open(path2, "rb") as f2:
                 result, message = library.binary_diff(f1, f2)
             if result:
