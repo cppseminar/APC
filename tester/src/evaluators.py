@@ -428,8 +428,10 @@ class PbmEvaluator(infrastructure.Module):
         if event.identification != self.settings['input_identification']:
             return False
         identification = f"[{self.__class__.__name__}] {self.name}"
-        with open(event.output_file, "r") as _image:
-            image_format = _image.read(2)
+        with open(event.output_file, "rb") as _image:
+            image_format = ""
+            with contextlib.suppress(Exception):
+                image_format = _image.read(2).decode("ascii")
             if self.settings["required_format"] != image_format:
                 self.notify(
                     infrastructure.Notification(
