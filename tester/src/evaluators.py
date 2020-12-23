@@ -446,9 +446,9 @@ class PbmEvaluator(infrastructure.Module):
         import pgmagick
         try:
             image1 = pgmagick.Image(self.settings["expected_image"])
-            image1.channelDepth(pgmagick.ChannelType.AllChannels, 8)
+            image1.magick("BMP")
             image2 = pgmagick.Image(event.output_file)
-            image2.channelDepth(pgmagick.ChannelType.AllChannels, 8)
+            image2.magick("BMP")
             tmp_path = self.settings["folder"]
             path1 = os.path.join(tmp_path, "image1.bmp")
             path2 = os.path.join(tmp_path, "image2.bmp")
