@@ -78,7 +78,7 @@ const schemaStr = `
 			  "^[A-Za-z0-9_\\-\\.]{4,250}$": {
 				  "type": "string",
 				  "minLength": 1,
-				  "maxLength": 102400
+				  "maxLength": 512000
 			  }
 			},
 			"examples": [

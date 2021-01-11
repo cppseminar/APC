@@ -108,8 +108,12 @@ func createHandler(forwardURL string) (func(http.ResponseWriter, *http.Request),
 	log.Printf("Proxy will forward requests to %v", parsedURL)
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		// limit body size to something sensible https://stackoverflow.com/q/28282370/4807781
-		r.Body = http.MaxBytesReader(w, r.Body, 100000)
+		// limit body size to triple allowed max size for file (500KB). Even
+		// with only one file submitted, if stringified it can easily grow
+		// double it's size e.g. file full of new lines. There is also some json
+		// overhead with other fields.  Lastly, we can possibly submit more
+		// files, so let's at least double the size again
+		r.Body = http.MaxBytesReader(w, r.Body, 1024*500*3*2)
 		err := r.ParseForm()
 		if err != nil {
 			log.Println(err)

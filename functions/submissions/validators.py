@@ -21,7 +21,7 @@ POST_SCHEMA = {
                     "fileContent": {
                         "type": "string",
                         "minlength": 1,
-                        "maxlength": 1024 * 100,  # 100KB max file size
+                        "maxlength": 1024 * 500,  # 500KB max file size
                     },
                 },
             }
