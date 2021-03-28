@@ -29,6 +29,10 @@
             </allowed-headers>
         </cors>
         <choose>
+            <!-- This condition is important for two reasons -->
+            <!-- 1. We send results from tester via PATCH -->
+            <!-- 2. We send keep alive messages via PATCH, so we don't need to ping azure functions directly -->
+            <!-- WARNING: All PATCH requests are automatically authorized, so don't allow PATCH method on your functions -->
             <when condition="@(context.Request.Method != "PATCH")">
                 <validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Authentication failed" require-expiration-time="true" require-scheme="Bearer" require-signed-tokens="true" clock-skew="10" output-token-variable-name="validated-jwt">
                     <openid-config url="https://accounts.google.com/.well-known/openid-configuration" />
