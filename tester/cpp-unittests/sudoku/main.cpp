@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
-#include "catch.hpp"
-#include "support-wrap.hpp"
+#include "../support/catch.hpp"
+#include "../support/support-wrap.hpp"
 
 #include <string>
 #include <cstdlib>
