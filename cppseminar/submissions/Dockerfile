@@ -6,11 +6,14 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
-COPY ["submissions/submissions.csproj", "submissions/"]
-RUN dotnet restore "submissions/submissions.csproj"
+COPY ["submissions.csproj", "./submissions.csproj"]
+RUN dotnet restore "submissions.csproj"
 COPY . .
-WORKDIR "/src/submissions"
+WORKDIR "/src"
 RUN dotnet build "submissions.csproj" -c Release -o /app/build
+
+FROM build as dev
+CMD dotnet watch run --urls=http://0.0.0.0:5004
 
 FROM build AS publish
 RUN dotnet publish "submissions.csproj" -c Release -o /app/publish

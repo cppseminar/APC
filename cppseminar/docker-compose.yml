@@ -1,0 +1,35 @@
+# This is used for dev purposes only
+services:
+    submissions.local:
+        build:
+            context: ./submissions
+            target: dev
+        volumes:
+            - ./submissions/:/src
+        ports:
+            - 8081:5004
+        networks:
+            - sharednet
+        environment:
+            DOTNET_USE_POLLING_FILE_WATCHER: 1
+            DOTNET_WATCH_SUPPRESS_MSBUILD_INCREMENTALISM: 1
+            DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
+            DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
+    presentation.local:
+        build:
+            context: ./presentation
+            target: dev
+        volumes:
+            - ./presentation/:/src
+        networks:
+            - sharednet
+        ports:
+            - 8080:8080
+        environment:
+            DOTNET_USE_POLLING_FILE_WATCHER: 1
+            DOTNET_WATCH_SUPPRESS_MSBUILD_INCREMENTALISM: 1
+            DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
+            DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
+
+networks:
+    sharednet: {}
