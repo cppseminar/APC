@@ -12,6 +12,8 @@ namespace submissions.Models
         public string TaskId { get; set; }
         [Required]
         public string UserEmail { get; set; }
+        // Name is combination of task name and submission date
+        public string Name { get; set; }
         public System.DateTime SubmittedOn { get; set; }
 
 

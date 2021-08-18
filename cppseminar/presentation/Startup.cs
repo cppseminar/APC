@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using presentation.Services;
+
 namespace presentation
 {
     public class Startup
@@ -22,6 +24,7 @@ namespace presentation
                 options.AppendTrailingSlash = true;
                 options.LowercaseUrls = true;
             });
+            services.AddSingleton<SubmissionService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
