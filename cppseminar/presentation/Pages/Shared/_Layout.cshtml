@@ -7,11 +7,15 @@
 </head>
 <body>
     <header>
-        <ul>
-            <li><th:a asp-page="/Index">Home</th:a></li>
-            <li><th:a asp-page="/Submissions/Index" >Submissions</th:a></li>
-            <li>Tests</li>
-        </ul>
+        <div>
+            <ul>
+                <li><th:a asp-page="/Index">Home</th:a></li>
+                <li><th:a asp-page="/Submissions/Index">Submissions</th:a></li>
+            </ul>
+        </div>
+        <div>
+            <th:partial name="_UserPanel.cshtml"/>
+        </div>
     </header>
     <div>
         @RenderBody()

@@ -11,9 +11,11 @@ using Microsoft.Extensions.Logging;
 
 using presentation.Model;
 using presentation.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace presentation.Pages.Submissions
 {
+    [Authorize]
     public class IndexModel : PageModel
     {
         public IndexModel(ILogger<IndexModel> logger, SubmissionService submissionService)

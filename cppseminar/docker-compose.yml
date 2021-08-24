@@ -36,6 +36,11 @@ services:
             DOTNET_WATCH_SUPPRESS_MSBUILD_INCREMENTALISM: 1
             DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
             DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
+        deploy:
+            restart_policy:
+                max_attempts: 20
+                window: 8s # We have some start-up time
+
 
 networks:
     sharednet: {}

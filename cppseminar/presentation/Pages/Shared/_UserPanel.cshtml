@@ -1,0 +1,11 @@
+@using System.Security.Claims; 
+
+@if(Context.User.Identity.IsAuthenticated)
+{
+    <span>@User.Identity.Name</span>
+    <span>@User.FindFirst(claim => claim.Type == ClaimTypes.Email).Value</span>
+}
+else
+{
+    <span>Not signed in</span>
+}
