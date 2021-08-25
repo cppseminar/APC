@@ -299,6 +299,11 @@ int process_wait(process_t *process, int timeout)
             default:
             {
                 // we have succesfully waited for the process
+                if (WIFSIGNALED(process->status)) {
+                    fprintf(stderr, "Child process terminated %d.", process->status);
+                    return EXIT_FAILURE;
+                }
+     
                 return WEXITSTATUS(process->status);
             }
             }
@@ -334,7 +339,7 @@ void process_close(process_t *process)
     if (process->status == -2) {
         if (kill(process->pid, SIGKILL) < 0) {
             perror("Kill of child process failed");
-            return; // here we may leak process descriptor, but butter than infinite wait
+            return; // here we may leak process descriptor, but better than infinite wait
         }
 
         process_wait(process, -1); // if kill is OK this should return immediatelly

@@ -119,3 +119,12 @@ inline void RemoveFile(const std::filesystem::path& path) {
         throw std::runtime_error("Cannot delete file");
     }
 }
+
+inline std::string GetSubmissionPath() {
+    const char* submission = std::getenv("SUBMISSIONPATH");
+    if (submission == NULL) {
+        submission = "./submission";
+    }
+
+    return submission;
+}

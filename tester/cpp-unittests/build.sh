@@ -1,5 +1,0 @@
-#!/bin/sh
-g++-11 -o submission submission.cpp -fsanitize=address -fsanitize=leak -D_GLIBCXX_DEBUG -Wall -Wextra -Wformat=2 -Wlogical-op -Wmissing-include-dirs -Wredundant-decls -Wstrict-overflow=2 -Wundef -Wnull-dereference -Wuninitialized -Walloca -Wcast-qual
-gcc-11 -c -g --std=c17 -o support.o support.c -fsanitize=address -fsanitize=leak -D_GLIBCXX_DEBUG -Wall -Wextra -Wformat=2 -Wlogical-op -Wmissing-include-dirs -Wredundant-decls -Wstrict-overflow=2 -Wundef -Wnull-dereference -Wuninitialized -Walloca
-g++-11 -c -g --std=c++20 -o main.o main.cpp -fsanitize=address -fsanitize=leak -D_GLIBCXX_DEBUG -Wall -Wextra -Wformat=2 -Wlogical-op -Wmissing-include-dirs -Wredundant-decls -Wstrict-overflow=2 -Wundef -Wnull-dereference -Wuninitialized -Walloca -Wcast-qual
-g++-11 -o main support.o main.o -lasan
