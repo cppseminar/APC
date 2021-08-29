@@ -3,10 +3,10 @@ using submissions.Models;
 
 namespace submissions.Data
 {
-    public sealed class SubmissionContext : DbContext
+    public sealed class CosmosContext : DbContext
     {
 
-        public SubmissionContext(DbContextOptions<SubmissionContext> options)
+        public CosmosContext(DbContextOptions<CosmosContext> options)
         : base(options)
         {
 

@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using submissions.Data;
 using submissions.Models;
+using submissions.Services;
 
 namespace submissions.Controllers
 {
@@ -14,10 +16,11 @@ namespace submissions.Controllers
     [Route("[controller]")]
     public class SubmissionController : Controller
     {
-        public SubmissionController(SubmissionContext context, ILogger<SubmissionController> logger)
+        public SubmissionController(CosmosContext context, ILogger<SubmissionController> logger, StorageService storage)
         {
             _context = context;
             _logger = logger;
+            _storage = storage;
         }
 
         [HttpGet]
@@ -30,26 +33,22 @@ namespace submissions.Controllers
         // https://www.yogihosting.com/aspnet-core-api-controllers/
 
         [HttpPost]
-        public ActionResult<Submission> Create([FromBody] SubmissionRest submissionData)
+        public async Task<ActionResult<Submission>> Create([FromBody] SubmissionRest submissionData)
         {
-            _logger.LogInformation("Saving this {submission}", submissionData);
+            _logger.LogTrace("Saving this {submission}", submissionData);
             var submission = submissionData.GenerateSubmission();
-
-
-
-            _context.Database.EnsureCreated();
-            //_context.Submissions.Count();
-            //_logger.LogInformation("Going to save {submission}", submission);
             _context.Submissions.Add(submission);
             _context.SaveChanges();
             _logger.LogInformation("Saved submission");
+            await _storage.UploadBlobAsync(new List<string> { "foldrik", "fileik" }, new BinaryData(submissionData.Content));
 
             return submission;
         }
 
 
         // POST: SubmissionController/Delete/5
-        private SubmissionContext _context = null;
+        private CosmosContext _context = null;
         private ILogger<SubmissionController> _logger = null;
+        private StorageService _storage = null;
     }
 }

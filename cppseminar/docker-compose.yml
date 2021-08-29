@@ -5,7 +5,11 @@ services:
             context: ./submissions
             target: dev
         volumes:
-            - ./submissions/:/src
+            - ./submissions/Controllers:/src/Controllers
+            - ./submissions/Data:/src/Data
+            - ./submissions/Models:/src/Models
+            - ./submissions/Services:/src/Services
+            - ./submissions/Startup.cs:/src/Startup.cs
         ports:
             - 8081:5004
         networks:
@@ -40,7 +44,24 @@ services:
             restart_policy:
                 max_attempts: 20
                 window: 8s # We have some start-up time
-
+    azurite.local:
+        image: mcr.microsoft.com/azure-storage/azurite:3.14.0
+        volumes:
+            - azurite_data:/data
+        ports:
+            - 10000:10000
+        command:
+            - azurite-blob
+            - "--blobHost"
+            - 0.0.0.0
+        networks:
+            - sharednet
+        environment:
+            AZURITE_ACCOUNTS: azuriteuser:UGFzc3dvcmQxMjMhfg==
+# Connection string:
+# DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://localhost:10000/azuriteuser;
 
 networks:
     sharednet: {}
+volumes:
+    azurite_data: {}
