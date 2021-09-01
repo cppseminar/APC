@@ -40,7 +40,7 @@ namespace submissions.Controllers
             _context.Submissions.Add(submission);
             _context.SaveChanges();
             _logger.LogInformation("Saved submission");
-            await _storage.UploadBlobAsync(new List<string> { "foldrik", "fileik" }, new BinaryData(submissionData.Content));
+            await _storage.UploadBlobAsync(new List<string> { "foldrik", submission.Id.ToString() }, new BinaryData(submissionData.Content));
 
             return submission;
         }
