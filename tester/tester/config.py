@@ -14,7 +14,7 @@ class SubmissionMode(enum.Enum):
     BUILD = 'build'
 
 _parser = argparse.ArgumentParser()
-_parser.add_argument('conf_path', help='Path to ini file with appropriate confuguration')
+_parser.add_argument('conf_path', help='Path to ini file with appropriate configuration')
 _parser.add_argument('-C', '--configuration', help='Run just one configuration, without it will run all')
 _args = _parser.parse_args()
 

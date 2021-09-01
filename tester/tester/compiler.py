@@ -9,9 +9,9 @@ from tester.config import Config
 logger = logging.getLogger(__name__)
 
 class CompilationError(Exception):
-    def __init__(self, configuration, compiler_proc, description, file):
-        self.errorcode = compiler_proc.returncode
-        self.compiler_output = (compiler_proc.stdout or b'').decode('utf-8')
+    def __init__(self, configuration, returncode, stdout, description, file):
+        self.errorcode = returncode
+        self.compiler_output = (stdout or b'').decode('utf-8')
         self.description = description
         self.configuration = configuration
         self.file = file
@@ -23,7 +23,7 @@ class CompilationResult: # this is for successful compilation
 
 class GccCompiler:
     def __init__(self, configuration, output_path):
-        logger.debug('Creating compiler class with configuration %s output path is "%s"', configuration, output_path)
+        logger.info('Creating compiler class with configuration %s output path is "%s"', configuration, output_path)
 
         self._compiler_options = Config.get_compiler_settings(configuration)
         self._linker_options = Config.get_linker_settings(configuration)
@@ -78,12 +78,12 @@ class GccCompiler:
                 
                 logger.debug('Running g++ (compile phase) with options %s', ' '.join(args))
 
-                gcc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=90)
+                gcc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=300)
                 compile_output += gcc.stdout
             
                 if gcc.returncode != 0:
                     logger.warn('Cannot compile file "%s", check out logs at "%s"', file, self._output_path)
-                    raise CompilationError(self._configuration, gcc, 'Cannot compile file.', obj_file)
+                    raise CompilationError(self._configuration, gcc.returncode, gcc.stdout, 'Cannot compile file.', obj_file)
 
                 obj_files.append(obj_file) # add new object file to compile
 
@@ -95,22 +95,23 @@ class GccCompiler:
             args = [self._gcc_path, '-o', output, *obj_files, *self._linker_options]
             logger.debug('Running g++ (link phase) with options %s', ' '.join(args))
 
-            gcc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=90)
+            gcc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=300)
             compile_output += gcc.stdout
 
             if gcc.returncode != 0:
                 logger.error('Cannot link files, check out logs at "%s"', self._output_path)
-                raise CompilationError(self._configuration, gcc, 'Cannot link files.', output)
+                raise CompilationError(self._configuration, gcc.returncode, gcc.stdout, 'Cannot link files.', output)
             
-            logger.info('File %s successfuly compiled and linked', self._output_path)
+            logger.info('File(s) %s successfuly compiled and linked', self._output_path)
             return CompilationResult(output, compile_output.decode('utf-8'))
 
         except subprocess.TimeoutExpired as e:
-            logger.fatal('Gcc cannot compile/link files in less than 90seconds!')
+            logger.fatal('Gcc cannot compile/link files in less than 300seconds!')
             raise CompilationError(
                 self._configuration,
-                { 'returncode': errno.ETIME, 'stdout': e.stdout },
-                'Gcc reach timeout 90s.',
+                errno.ETIME,
+                e.stdout,
+                'Gcc reach timeout 300s.',
                 ''
             )
 
@@ -123,7 +124,7 @@ class GccCompiler:
 
 
     def compile(self, path):
-        logger.debug('Compilation for "%s" requested.', path)
+        logger.info('Compilation for "%s" requested.', path)
 
         if os.path.isfile(path):
             return self._compile_files([path])

@@ -77,12 +77,12 @@ class Tests:
             raise ListTestsError(catch.returncode, stderr, self.binary)
 
         stdout = catch.stdout.decode('utf-8')
-        logger.info('List of all tests returned "%s"', stdout)
+        logger.debug('List of all tests returned "%s"', stdout)
 
         return stdout.splitlines()
 
     def run_test(self, test_case, submission_binary = None):
-        logger.debug('Running test "%s" in configuration %s for binary "%s"', test_case, self.configuration, submission_binary)
+        logger.info('Running test "%s" in configuration %s for binary "%s"', test_case, self.configuration, submission_binary)
 
         temp_dir = tempfile.mkdtemp()
         logger.debug('Using folder "%s"', temp_dir)
@@ -105,8 +105,7 @@ class Tests:
         stdout = catch.stdout.decode('utf-8')
         stderr = catch.stderr.decode('utf-8')
 
-        level = logging.INFO if catch.returncode != 0 else logging.DEBUG
-
-        logger.log(level, 'Test finished errno: %d\n stdout: "%s"\n stderr: "%s"', catch.returncode, stdout, stderr)
+        logger.info('Test finished errno: %d', catch.returncode)
+        logger.debug('Test stdout: "%s"\n stderr: "%s"', stdout, stderr)
 
         return TestResult(catch.returncode, stdout, stderr)

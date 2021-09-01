@@ -147,7 +147,7 @@ def main():
     # start logger
     tester.logger.configure()
     logger.info('Tester started...')
-    logger.info(Config.dumps())
+    logger.debug(Config.dumps())
 
     try:
         test_results = {}
@@ -175,7 +175,7 @@ def main():
 
         create_success_output(binaries, test_results)
 
-        logger.debug('Finished.')
+        logger.info('Finished.')
 
     except tester.compiler.CompilationError as e:
         create_build_errors(e)
