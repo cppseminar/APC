@@ -6,14 +6,29 @@
 
 <div>
     <h3>Available tasks</h3>
-    <ul>
-        <li>Week 1</li>
-        <li>Week 2 (deadline 22.4.2040)</li>
-    </ul>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Deadline</th>
+        </tr>
+        @foreach (var task in Model.TaskList)
+        {
+            <tr>
+                <td>
+                    <th:a asp-page="/Tasks/Detail" asp-route-id="@task.Id">@task.Name</th:a>
+                </td>
+                <td>
+                    @task.Ends
+                </td>
+            </tr>
+        }
+
+    </table>
+    <p><th:a asp-page="/Tasks/Create">Create new task</th:a></p>
 </div>
 
 <div>
     <p>If you are admin TODO</p>
-    <p><th:a asp-page="/Tasks/Create">Create new task</th:a></p>
+    
 </div>
 

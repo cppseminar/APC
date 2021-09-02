@@ -1,0 +1,25 @@
+@page "{id}"
+@model presentation.Pages.Tasks.DetailModel
+@{
+}
+
+@if (!ModelState.IsValid)
+{
+    <div>
+        <th:div asp-validation-summary="All"></th:div>
+    </div>
+
+}
+
+@if (ModelState.IsValid)
+            {
+                <div>
+                    <h4>@Model.TaskDetail.Name</h4>
+                    <div>
+                        <em>
+                            @Model.TaskDetail.Description
+                        </em>
+                    </div>
+
+                </div>
+            }

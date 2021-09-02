@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using presentation.Model;
@@ -8,30 +10,24 @@ using presentation.Services;
 
 namespace presentation.Pages.Tasks
 {
-    public class IndexModel : PageModel
+    public class DetailModel : PageModel
     {
-        private ILogger<IndexModel> _logger;
+        private ILogger<DetailModel> _logger;
         private TaskService _service;
-        public IList<TaskModel> TaskList { get; set; }
+        public TaskModel TaskDetail { get; set; }
 
-
-        public IndexModel(ILogger<IndexModel> logger, TaskService service)
+        public DetailModel(ILogger<DetailModel> logger, TaskService service)
         {
             _logger = logger;
             _service = service;
         }
-        public async Task OnGetAsync()
+        public async Task OnGetAsync(string id)
         {
-            try
-            {
-                TaskList = await _service.GetAllTasksAsync();
-            }
-            catch (Exception)
+            TaskDetail = await _service.GetTaskAsync(id);
+            if (TaskDetail == null)
             {
                 ModelState.AddModelError(string.Empty, "Operation failed");
             }
-
-
         }
     }
 }
