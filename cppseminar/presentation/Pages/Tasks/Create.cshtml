@@ -1,0 +1,60 @@
+@page
+@model presentation.Pages.Tasks.CreateModel
+@{
+}
+
+
+<h3>Create new task</h3>
+@if (!ModelState.IsValid)
+{
+    <h4>Error</h4>
+    <p>Please fix following errors and resubmit</p>
+    <th:div asp-validation-summary="All"></th:div>
+}
+<th:form method="post">
+    
+    <table>
+        <tr>
+            <td>
+                <th:label asp-for="NewTask.Name">Task name*</th:label>
+            </td>
+            <td>
+                <th:input asp-for="NewTask.Name" />
+                <th:span asp-validation-for="NewTask.Name"></th:span>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <th:label asp-for="NewTask.Description">Description*</th:label>
+            </td>
+            <td>
+                <th:textarea asp-for="NewTask.Description"></th:textarea>
+                <th:span asp-validation-for="NewTask.Description"></th:span>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <th:label asp-for="NewTask.Ends">Deadline (DateTime)</th:label>
+            </td>
+            <td>
+                <th:input asp-for="NewTask.Ends" />
+                <th:span asp-validation-for="NewTask.Ends"></th:span>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <th:label asp-for="NewTask.Claim"></th:label>
+            </td>
+            <td>
+                <th:input asp-for="NewTask.Claim" />
+                <th:span asp-validation-for="NewTask.Claim"></th:span>
+            </td>
+        </tr>
+
+    </table>
+    <input type="submit" />
+</th:form>
+

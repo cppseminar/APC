@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace submissions.Models
@@ -33,7 +29,16 @@ namespace submissions.Models
         [Required]
         public string CreatedBy { get; set; }
         public DateTime CreatedOn { get; set; }
-        [Required]
-        public DateTime Ends { get; set; }
+        public DateTime Ends
+        {
+            get
+            {
+                DateTime result = ends
+                                  ?? new DateTime(DateTime.Now.Year + 1, 1, 1);
+                return result;
+            }
+            set => ends = value;
+        }
+        private DateTime? ends = null;
     }
 }

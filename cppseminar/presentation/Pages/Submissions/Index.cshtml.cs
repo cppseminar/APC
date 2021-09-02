@@ -1,17 +1,13 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using Microsoft.Extensions.Logging;
-
 using presentation.Model;
 using presentation.Services;
-using Microsoft.AspNetCore.Authorization;
 
 namespace presentation.Pages.Submissions
 {
@@ -45,7 +41,7 @@ namespace presentation.Pages.Submissions
                 var result = await _submissionService.CreateSubmissionAsync(this.MySubmission);
                 return RedirectToPage("./Success");
             }
-            catch(OperationFailedException e)
+            catch (OperationFailedException e)
             {
                 Errors.Add(e.Message);
             }

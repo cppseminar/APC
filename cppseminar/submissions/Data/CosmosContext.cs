@@ -1,8 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Cosmos;
 using submissions.Models;
-using System;
 
 namespace submissions.Data
 {

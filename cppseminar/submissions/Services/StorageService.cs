@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Configuration;
-using System.Text.RegularExpressions;
 
 namespace submissions.Services
 {
@@ -26,7 +24,7 @@ namespace submissions.Services
             {
                 // Ignore that container already exists
             }
-            
+
         }
 
         // Accepts only name normalized by NormalizeFileName

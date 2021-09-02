@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using presentation.Model;
@@ -41,12 +39,12 @@ namespace presentation.Services
                     throw new OperationFailedException();
                 }
             }
-            catch(TaskCanceledException e)
+            catch (TaskCanceledException e)
             {
                 _logger.LogWarning("Get submissions timeout/cancel {e}", e);
                 throw new OperationFailedException();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 _logger.LogError("Get submissions failed {e}", e);
                 throw new OperationFailedException();
@@ -77,7 +75,7 @@ namespace presentation.Services
                     throw new OperationFailedException();
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 _logger.LogWarning("Create submission failed {e}", e);
                 throw new OperationFailedException();

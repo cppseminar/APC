@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace presentation.Model
 {
     public class Submission

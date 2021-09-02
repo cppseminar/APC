@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -45,7 +43,7 @@ namespace submissions.Controllers
             _context.Tasks.Add(fullTask);
             await _context.SaveChangesAsync();
             return CreatedAtAction("Get", fullTask);
-            
+
         }
 
         private CosmosContext _context = null;
