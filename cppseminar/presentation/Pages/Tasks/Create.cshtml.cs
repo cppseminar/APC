@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
@@ -12,7 +11,6 @@ namespace presentation.Pages.Tasks
 {
     // TODO: Require sign in
     // TODO: Require claim
-    [Authorize]
     public class CreateModel : PageModel
     {
         public CreateModel(ILogger<CreateModel> logger, TaskService taskService)
