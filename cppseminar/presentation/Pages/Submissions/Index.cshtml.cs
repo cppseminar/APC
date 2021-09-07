@@ -20,7 +20,15 @@ namespace presentation.Pages.Submissions
 
         public async Task OnGetAsync()
         {
-            Submissions = await _submissionService.GetSubmissionsAsync();
+            try
+            {
+                Submissions = await _submissionService.GetSubmissionsAsync();
+            }
+            catch(OperationFailedException e)
+            {
+                ModelState.AddModelError(string.Empty, e.Message);
+            }
+            
         }
 
         public async Task<IActionResult> OnPostAsync()
