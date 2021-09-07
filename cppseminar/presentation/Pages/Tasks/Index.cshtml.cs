@@ -12,7 +12,7 @@ namespace presentation.Pages.Tasks
     {
         private ILogger<IndexModel> _logger;
         private TaskService _service;
-        public IList<TaskModel> TaskList { get; set; }
+        public IList<TaskModel> TaskList = new List<TaskModel>();
 
 
         public IndexModel(ILogger<IndexModel> logger, TaskService service)

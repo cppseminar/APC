@@ -11,6 +11,7 @@
             <th>Name</th>
             <th>Deadline</th>
         </tr>
+        <th:div asp-validation-summary="All"></th:div>
         @foreach (var task in Model.TaskList)
         {
             <tr>
