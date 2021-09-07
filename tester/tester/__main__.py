@@ -140,10 +140,6 @@ def main():
     load settings, compile sources, run tests and collect results, 
     then it will pack those and send everything to output folder.
     """
-    # clear output directory
-    if os.path.exists(Config.output_path()) != 0:
-        shutil.rmtree(Config.output_path())
-
     # start logger
     tester.logger.configure()
     logger.info('Tester started...')

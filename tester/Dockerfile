@@ -18,15 +18,18 @@ RUN apt-get update \
 COPY ./tester /app/tester
 COPY $UNITTESTS_PATH /app/tests
 COPY ./cpp-support /app/tests
-COPY $SUBMISSION_PATH /app/submission.cpp
 
 COPY $CONFIG_PATH /app/config.ini
 
+ENV OUTPUT_PATH=/app/output
+ENV SUBMISSION_PATH=/app/submission
+
 RUN apt-get -y install crudini \
     && crudini --set /app/config.ini paths compiler g++-11 \
-    && crudini --set /app/config.ini paths submission /app/submission.cpp \
+    && crudini --set /app/config.ini paths submission $SUBMISSION_PATH \
     && crudini --set /app/config.ini paths tests /app/tests \
-    && crudini --set /app/config.ini paths output /app/output
+    && crudini --set /app/config.ini paths output $OUTPUT_PATH \
+    && mkdir -p $SUBMISSION_PATH
 
 WORKDIR /app
 CMD python -m tester ./config.ini

@@ -39,20 +39,21 @@ def configure():
 logger = logging.getLogger(__name__)
 
 def handle_exception(exc_type, exc_value, exc_traceback):
-    logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-    logger.debug('Creating json with errors')
+    try:
+        logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+        logger.debug('Creating json with errors')
 
-    output = {
-        'status': 'Unexpection exception occured',
-        'text': 'This should never happen, please report this incident.',
-    }
+        output = {
+            'status': 'Unexpection exception occured',
+            'text': 'This should never happen, please report this incident.',
+        }
 
-    with open(Config.teachers_json()) as f:
-        json.dump(output, f)
+        with open(Config.teachers_json(), 'w') as f:
+            json.dump(output, f)
 
-    with open(Config.students_json()) as f:
-        json.dump(output, f)
-
-    sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        with open(Config.students_json(), 'w') as f:
+            json.dump(output, f)
+    finally:
+        sys.exit(0)
 
 sys.excepthook = handle_exception
