@@ -1,19 +1,20 @@
-FROM python:3.9.6-bullseye
+FROM gcc:11.2-bullseye
 WORKDIR /
 
 ARG UNITTESTS_PATH=./example/tests
-ARG SUBMISSION_PATH=./example/submission.cpp
 ARG CONFIG_PATH=./config.ini
 
+ENV OUTPUT_PATH=/app/output
+ENV SUBMISSION_PATH=/app/submission
+
+# install python adn create folders
 RUN apt-get update \
-    && apt-get -y install software-properties-common \
-    && add-apt-repository 'deb http://mirrors.kernel.org/ubuntu hirsute main universe' \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 871920D1991BC93C \
-    && apt-get update \
-    && apt-get -y install g++-11 \
-    && g++-11 --version \
+    && apt-get -y install python \
+    && apt-get -y install python-is-python3 \
     && mkdir -p /app/tests \
-    && mkdir -p /app/tester
+    && mkdir -p /app/tester \
+    && mkdir -p $SUBMISSION_PATH \
+    && mkdir -p $OUTPUT_PATH
     
 COPY ./tester /app/tester
 COPY $UNITTESTS_PATH /app/tests
@@ -21,15 +22,11 @@ COPY ./cpp-support /app/tests
 
 COPY $CONFIG_PATH /app/config.ini
 
-ENV OUTPUT_PATH=/app/output
-ENV SUBMISSION_PATH=/app/submission
-
 RUN apt-get -y install crudini \
-    && crudini --set /app/config.ini paths compiler g++-11 \
+    && crudini --set /app/config.ini paths compiler g++ \
     && crudini --set /app/config.ini paths submission $SUBMISSION_PATH \
     && crudini --set /app/config.ini paths tests /app/tests \
-    && crudini --set /app/config.ini paths output $OUTPUT_PATH \
-    && mkdir -p $SUBMISSION_PATH
+    && crudini --set /app/config.ini paths output $OUTPUT_PATH
 
 WORKDIR /app
 CMD python -m tester ./config.ini
