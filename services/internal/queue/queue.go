@@ -382,7 +382,7 @@ func serverHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/test" && r.Method == "POST" {
 		w.WriteHeader(processTestRequestInternal(r))
 	} else {
-		log.Printf("Unsupported request %v %v", r.Method, r.URL.Path)
+		log.Printf("Unsupported request %v %v ip %v (x-forwarded-for %v)", r.Method, r.URL.Path, r.RemoteAddr, r.Header.Get("x-forwarded-for"))
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
