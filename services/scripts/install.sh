@@ -44,5 +44,3 @@ fi
 
 systemctl enable queued
 systemctl status queued
-
-systemctl is-active --quiet service
