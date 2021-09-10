@@ -9,5 +9,11 @@ namespace presentation.Model
         {
 
         }
+
+        public OperationFailedException(string message)
+            : base(message)
+        {
+
+        }
     }
 }

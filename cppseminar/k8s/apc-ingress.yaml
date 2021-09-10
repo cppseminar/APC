@@ -12,7 +12,7 @@ spec:
   tls:
     - secretName: https-certs
       hosts:
-        - "<redacted>"
+        - "apc.l33t.party"
   rules:
   - http:
       paths:
@@ -23,4 +23,4 @@ spec:
             name: presentation-service
             port:
               number: 80
-    host: <redacted>
+    host: apc.l33t.party

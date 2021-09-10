@@ -8,7 +8,10 @@ FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
 COPY ["presentation.csproj", "."]
 RUN dotnet restore "presentation.csproj"
-COPY . .
+COPY ["Model", "Model"]
+COPY  "Pages" "Pages"
+COPY "Services" "Services"
+COPY ["Program.cs", "Startup.cs", "appsettings.json", "appsettings.Development.json", "."] 
 
 FROM build as dev
 CMD dotnet watch run --urls=http://0.0.0.0:8080

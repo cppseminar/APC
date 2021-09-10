@@ -26,7 +26,10 @@ services:
             context: ./presentation
             target: dev
         volumes:
-            - ./presentation/:/src
+            - ./presentation/Startup.cs:/src/Startup.cs
+            - ./presentation/Model:/src/Model
+            - ./presentation/Pages:/src/Pages
+            - ./presentation/Services:/src/Services
         networks:
             - sharednet
         ports:

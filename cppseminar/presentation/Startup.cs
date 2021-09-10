@@ -48,7 +48,8 @@ namespace presentation
                 IConfigurationSection googleAuthNSection = Configuration.GetSection("GoogleOid");
                 options.ClientId = googleAuthNSection["ClientId"];
                 options.ClientSecret = googleAuthNSection["ClientSecret"];
-                options.Events.OnCreatingTicket = AuthenticationService.OnCreateTicketAsync;
+                AuthenticationService authInstance = new AuthenticationService(Configuration);
+                options.Events.OnCreatingTicket = context => AuthenticationService.OnCreateTicketAsync(authInstance, context);
             });
 
         }

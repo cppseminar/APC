@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: presentation-pod
-          image: 'ghcr.io/lukas-manduch/apc-presentation:0.0.5'
+          image: 'ghcr.io/lukas-manduch/apc-presentation:0.0.7'
           ports:
             - containerPort: 80
               protocol: TCP
