@@ -36,8 +36,24 @@ services:
             DOTNET_WATCH_SUPPRESS_MSBUILD_INCREMENTALISM: 1
             DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
             DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
+            ASPNETCORE_ENVIRONMENT: Development
         restart: "always"
-            
+
+    userservice.local:
+        build:
+            context: ./userservice
+            target: dev
+        networks:
+            - sharednet
+        volumes:
+            - ./userservice/Startup.cs:/src/Startup.cs
+            - ./userservice/Controllers:/src/Controllers
+            - ./userservice/Models:/src/Models
+            - ./userservice/Services:/src/Services
+        ports:
+            - 8082:80
+        restart: always
+
     azurite.local:
         image: mcr.microsoft.com/azure-storage/azurite:3.14.0
         volumes:
