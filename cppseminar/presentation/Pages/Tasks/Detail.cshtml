@@ -6,20 +6,27 @@
 @if (!ModelState.IsValid)
 {
     <div>
-        <th:div asp-validation-summary="All"></th:div>
+        <th:div asp-validation-summary="All" class="alert-danger"></th:div>
     </div>
 
 }
 
-@if (ModelState.IsValid)
+@if (Model.TaskDetail != null)
 {
     <div>
         <h4>@Model.TaskDetail.Name</h4>
-        <div>
-            <em>
-                @Model.TaskDetail.Description
-            </em>
+        <p><em>Deadline is: <strong>@Model.TaskDetail.Ends</strong></em> </p>
+        <p>Now is @DateTime.UtcNow</p>
+        <div class="p-3 my-2 border bg-light">
+            @Model.TaskDetail.Description
         </div>
-
     </div>
 }
+<p>Here you can submit your source code.</p>
+<p>Each task has a deadline, so make sure you are on time.</p>
+<h4>Submit here</h4>
+<th:form method="post">
+    <th:label asp-for="NewSubmission.Content">Your source code</th:label>
+    <th:textarea asp-for="NewSubmission.Content"  class="form-control" style="height:5em;" placeholder="#include <iostream>"></th:textarea>
+    <input type="submit" />
+</th:form>

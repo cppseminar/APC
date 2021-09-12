@@ -7,9 +7,15 @@ namespace presentation.Model
         public string Content { get; set; }
         public string Name { get; set; }
         public string TaskId { get; set; }
-        public override string ToString()
+
+        public static Submission GenerateSubmission(
+            Submission submission, TaskModel task, string email) => new()
         {
-            return $"{this.Id} - {this.UserEmail}";
-        }
+            Id = null,
+            UserEmail = email,
+            Content = submission.Content,
+            Name = null,
+            TaskId = task.Id
+        };
     }
 }

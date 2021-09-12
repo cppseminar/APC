@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -38,6 +39,7 @@ namespace presentation
             });
             services.AddSingleton<SubmissionService>();
             services.AddSingleton<TaskService>();
+            services.AddSingleton<IAuthorizationHandler, AdminAuthorizationService>();
             // TODO: Review lifetime of cookies
             services.AddAuthentication(options =>
             {
@@ -50,6 +52,11 @@ namespace presentation
                 options.ClientSecret = googleAuthNSection["ClientSecret"];
                 AuthenticationService authInstance = new AuthenticationService(Configuration);
                 options.Events.OnCreatingTicket = context => AuthenticationService.OnCreateTicketAsync(authInstance, context);
+            });
+            services.AddAuthorization(options => {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
+                                                                         .Build();
+                options.AddPolicy("Administrator", policy => policy.RequireClaim("isAdmin", "true"));
             });
 
         }
@@ -69,7 +76,7 @@ namespace presentation
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapRazorPages().RequireAuthorization();
+                endpoints.MapRazorPages();//.RequireAuthorization();
             });
         }
     }

@@ -15,5 +15,18 @@ namespace presentation.Model
         public string Description { get; set; }
         public DateTime? Ends { get; set; }
         public string Claim { get; set; }
+
+        public bool IsEnded()
+        {
+            if (Ends == null)
+            {
+                return false;
+            }
+            if (Ends < DateTime.UtcNow)
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

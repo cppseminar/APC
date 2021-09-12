@@ -9,20 +9,24 @@
 <body>
     <header>
         <div class="container">
-            <h2 class="display-3">CppSeminar (APC)</h2>
+            <h2 class="display-5">CppSeminar (APC)</h2>
         </div>
         <div class="container">
             <th:partial name="_UserPanel.cshtml" />
         </div>
         <div class="container">
-            <ul class="row">
-                <li class="col"><th:a asp-page="/Index">Home</th:a></li>
-                <li class="col"><th:a asp-page="/Tasks/Index">Tasks</th:a></li>
-                <li class="col"><th:a asp-page="/Submissions/Index">Your Submissions</th:a></li>
-            </ul>
+            <nav class="navbar navbar-default navbar-light bg-light">
+                <div class="navbar-header">
+                    <ul class="nav">
+                        <li class="nav-item"><th:a asp-page="/Index" class="nav-link">Home</th:a></li>
+                        <li class="nav-item"><th:a asp-page="/Tasks/Index" class="nav-link">Tasks</th:a></li>
+                        <li class="nav-item"><th:a asp-page="/Submissions/Index" class="nav-link">Your Submissions</th:a></li>
+                    </ul>
+                </div>
+            </nav>
         </div>
     </header>
-    <div class="container">
+    <div class="container p-3">
         @RenderBody()
     </div>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>

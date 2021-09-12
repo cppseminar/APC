@@ -32,7 +32,8 @@ namespace submissions
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "submissions", Version = "v1" });
             });
             services.AddDbContext<CosmosContext>(
-                options => {
+                options =>
+                {
                     // Read sectionName from file and set cosmos connection
                     // TODO: Rewrite this with IConfiguration.Validate...
                     ICosmosSettings cosmosSettings = new CosmosSettings();

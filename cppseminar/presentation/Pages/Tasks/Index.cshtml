@@ -6,7 +6,7 @@
 
 <div>
     <h3>Available tasks</h3>
-    <table>
+    <table class="table">
         <tr>
             <th>Name</th>
             <th>Deadline</th>
@@ -25,11 +25,14 @@
         }
 
     </table>
-    <p><th:a asp-page="/Tasks/Create">Create new task</th:a></p>
+
 </div>
 
-<div>
-    <p>If you are admin TODO</p>
-    
-</div>
+@if (Model.IsAdmin)
+{
+    <div>
+        <p><th:a asp-page="/Tasks/Create">Create new task</th:a></p>
+    </div>
+}
+
 
