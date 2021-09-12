@@ -6,24 +6,23 @@ namespace submissions.Models
 {
     public class WorkTask
     {
-        public WorkTask ToDbForm()
+        public WorkTask ToDbForm() => new WorkTask()
         {
-            return new WorkTask()
-            {
-                Id = Guid.NewGuid().ToString(),
-                Name = this.Name,
-                Claim = this.Claim ?? "",
-                Description = this.Description,
-                Ends = this.Ends,
-                CreatedBy = this.CreatedBy,
-                CreatedOn = DateTime.UtcNow
-            };
-        }
+            Id = Guid.NewGuid().ToString(),
+            Name = this.Name,
+            ClaimName = this.ClaimName ?? "",
+            ClaimValue = this.ClaimValue ?? "",
+            Description = this.Description,
+            Ends = this.Ends,
+            CreatedBy = this.CreatedBy,
+            CreatedOn = DateTime.UtcNow
+        };
 
         public string Id { get; set; }
         [Required]
         public string Name { get; set; }
-        public string Claim { get; set; }
+        public string ClaimName { get; set; }
+        public string ClaimValue { get; set; }
         [Required]
         public string Description { get; set; }
         [Required]

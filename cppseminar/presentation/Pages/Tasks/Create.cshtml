@@ -13,7 +13,7 @@
 }
 <th:form method="post">
     
-    <table>
+    <table class="table">
         <tr>
             <td>
                 <th:label asp-for="NewTask.Name">Task name*</th:label>
@@ -26,10 +26,10 @@
 
         <tr>
             <td>
-                <th:label asp-for="NewTask.Description">Description*</th:label>
+                <th:label asp-for="NewTask.Description">Description (accepts <strong>HTML</strong>!)*</th:label>
             </td>
             <td>
-                <th:textarea asp-for="NewTask.Description"></th:textarea>
+                <th:textarea class="form-control" asp-for="NewTask.Description"></th:textarea>
                 <th:span asp-validation-for="NewTask.Description"></th:span>
             </td>
         </tr>
@@ -46,13 +46,24 @@
 
         <tr>
             <td>
-                <th:label asp-for="NewTask.Claim"></th:label>
+                <th:label asp-for="NewTask.ClaimName"></th:label>
             </td>
             <td>
-                <th:input asp-for="NewTask.Claim" />
-                <th:span asp-validation-for="NewTask.Claim"></th:span>
+                <th:input asp-for="NewTask.ClaimName" />
+                <th:span asp-validation-for="NewTask.ClaimName"></th:span>
             </td>
         </tr>
+        <tr>
+            <td>
+                <th:label asp-for="NewTask.ClaimValue"></th:label>
+            </td>
+            <td>
+                <th:input asp-for="NewTask.ClaimValue" />
+                <th:span asp-validation-for="NewTask.ClaimValue"></th:span>
+            </td>
+
+        </tr>
+
 
     </table>
     <input type="submit" />

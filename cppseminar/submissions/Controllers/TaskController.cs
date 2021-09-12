@@ -17,7 +17,7 @@ namespace submissions.Controllers
         {
             _context = context;
         }
-        // GET: api/<TaskController>
+
         [HttpGet]
         public IAsyncEnumerable<WorkTask> Get()
         {
@@ -35,7 +35,6 @@ namespace submissions.Controllers
             return result;
         }
 
-        // POST api/<TaskController>
         [HttpPost]
         public async Task<ActionResult> PostAsync([FromBody] WorkTask task)
         {

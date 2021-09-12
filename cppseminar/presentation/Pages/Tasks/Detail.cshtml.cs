@@ -21,6 +21,7 @@ namespace presentation.Pages.Tasks
         public TaskModel TaskDetail { get; set; }
         [BindProperty]
         public Submission NewSubmission { get; set; }
+        public bool IsAdmin = false;
 
         public DetailModel(ILogger<DetailModel> logger, TaskService taskService, IAuthorizationService authService, SubmissionService submissionService)
         {
@@ -29,42 +30,52 @@ namespace presentation.Pages.Tasks
             _authService = authService;
             _submisssionService = submissionService;
         }
+
         public async Task OnGetAsync(string id)
         {
-            TaskDetail = await _taskService.GetTaskAsync(id);
-            if (TaskDetail == null)
+            _logger.LogTrace("Request to show task details");
+            IsAdmin = (await _authService.AuthorizeAsync(User, "Administrator")).Succeeded;
+            TaskModel retrievedTask = await _taskService.GetTaskAsync(id);
+            if (retrievedTask == null)
             {
+                _logger.LogTrace("Task retieval from database failed");
                 ModelState.AddModelError(string.Empty, "Operation failed");
             }
-            var authenticated = await _authService.AuthorizeAsync(User, TaskDetail, AuthorizationConstants.Submit);
+            var authenticated = await _authService.AuthorizeAsync(User, retrievedTask, AuthorizationConstants.Submit);
             if (!authenticated.Succeeded)
             {
+                _logger.LogWarning("User {user} tried accessing unauthorized task {task}", User, id);
                 ModelState.AddModelError(string.Empty, "You are not authorized");
             }
-
+            else
+            {
+                TaskDetail = retrievedTask;
+            }
         }
 
         public async Task<ActionResult> OnPostAsync(string id)
         {
-            _logger.LogWarning("Processing submission POST");
             if (!ModelState.IsValid)
             {
                 return Page();
             }
-            TaskDetail = await _taskService.GetTaskAsync(id);
-            if (TaskDetail == null)
+            _logger.LogTrace("Processing submission form POST");
+            TaskModel retrievedTask = await _taskService.GetTaskAsync(id);
+            if (retrievedTask == null)
             {
-                _logger.LogWarning("Submission with invalid task {if}", id);
-                return RedirectToPage("/");
+                _logger.LogWarning("Submission with invalid task {id}", id);
+                return RedirectToPage("/Tasks/Index");
             }
-            var isAuthroized = await _authService.AuthorizeAsync(User, TaskDetail, AuthorizationConstants.Submit);
+            var isAuthroized = await _authService.AuthorizeAsync(User, retrievedTask, AuthorizationConstants.Submit);
             if(!isAuthroized.Succeeded)
             {
-                _logger.LogWarning("{user} tried submitting task {taskid} without permission", User, id);
-                return Page();
+                _logger.LogWarning("{user} tried submitting task {taskid} without authorization", User.GetEmail(), id);
+                return RedirectToPage("/Tasks/Index");
             }
+            TaskDetail = retrievedTask; // Now it's ok to show user this task
             if (TaskDetail.IsEnded())
             {
+                _logger.LogTrace("Submission is after deadline passed {deadline}", TaskDetail.Ends);
                 ModelState.AddModelError(string.Empty, "Task deadline has passed");
                 return Page();
             }
@@ -73,18 +84,18 @@ namespace presentation.Pages.Tasks
 
             try
             {
-                Submission result =
+                _logger.LogTrace("Submission passed tests, gonna send to service");
+                Submission _ =
                     await _submisssionService.CreateSubmissionAsync(submission);
-                return RedirectToPage("/Submissions/Index");
+                _logger.LogTrace("Submission was created successfuly");
+                return RedirectToPage("/Submissions/Success");
             }
-            catch (OperationFailedException)
+            catch (Exception e)
             {
+                _logger.LogWarning("Submission failed with error {e}", e);
                 ModelState.AddModelError(string.Empty, "Operation failed");
             }
             return Page();
-            
-
-
         }
     }
 }

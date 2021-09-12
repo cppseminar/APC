@@ -9,10 +9,10 @@ using presentation.Model;
 
 namespace presentation.Services
 {
+    // Admin can do absolutelty anything
     public class AdminAuthorizationService
         : AuthorizationHandler<OperationAuthorizationRequirement>
     {
-        // Admin can do absolutelty anything
         protected override Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
             OperationAuthorizationRequirement requirement)
@@ -30,12 +30,28 @@ namespace presentation.Services
         }
     }
 
+    // Check that Users has claims required by Task
     public class TaskAuthorizationService
-    {
-    }
+        : AuthorizationHandler<OperationAuthorizationRequirement, TaskModel>
 
-    public class SubmissionAuthorizationService
     {
+        protected override Task HandleRequirementAsync(
+            AuthorizationHandlerContext context,
+            OperationAuthorizationRequirement requirement,
+            TaskModel task)
+        {
+            if (task == null || task.ClaimName == null || task.ClaimValue == null)
+            {
+                return Task.CompletedTask;
+            }
+            var taskClaim = context.User.FindFirst(
+                claim => claim.Type == task.ClaimName && claim.Value == task.ClaimValue);
+            if (taskClaim != null)
+            {
+                context.Succeed(requirement);
+            }
+            return Task.CompletedTask;
+        }
     }
 
     public static class ClaimsPrincipalExtension

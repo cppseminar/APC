@@ -11,22 +11,31 @@
 
 }
 
+
 @if (Model.TaskDetail != null)
 {
     <div>
         <h4>@Model.TaskDetail.Name</h4>
         <p><em>Deadline is: <strong>@Model.TaskDetail.Ends</strong></em> </p>
-        <p>Now is @DateTime.UtcNow</p>
+        <p>Current time is @DateTime.UtcNow</p>
         <div class="p-3 my-2 border bg-light">
-            @Model.TaskDetail.Description
+            @Html.Raw(@Model.TaskDetail.Description)
         </div>
     </div>
+    @if (Model.IsAdmin)
+    {
+        <hr />
+        <h5>Admin section</h5>
+        <p>Claims: @Model.TaskDetail.ClaimName  ==  @Model.TaskDetail.ClaimValue</p>
+        <p>Created by: @Model.TaskDetail.CreatedBy</p>
+        <hr />
+    }
 }
 <p>Here you can submit your source code.</p>
 <p>Each task has a deadline, so make sure you are on time.</p>
 <h4>Submit here</h4>
 <th:form method="post">
     <th:label asp-for="NewSubmission.Content">Your source code</th:label>
-    <th:textarea asp-for="NewSubmission.Content"  class="form-control" style="height:5em;" placeholder="#include <iostream>"></th:textarea>
-    <input type="submit" />
+    <th:textarea asp-for="NewSubmission.Content" class="form-control mb-1" style="height:5em;" placeholder="#include <iostream>"></th:textarea>
+    <input type="submit" value="Submit" class="Button" />
 </th:form>

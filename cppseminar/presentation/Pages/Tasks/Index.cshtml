@@ -21,6 +21,12 @@
                 <td>
                     @task.Ends
                 </td>
+                @if(Model.IsAdmin)
+                {
+                    <td>
+                        @task.ClaimName -> @task.ClaimValue
+                    </td>
+                }
             </tr>
         }
 

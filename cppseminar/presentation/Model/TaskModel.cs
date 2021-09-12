@@ -13,8 +13,10 @@ namespace presentation.Model
         public string CreatedBy { get; set; }
         [Required]
         public string Description { get; set; }
+        [Required]
         public DateTime? Ends { get; set; }
-        public string Claim { get; set; }
+        public string ClaimName { get; set; }
+        public string ClaimValue { get; set; }
 
         public bool IsEnded()
         {
