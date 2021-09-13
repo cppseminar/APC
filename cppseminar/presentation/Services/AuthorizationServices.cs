@@ -65,5 +65,16 @@ namespace presentation.Services
             }
             return emailClaim.Value;
         }
+        public static bool IsAdmin(this ClaimsPrincipal principal)
+        {
+            Claim adminClaim = principal.FindFirst(
+                claim => claim.Type == "isAdmin" && claim.Value == "true");
+            if (adminClaim == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
     }
 }

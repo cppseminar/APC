@@ -12,6 +12,8 @@ namespace presentation.Services
 {
     // There is currently no way, to plug logger here
     // so this service throws exceptions like a maniac
+
+    // TODO: Use different method to obtain claims, and add logging here
     public class AuthenticationService
     {
         private HttpClient _client = new HttpClient();
@@ -23,6 +25,16 @@ namespace presentation.Services
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
+        }
+
+        public async Task<IEnumerable<string>> GetAllUsers()
+        {
+            HttpResponseMessage response = await _client.GetAsync("/user/");
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new OperationFailedException($"Error on claims retrieval {response.StatusCode}");
+            }
+            return await response.Content.ReadAsAsync<IEnumerable<string>>();
         }
 
         public async Task<IDictionary<string, string>> GetUserClaimsAsync(string userEmail)
@@ -38,8 +50,6 @@ namespace presentation.Services
                 throw new OperationFailedException("Retrieved wrong user");
             }
             return user.Claims;
-
-
         }
 
         public async static Task OnCreateTicketAsync(AuthenticationService serviceInstance, OAuthCreatingTicketContext context)

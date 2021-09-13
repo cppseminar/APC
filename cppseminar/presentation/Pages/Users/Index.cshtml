@@ -1,0 +1,27 @@
+@page
+@model presentation.Pages.Users.IndexModel
+
+<th:div asp-validation-summary="All"></th:div>
+
+<table class="table">
+    @foreach (var user in Model.AllUsers)
+    {
+        <tr>
+            <td><th:a asp-page="/Users/Index" asp-page-handler="Detail" asp-route-email="@user"> @user</th:a></td>
+        </tr>
+    }
+</table>
+
+@if (Model.Claims != null)
+{
+    <h5>Details for @Request.Query["email"]</h5>
+    <table class="table">
+        @foreach (var claimKV in Model.Claims)
+        {
+            <tr>
+                <td>@claimKV.Key</td>
+                <td>@claimKV.Value</td>
+            </tr>
+        }
+    </table>
+}

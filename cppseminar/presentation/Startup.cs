@@ -37,6 +37,7 @@ namespace presentation
             });
             services.AddSingleton<SubmissionService>();
             services.AddSingleton<TaskService>();
+            services.AddSingleton<AuthenticationService>();
             services.AddSingleton<IAuthorizationHandler, AdminAuthorizationService>();
             services.AddSingleton<IAuthorizationHandler, TaskAuthorizationService>();
             // TODO: Review lifetime of cookies
