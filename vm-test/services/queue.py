@@ -2,7 +2,7 @@ import json
 import socket
 import http.client
 
-def make_request_to_vm(data):
+def send_request_to_vm(data):
     try:
         connection = http.client.HTTPConnection('localhost:10009', timeout=60)
         connection.request('POST', '/test', json.dumps(data))
@@ -10,6 +10,17 @@ def make_request_to_vm(data):
         return response.status >= 200 and response.status < 300
     except Exception as e:
         return False
+
+
+def donwload_file(url):
+    try:
+        connection = http.client.HTTPConnection(url, timeout=60)
+        connection.request('GET')
+        response = connection.getresponse()
+        return response.status >= 200 and response.status < 300
+    except Exception as e:
+        return None
+
 
 def process(ch, method, body):
     req = json.loads(body)
@@ -39,10 +50,8 @@ def process(ch, method, body):
     if memory:
         vm_request['memory'] =  memory
 
-    if not make_request_to_vm(vm_request):
-        ch.basic_ack(delivery_tag = method.delivery_tag)
-        # say something nice to output queue
-
+    send_request_to_vm(vm_request)
+    # on failure we may want to requeue the message or something
     ch.basic_ack(delivery_tag = method.delivery_tag)
 
 def run(channel):

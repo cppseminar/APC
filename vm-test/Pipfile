@@ -7,7 +7,7 @@ name = "pypi"
 pika = "*"
 flask = "*"
 waitress = "*"
-huey = "*"
+azure-storage-blob = "*"
 
 [dev-packages]
 

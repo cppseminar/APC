@@ -6,7 +6,26 @@ import threading
 from services.queue import run as qrun
 from services.server import run as srun
 
+import logging
+
+import azure.storage.blob
+from azure.storage.blob import BlobServiceClient
+# Acquire the logger for a library (azure.mgmt.resource in this example)
+logger = logging.getLogger('azure')
+
+# Set the desired logging level
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler(stream=sys.stdout)
+logger.addHandler(handler)
+
 def run():
+
+    service = BlobServiceClient.from_connection_string(conn_str="DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;", logging_enable=True)
+
+    container_client = service.get_container_client('results')
+    container_client.create_container()
+
+
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
 

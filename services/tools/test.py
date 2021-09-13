@@ -28,6 +28,11 @@ def command(returnUrl, docker, addr, customCmd):
         "returnUrl" : returnUrl,
         "dockerImage": docker,
         "maxRunTime": 300,
+        "metaData": {
+            "here": "goes",
+            "anything": ["we", "want"],
+            "period": ord('.')
+        }
     }
 
     customCmd(message)
@@ -86,12 +91,7 @@ class ServerHandler(BaseHTTPRequestHandler):
         self._set_error()
 
     def do_POST(self):
-        print("Post request - Unsupported")
-        self._set_error()
-
-
-    def do_PATCH(self):
-        print("Patch request")
+        print("Post request")
         response = "".encode("ascii")
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
@@ -114,9 +114,6 @@ class ServerHandler(BaseHTTPRequestHandler):
         except Exception as error:
             print(f"Body not a json, size {len(b)}, error {error}")
             print(b)
-
-
-
 
 
     def print_request(self):

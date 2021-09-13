@@ -28,8 +28,9 @@ type requestMessage struct {
 	ReturnURL   string
 	DockerImage string
 	Files       map[string]string
-	MaxRunTime  int // in seconds
-	Memory      int // in megabytes
+	MaxRunTime  int         // in seconds
+	Memory      int         // in megabytes
+	MetaData    interface{} // pass this along
 }
 
 var schema *gojsonschema.Schema
@@ -49,8 +50,8 @@ const schemaStr = `
 		"files"
 	],
 	"properties": {
-		"meta": {
-			"$id": "#/properties/meta",
+		"metaData": {
+			"$id": "#/properties/metaData",
 			"type": "object",
 			"title": "Metadata of request",
 			"description": "Metadata passed back to returnUrl."
@@ -218,17 +219,6 @@ func zipOutputToBase64(path string) (string, error) {
 func processMessages(wg *sync.WaitGroup) {
 	defer wg.Done() // let main know we are done cleaning up
 
-	var msg requestMessage
-
-	// This is to always log last request, in case something went terribly bad
-	defer func() {
-		r := recover()
-		if r != nil {
-			log.Printf("Panicing on message %v\n", msg)
-			panic(r)
-		}
-	}()
-
 	for {
 		msg, more := <-queue
 		if !more {
@@ -239,6 +229,17 @@ func processMessages(wg *sync.WaitGroup) {
 		log.Println("Start processing of message.")
 
 		func() {
+			// This is to always log last request, in case something went terribly bad
+			defer func() {
+				r := recover()
+				if r != nil {
+					log.Printf("Panicing on message %v\n", msg)
+					panic(r) // just fail quickly
+				} else {
+					log.Println("Finished processing of message.")
+				}
+			}()
+
 			var outputVolume docker.DockerVolume
 			defer outputVolume.Cleanup()
 
@@ -309,13 +310,16 @@ func processMessages(wg *sync.WaitGroup) {
 				output["data"] = zipdata
 			}
 
+			// copy meta from input
+			output["metaData"] = msg.MetaData
+
 			body, err := json.Marshal(output)
 			if err != nil {
 				log.Println("Cannot create json", err)
 				return
 			}
 
-			req, err := http.NewRequest("PATCH", "http://"+strings.TrimRight(msg.ReturnURL, "/")+"/results", bytes.NewBuffer(body))
+			req, err := http.NewRequest("POST", "http://"+strings.TrimRight(msg.ReturnURL, "/")+"/results", bytes.NewBuffer(body))
 			if err != nil {
 				log.Println("Cannot create request", err)
 				return
