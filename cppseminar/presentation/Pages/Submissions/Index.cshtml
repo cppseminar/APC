@@ -6,34 +6,13 @@
 }
 
 <h3>Submissions</h3>
-
-@if (Model.Errors.Count > 0)
-{
-    @foreach(string error in Model.Errors)
-    {
-        <h5>Error</h5>
-        <p>@error</p>
-    }
-}
 <th:div asp-validation-summary="All"></th:div>
-Submissions are work in progress...
-
 <div>
-    Submit here:
-
-    <th:form method="POST">
-        <th:label asp-for="MySubmission.Content">Your source code</th:label>
-        <th:textarea asp-for="MySubmission.Content"></th:textarea>
-        <input type="submit"/>
-    </th:form>
-</div>
-
-<div>
-        <span>Your submissions</span>
-        <ol>
-            @foreach (var submission in Model.Submissions)
-            {
-                <li>@submission</li>
-            }
-        </ol>
+    <span>Your submissions</span>
+    <ol>
+        @foreach (var submission in Model.Submissions)
+        {
+            <li>@submission.Name</li>
+        }
+    </ol>
 </div>

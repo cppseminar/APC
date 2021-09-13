@@ -6,23 +6,23 @@ namespace submissions.Models
 {
     public class Submission
     {
-        [Key]
-        public Guid Id { get; set; }
+        public string Id { get; set; }
         [Required]
         public string TaskId { get; set; }
         [Required]
         public string UserEmail { get; set; }
         // Name is combination of task name and submission date
         public string Name { get; set; }
+        public string TaskName { get; set; }
         public System.DateTime SubmittedOn { get; set; }
-
-
     }
 
     public class SubmissionRest
     {
         [Required]
         public string TaskId { get; set; }
+        [Required]
+        public string TaskName { get; set; }
         [Required]
         public string UserEmail { get; set; }
         [Required]
@@ -36,12 +36,15 @@ namespace submissions.Models
 
         public Submission GenerateSubmission()
         {
+            var timeNow = DateTime.UtcNow;
             return new Submission()
             {
-                Id = this._GeneratedId,
+                Id = this._GeneratedId.ToString(),
                 TaskId = this.TaskId,
                 UserEmail = this.UserEmail,
-                SubmittedOn = DateTime.UtcNow,
+                SubmittedOn = timeNow,
+                Name = $"{TaskName} on {timeNow}",
+                TaskName = this.TaskName
             };
         }
     }

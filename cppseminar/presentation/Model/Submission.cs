@@ -7,6 +7,7 @@ namespace presentation.Model
         public string Content { get; set; }
         public string Name { get; set; }
         public string TaskId { get; set; }
+        public string TaskName { get; set; }
 
         public static Submission GenerateSubmission(
             Submission submission, TaskModel task, string email) => new()
@@ -15,7 +16,8 @@ namespace presentation.Model
             UserEmail = email,
             Content = submission.Content,
             Name = null,
-            TaskId = task.Id
+            TaskId = task.Id,
+            TaskName = task.Name
         };
     }
 }

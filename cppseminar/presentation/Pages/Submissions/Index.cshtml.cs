@@ -31,30 +31,6 @@ namespace presentation.Pages.Submissions
             
         }
 
-        public async Task<IActionResult> OnPostAsync()
-        {
-            if (!ModelState.IsValid)
-            {
-                Console.WriteLine("Invalid post");
-                return Page();
-            }
-            try
-            {
-                Submission newSubmission = this.MySubmission;
-                // Let's add rest of the fields
-                newSubmission.UserEmail = "fake@email.com";
-                newSubmission.TaskId = "1234";
-                var result = await _submissionService.CreateSubmissionAsync(this.MySubmission);
-                return RedirectToPage("./Success");
-            }
-            catch (OperationFailedException e)
-            {
-                Errors.Add(e.Message);
-            }
-            return Page();
-        }
-
-
         [BindProperty]
         public Submission MySubmission { get; set; }
         public IList<string> Errors = new List<string>();

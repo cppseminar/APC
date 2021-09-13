@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -39,8 +40,13 @@ namespace presentation.Pages.Users
             }
         }
 
-        public async Task OnGetDetail([FromQuery]string email)
+        public async Task OnGetDetail([FromQuery][Required]string email)
         {
+            if (!ModelState.IsValid)
+            {
+                return;
+            }
+
             try
             {
                 // TODO: Maybe validation of email

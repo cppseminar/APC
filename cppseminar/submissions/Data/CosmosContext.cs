@@ -17,6 +17,7 @@ namespace submissions.Data
             modelBuilder.Entity<Submission>().ToContainer("submissions");
             modelBuilder.Entity<Submission>().HasPartitionKey(s => s.UserEmail);
             modelBuilder.Entity<Submission>().HasNoDiscriminator();
+            modelBuilder.Entity<Submission>().Property(x => x.Id).ToJsonProperty("id");
             modelBuilder.Entity<WorkTask>()
                         .ToContainer("tasks")
                         .HasNoDiscriminator()
