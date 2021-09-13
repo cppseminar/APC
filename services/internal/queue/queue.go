@@ -49,6 +49,12 @@ const schemaStr = `
 		"files"
 	],
 	"properties": {
+		"meta": {
+			"$id": "#/properties/meta",
+			"type": "object",
+			"title": "Metadata of request",
+			"description": "Metadata passed back to returnUrl."
+		},
 		"returnUrl": {
 			"$id": "#/properties/returnUrl",
 			"type": "string",
@@ -309,7 +315,7 @@ func processMessages(wg *sync.WaitGroup) {
 				return
 			}
 
-			req, err := http.NewRequest("PATCH", "http://"+msg.ReturnURL, bytes.NewBuffer(body))
+			req, err := http.NewRequest("PATCH", "http://"+strings.TrimRight(msg.ReturnURL, "/")+"/results", bytes.NewBuffer(body))
 			if err != nil {
 				log.Println("Cannot create request", err)
 				return
