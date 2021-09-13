@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using presentation.Model;
 
@@ -14,10 +15,10 @@ namespace presentation.Services
 {
     public class TaskService
     {
-        public TaskService(ILogger<TaskService> logger)
+        public TaskService(ILogger<TaskService> logger, IConfiguration config)
         {
             _logger = logger;
-            _client.BaseAddress = new Uri(_url);
+            _client.BaseAddress = new Uri(config["SUBMISSION_SERVICE"]);
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
@@ -97,7 +98,6 @@ namespace presentation.Services
         }
 
         private ILogger<TaskService> _logger = null;
-        private const string _url = "http://submissions.local:5004";
         private HttpClient _client = new HttpClient();
     }
 }

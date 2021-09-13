@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using presentation.Model;
 
@@ -11,14 +12,13 @@ namespace presentation.Services
 {
     public class SubmissionService
     {
-        public SubmissionService(ILogger<SubmissionService> logger)
+        public SubmissionService(ILogger<SubmissionService> logger, IConfiguration config)
         {
-            _client.BaseAddress = new Uri("http://submissions.local:5004/");
+            _client.BaseAddress = new Uri(config["SUBMISSION_SERVICE"]);
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
             _logger = logger;
-
         }
 
         public async Task<IList<Submission>> GetSubmissionsAsync()

@@ -40,6 +40,7 @@ services:
             DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
             DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
             ASPNETCORE_ENVIRONMENT: Development
+            SUBMISSION_SERVICE: http://submissions.local:5004/
         restart: "always"
 
     userservice.local:

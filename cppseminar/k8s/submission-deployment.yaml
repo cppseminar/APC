@@ -1,28 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: apc-presentation
+  name: apc-submissionsservice
   namespace: apc
   labels:
-    app: presentation
-    category: frontend
+    app: submissionsservice
+    category: backend
 spec:
   selector:
     matchLabels:
-      app: presentation
+      app: submissionsservice
   revisionHistoryLimit: 2
-  replicas: 1
+  replicas: 2
   strategy:
     type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
   template:
     metadata:
       labels:
-        app: presentation
-        category: frontend
+        app: submissionsservice
+        category: backend
     spec:
       containers:
-        - name: presentation-pod
-          image: 'ghcr.io/lukas-manduch/apc-presentation:0.0.11'
+        - name: submissionsservice-pod
+          image: 'ghcr.io/lukas-manduch/apc-submissionsservice:latest'
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
               protocol: TCP
@@ -34,17 +37,15 @@ spec:
               memory: 1G
               cpu: '1'
           env:
-            - name: GoogleOid__ClientId
+            - name: StorageConnectionString
               valueFrom:
                 secretKeyRef:
-                  key: googleId
+                  key: blobConnectionString
                   name: general-secrets
-            - name: GoogleOid__ClientSecret
+            - name: CosmosSettings__DatabaseName
+              value: devel
+            - name: CosmosSettings__ConnectionString
               valueFrom:
                 secretKeyRef:
-                  key: googleSecret
+                  key: cosmosConnectionString
                   name: general-secrets
-            - name: USER_SERVICE
-              value: http://userservice-service.apc
-            - name: SUBMISSION_SERVICE
-              value: http://submissionsservice-service.apc
