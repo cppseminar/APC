@@ -1,18 +1,17 @@
-import pika, json
+import pika, json, os
 
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='localhost'))
 channel = connection.channel()
 
-channel.queue_declare(queue='test-vm', durable=True)
+channel.queue_declare(queue=os.getenv('SUBMISSION_QUEUE_NAME'), durable=True)
 
 req = {
-    'returnUrl': 'localhost:10010',
-    'test': 'tmp',
+    'dockerImage': 'example',
     'submittedFiles': {
-        'main.cpp': 'Cannot compile'
+        'main.cpp': ''
     }
 }
 
-channel.basic_publish(exchange='', routing_key='test-vm', body=json.dumps(req))
+channel.basic_publish(exchange='', routing_key=os.getenv('SUBMISSION_QUEUE_NAME'), body=json.dumps(req))
 connection.close()

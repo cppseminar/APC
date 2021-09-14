@@ -96,7 +96,7 @@ const schemaStr = `
 			"description": "After this many seconds the test will break.",
 			"multipleOf": 1.0,
 			"minimum": 1,
-			"maximum": 900
+			"maximum": 1800
 		},
 		"memory": {
 			"$id": "#/properties/memory",
@@ -151,7 +151,14 @@ func readJsonData(path string) (map[string]interface{}, error) {
 	return result, nil
 }
 
-func zipOutputToBase64(path string) (string, error) {
+func zipOutputToBase64(output_path string) (string, error) {
+	output_path, err := filepath.Abs(output_path)
+	if err != nil {
+		log.Printf("Cannot resolve absolute form of output_path (%s)\n", output_path)
+		log.Println(err)
+		return "", err
+	}
+
 	f, err := ioutil.TempFile("", "output*")
 	if err != nil {
 		log.Println(err)
@@ -181,6 +188,14 @@ func zipOutputToBase64(path string) (string, error) {
 			}
 			defer file.Close()
 
+			// make the path relative, so zip will display it nicely
+			if !strings.HasPrefix(path, output_path) {
+				log.Panicf("We make sure output_path (%s) is absolute, but path (%s) is not prefix.", output_path, path)
+			}
+
+			path = strings.TrimPrefix(path, output_path)
+			path = strings.TrimLeft(path, "/") // make it relative
+
 			f, err := zipWriter.Create(path)
 			if err != nil {
 				log.Println(err)
@@ -195,7 +210,7 @@ func zipOutputToBase64(path string) (string, error) {
 
 			return nil
 		}
-		err = filepath.Walk(path, walker)
+		err = filepath.Walk(output_path, walker)
 		if err != nil {
 			return err
 		}
