@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ namespace submissions.Controllers
         // GET: SubmissionController
         public IEnumerable<Submission> Index()
         {
-            return _context.Submissions;
+            return _context.Submissions.OrderByDescending(submission => submission.SubmittedOn);
         }
 
         // https://www.yogihosting.com/aspnet-core-api-controllers/

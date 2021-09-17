@@ -1,3 +1,5 @@
+using System;
+
 namespace presentation.Model
 {
     public class Submission
@@ -8,6 +10,7 @@ namespace presentation.Model
         public string Name { get; set; }
         public string TaskId { get; set; }
         public string TaskName { get; set; }
+        public DateTime? SubmittedOn { get; set; }
 
         public static Submission GenerateSubmission(
             Submission submission, TaskModel task, string email) => new()
@@ -17,7 +20,8 @@ namespace presentation.Model
             Content = submission.Content,
             Name = null,
             TaskId = task.Id,
-            TaskName = task.Name
+            TaskName = task.Name,
+            SubmittedOn = null
         };
     }
 }
