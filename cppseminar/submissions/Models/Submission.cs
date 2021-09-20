@@ -19,6 +19,16 @@ namespace submissions.Models
 
     public class SubmissionRest
     {
+        public SubmissionRest() { }
+        public SubmissionRest(Submission dbSubmission, string content)
+        {
+            TaskId = dbSubmission.TaskId;
+            TaskName = dbSubmission.TaskName;
+            UserEmail = dbSubmission.UserEmail;
+            Content = content;
+            SubmittedOn = dbSubmission.SubmittedOn;
+            Id = dbSubmission.Id;
+        }
         [Required]
         public string TaskId { get; set; }
         [Required]
