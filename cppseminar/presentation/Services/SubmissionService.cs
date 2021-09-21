@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using presentation.Model;
@@ -21,6 +23,7 @@ namespace presentation.Services
             _logger = logger;
         }
 
+        // TODO: This is for admin only, create also user function
         public async Task<IList<Submission>> GetSubmissionsAsync()
         {
             _logger.LogTrace("Requesting submissions from service");
@@ -82,7 +85,42 @@ namespace presentation.Services
             }
         }
 
+        // Returns null on not found, or throws OperationFailedException
+        public async Task<Submission> GetSubmissionAsync(string userEmail, string submissionId)
+        {
+            _logger.LogTrace("Requesting submission {email} / {id}", userEmail, submissionId);
+            HttpResponseMessage response = await _client.GetAsync(
+                $"/submission/{HttpUtility.UrlEncode(userEmail)}/{HttpUtility.UrlEncode(submissionId)}/");
+            if (!response.IsSuccessStatusCode)
+            {
+                if (((int)response.StatusCode) == 404)
+                {
+                    // Probably somebody just trying to browse other submissions
+                    _logger.LogWarning("Submission not found on server");
+                    return null;
+                }
+                else
+                {
+                    // We log error here, because there is something wrong
+                    _logger.LogError("Request failed {code} {e}", response.StatusCode, response.ReasonPhrase);
+                    throw new OperationFailedException();
+                }
+            }
+
+            try
+            {
+                return await response.Content.ReadFromJsonAsync<Submission>();
+            }
+            catch(Exception e)
+            {
+                _logger.LogError("Cannot parse returned submission, {e}", e);
+            }
+            throw new OperationFailedException();
+        }
+
+
         private HttpClient _client = new HttpClient();
         private ILogger<SubmissionService> _logger = null;
     }
+
 }

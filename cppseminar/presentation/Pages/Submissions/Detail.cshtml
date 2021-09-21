@@ -1,0 +1,23 @@
+@page "{id:guid}"
+@model presentation.Pages.Submissions.DetailModel
+
+
+@if (!Model.ModelState.IsValid)
+{
+    <th:div asp-validation-summary="All" class="alert-danger p-3 border"></th:div>
+}
+
+@if (Model.MySubmission != null)
+{
+    <div>
+        <h4>@Model.MySubmission.TaskName</h4>
+        <p>Submitted on: @Model.MySubmission.SubmittedOn</p>
+        <pre class="p-3 border bg-light">@Model.MySubmission.Content</pre>
+        <p><small>Id: @Model.MySubmission.Id</small></p>
+    </div>
+}
+else
+{
+    <div class="alert-warning p-3 border">Not found</div>
+}
+

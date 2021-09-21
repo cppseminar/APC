@@ -14,7 +14,7 @@
         {
             <tr>
                 <td>
-                    @submission.Name
+                    <th:a asp-page="/Submissions/Detail" asp-route-id="@submission.Id">@submission.Name</th:a>
                 </td>
                 <td>
                     @submission.TaskName
