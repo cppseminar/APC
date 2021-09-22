@@ -9,10 +9,20 @@
 <th:div asp-validation-summary="All"></th:div>
 <div>
     <span>Your submissions</span>
-    <ol>
+    <table class="table">
         @foreach (var submission in Model.Submissions)
         {
-            <li>@submission.Name</li>
+            <tr>
+                <td>
+                    <th:a asp-page="/Submissions/Detail" asp-route-id="@submission.Id">@submission.Name</th:a>
+                </td>
+                <td>
+                    @submission.TaskName
+                </td>
+                <td>
+                    @submission.SubmittedOn
+                </td>
+            </tr>
         }
-    </ol>
+    </table>
 </div>
