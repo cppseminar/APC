@@ -22,6 +22,8 @@ COPY ./cpp-support /app/tests
 
 COPY $CONFIG_PATH /app/config.ini
 
+COPY ./example/submission.cpp $SUBMISSION_PATH/submission.cpp
+
 RUN apt-get -y install crudini \
     && crudini --set /app/config.ini paths compiler g++ \
     && crudini --set /app/config.ini paths submission $SUBMISSION_PATH \

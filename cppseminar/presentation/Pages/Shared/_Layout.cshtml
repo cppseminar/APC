@@ -8,15 +8,18 @@
     <title> @ViewBag.Title CppSeminar </title>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h2 class="display-5">CppSeminar (APC)</h2>
+    <header class="container">
+        <div class="row text-light bg-secondary">
+            <div class="col-sm m-5">
+                <h1 class="display-3">APC</h1>
+                <p class="lead">Aplikačné programovanie v C++</p>
+            </div>
+            <div class="col-sm my-5 ml-auto pr-5">
+                <img class="d-block ml-auto my-auto mr-3" width="100" src="https://raw.githubusercontent.com/Benio101/cpp-logo/13ff598ea91d20d0604cd3ddbfcf6bd947e2149e/cpp_logo.svg" />
+            </div>
         </div>
-        <div class="container">
-            <th:partial name="_UserPanel.cshtml" />
-        </div>
-        <div class="container">
-            <nav class="navbar navbar-default navbar-light bg-light">
+        <div class="row bg-light">
+            <nav class="navbar navbar-default navbar-light w-100">
                 <div class="navbar-header">
                     <ul class="nav">
                         <li class="nav-item"><th:a asp-page="/Index" class="nav-link">Home</th:a></li>
@@ -28,6 +31,9 @@
                         }
                     </ul>
                 </div>
+                <div class="ml-auto">
+                    <th:partial name="_UserPanel.cshtml" />
+                </div>
             </nav>
         </div>
     </header>
@@ -37,5 +43,78 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/json2html/2.1.0/json2html.min.js"></script>
+    <script>
+        function resolveStudentsJson(elemId) {
+            const templates = {
+                parent: {
+                    '<>': 'div', html: [
+                        { '<>': 'h1', text: 'Results' },
+                        {
+                            '<>': 'div', html: [
+                                { '<>': 'h2', text: 'Compilation' },
+                                { '<>': 'ul', html: obj => $.json2html(obj.compilation, templates.compilation) }
+                            ]
+                        },
+                        {
+                            '<>': 'div', html: [
+                                { '<>': 'h2', text: 'Tests' },
+                                { '<>': 'ul', html: obj => $.json2html(obj.tests, templates.tests) }
+                            ]
+                        },
+                    ],
+                },
+                compilation: {
+                    '<>': 'li', html: [
+                        { '<>': 'h3', text: '${binary}' },
+                        {
+                            '<>': 'ul', html: [
+                                {
+                                    '<>': 'li', obj: obj => obj.configurations, 'html': [
+                                        { '<>': 'span', text: obj => String.fromCharCode(obj.result ? 0x274C : 0x2714) },
+                                        { '<>': 'span', text: '${name}', class: obj => obj.result ? 'text-danger' : 'text-success' },
+                                        { '<>': 'pre', class: obj => obj.result ? 'd-block' : 'd-none', 'text': '${result}' },
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                tests: {
+                    '<>': 'li', html: [
+                        { '<>': 'h3', text: '${configuration}' },
+                        {
+                            '<>': 'ul', html: [
+                                {
+                                    '<>': 'li', obj: obj => obj.cases, 'html': [
+                                        { '<>': 'span', text: obj => String.fromCharCode(obj.status ? 0x2714 : 0x274C) },
+                                        { '<>': 'span', text: '${name}', class: obj => obj.status ? 'text-success' : 'text-danger' },
+                                        { '<>': 'pre', class: obj => obj.result ? 'd-block' : 'd-none', 'text': '${result}' },
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+            }
+
+            let json = ''
+            let selector = '#' + elemId
+
+            try {
+                json = $(selector).text()
+                $(selector).text('')
+                $(selector).json2html(JSON.parse(json), templates.parent)
+            }
+            catch (e) {
+                console.log(e)
+                const err = $('<span class="text-danger"></span>').text('Cannot parse result json, that is pretty bad, contact your friendly administrator with text below.')
+                const details = $('<small class="d-block text-muted"></small>').text(json)
+                $(selector).append(err, details)
+            }
+        }
+
+        resolveStudentsJson('results-students')
+    </script>
 </body>
 </html>

@@ -2,14 +2,12 @@
 
 @if(Context.User.Identity.IsAuthenticated)
 {
-<p class="text-center">
+<div class="d-inline">
     <span>@User.Identity.Name</span>
     <span>@User.FindFirst(claim => claim.Type == ClaimTypes.Email).Value</span>
-</p>
+</div>
 }
 else
 {
-<p class="text-center">
     <span>Not signed in</span>
-</p>
 }

@@ -8,13 +8,13 @@ import (
 )
 
 type Arguments struct {
-	ServerURL  string
+	ServerHost string
 	ServerPort int
 }
 
 func parseArgs() Arguments {
-	serverUrl := flag.String("url", "", "server url of queue service")
-	serverPort := flag.Int("port", 0, "server port where queue is running mandatory")
+	serverHost := flag.String("host", "", "server host of queue service")
+	serverPort := flag.Int("port", 0, "server port where queue is running (mandatory)")
 
 	flag.CommandLine.SetOutput(log.Writer())
 	flag.Parse()
@@ -26,7 +26,7 @@ func parseArgs() Arguments {
 	}
 
 	return Arguments{
-		ServerURL:  *serverUrl,
+		ServerHost: *serverHost,
 		ServerPort: *serverPort,
 	}
 }

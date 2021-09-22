@@ -75,6 +75,42 @@ services:
 # Connection string:
 # DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://localhost:10000/azuriteuser;
 
+    vmtestqueue.local:
+        build:
+            context: ./vm-test-queue
+        networks:
+            - sharednet
+        environment:
+            SUBMISSION_QUEUE_NAME: test-input
+            VM_TEST_SERVER: vmtestserver.local:80
+            RABBIT_MQ: rabbitmq.local
+        restart: always
+
+    vmtestserver.local:
+        build:
+            context: ./vm-test-server
+        networks:
+            - sharednet
+        ports:
+            - 8084:80
+        environment:
+            RESULTS_BLOB_CONN_STR: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
+            RESULTS_QUEUE_NAME: test-output
+            HTTP_LISTEN_PORT: 80
+            VM_TEST_ADDR: "host.docker.internal:10009"
+            RABBIT_MQ: rabbitmq.local
+        restart: always
+
+    rabbitmq.local:
+        image: rabbitmq:3-management-alpine
+        container_name: 'rabbitmq'
+        ports:
+            - 5672:5672
+            - 15672:15672
+        networks:
+            - sharednet
+        restart: always
+
 networks:
     sharednet: {}
 volumes:

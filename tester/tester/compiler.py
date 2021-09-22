@@ -8,16 +8,9 @@ from tester.config import Config
 
 logger = logging.getLogger(__name__)
 
-class CompilationError(Exception):
-    def __init__(self, configuration, returncode, stdout, description, file):
-        self.errorcode = returncode
-        self.compiler_output = (stdout or b'').decode('utf-8')
-        self.description = description
-        self.configuration = configuration
-        self.file = file
-
 @dataclass
 class CompilationResult: # this is for successful compilation
+    errno: int
     output_path: str
     compiler_output: str # warnings etc.
 
@@ -27,12 +20,11 @@ class GccCompiler:
 
         self._compiler_options = Config.get_compiler_settings(configuration)
         self._linker_options = Config.get_linker_settings(configuration)
-        self._configuration = configuration
         self._output_path = output_path
         self._gcc_path = Config.compiler_path()
         
         try:
-            logger.debug('Running Gcc ("%s") to obtain version',self._gcc_path)
+            logger.debug('Running Gcc ("%s") to obtain version', self._gcc_path)
             
             gcc = subprocess.run([self._gcc_path, '--version'], stdout=subprocess.PIPE, timeout=5)
             if gcc.returncode != 0:
@@ -83,7 +75,7 @@ class GccCompiler:
             
                 if gcc.returncode != 0:
                     logger.warn('Cannot compile file "%s", check out logs at "%s"', file, self._output_path)
-                    raise CompilationError(self._configuration, gcc.returncode, gcc.stdout, 'Cannot compile file.', obj_file)
+                    return CompilationResult(gcc.returncode, '', gcc.stdout.decode('utf-8'))
 
                 obj_files.append(obj_file) # add new object file to compile
 
@@ -100,20 +92,14 @@ class GccCompiler:
 
             if gcc.returncode != 0:
                 logger.error('Cannot link files, check out logs at "%s"', self._output_path)
-                raise CompilationError(self._configuration, gcc.returncode, gcc.stdout, 'Cannot link files.', output)
+                return CompilationResult(gcc.returncode, '', gcc.stdout.decode('utf-8'))
             
             logger.info('File(s) %s successfuly compiled and linked', self._output_path)
-            return CompilationResult(output, compile_output.decode('utf-8'))
+            return CompilationResult(0, output, compile_output.decode('utf-8'))
 
         except subprocess.TimeoutExpired as e:
             logger.fatal('Gcc cannot compile/link files in less than 300seconds!')
-            raise CompilationError(
-                self._configuration,
-                errno.ETIME,
-                e.stdout,
-                'Gcc reach timeout 300s.',
-                ''
-            )
+            return CompilationResult(errno.ETIME, '', 'Gcc reach timeout 300s.')
 
         finally:
             logger.debug('Writing output compilation log "%s".', compile_log)

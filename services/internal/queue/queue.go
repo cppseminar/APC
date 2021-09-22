@@ -300,6 +300,22 @@ func processMessages(wg *sync.WaitGroup) {
 			// this is path for output from our container (very not standard, but whatever)
 			outputPath := outputVolume.HostPath
 
+			// save whole message there so it will be available in the zip file
+			msgJson, err := json.MarshalIndent(msg, "", " ")
+			if err != nil {
+				log.Println("Cannot save msg to json", err)
+				msgJson = []byte(err.Error())
+			}
+
+			tmp, err := ioutil.TempFile(outputPath, "__msg__*.json")
+			if err == nil {
+				_, err = tmp.Write(msgJson)
+			}
+
+			if err != nil {
+				log.Println("Cannot write json", err)
+			}
+
 			output := map[string]interface{}{"result": result}
 
 			if outputPath != "" {
@@ -407,7 +423,7 @@ func serverHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/test" && r.Method == "POST" {
 		w.WriteHeader(processTestRequestInternal(r))
 	} else {
-		log.Printf("Unsupported request %v %v ip %v (x-forwarded-for %v)", r.Method, r.URL.Path, r.RemoteAddr, r.Header.Get("x-forwarded-for"))
+		log.Printf("Unsupported request %v %v ip %v", r.Method, r.URL.Path, r.RemoteAddr)
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
@@ -456,7 +472,7 @@ func Run(ctx context.Context, out io.Writer) int {
 
 	schema = getSchema()
 
-	serverURL := fmt.Sprintf("%v:%v", args.ServerURL, args.ServerPort)
+	serverURL := fmt.Sprintf("%v:%v", args.ServerHost, args.ServerPort)
 
 	exitDone := &sync.WaitGroup{}
 	exitDone.Add(2) // we are waiting for http server and our process message queue

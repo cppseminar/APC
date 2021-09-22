@@ -24,54 +24,6 @@ class EnhancedJSONEncoder(json.JSONEncoder):
         else:
             return super().default(o)
 
-def create_build_errors(error):
-    logger.debug('Creating json with build errors')
-
-    teachers = {
-        'status': f'Compilation of {error.file} failed.',
-        'configuration': error.configuration,
-        'error_code': error.errorcode,
-        'description': error.description,
-        'text': error.compiler_output,
-    }
-
-    with open(Config.teachers_json(), 'w') as f:
-        json.dump(teachers, f)
-
-    students = {
-        'status': 'Compilation of failed.',
-        'configuration': error.configuration,
-        'description': error.description,
-        'text': 
-            error.compiler_output 
-            if Config.get_visibility(error.configuration, Visibility.BUILD) 
-            else ''
-    }
-
-    with open(Config.students_json(), 'w') as f:
-        json.dump(students, f)
-
-
-def create_list_tests_errors(error):
-    logger.debug('Creating json with errors')
-
-    teachers = {
-        'status': f'Listing of tests from file {error.file} failed.',
-        'error_code': error.errorcode,
-        'text': error.output,
-    }
-
-    with open(Config.teachers_json(), 'w') as f:
-        json.dump(teachers, f)
-
-    students = {
-        'status': f'Listing of tests from file {error.file} failed.',
-        'text': 'This is most likely because you did something wrong in global initializers. If you believe it is not the case, contact us.',
-    }
-
-    with open(Config.students_json(), 'w') as f:
-        json.dump(students, f)
-
 
 def build(out_dir, in_dir):
     build_path = os.path.join(Config.output_path(), out_dir)
@@ -96,40 +48,42 @@ def create_success_output(binaries, tests_result):
     logger.debug('Creating json with tests results')
 
     teachers = {
-        'compilation': binaries,
-        'tests': tests_result
+        'compilation': [{
+            'binary': binary,
+            'configurations': [{
+                'name': name,
+                'result': result
+            } for name, result in configurations.items()]
+        } for binary, configurations in binaries.items()],
+        'tests': [{
+            'configuration': configuration, 
+            'cases': [{
+                'name': name, 
+                'result': result
+            } for name, result in cases.items()]
+        } for configuration, cases in tests_result.items()]
     }
 
     with open(Config.teachers_json(), 'w') as f:
         json.dump(teachers, f, cls=EnhancedJSONEncoder, indent=4)
 
-    def strip_info_for_students(d):
-        return {
-            'compilation': {
-                name: {
-                    configuration: 
-                        result.compiler_output 
-                        if Config.get_visibility(configuration, Visibility.BUILD) 
-                        else '' 
-                    for configuration, result in binary.items()
-                } for name, binary in d['compilation'].items()
-            },
-            'tests': {
-                configuration: {
-                    case:
-                        result.stdout 
-                        if Config.get_visibility(configuration, Visibility.TESTS) 
-                        else (
-                            'Success' 
-                            if result.get_status() == tester.tests.TestResultStatus.SUCCESS 
-                            else 'Failed'
-                        )
-                    for case, result in results.items()
-                } for configuration, results in d['tests'].items()
-            }       
-        }
-
-    students = strip_info_for_students(teachers)
+    students = {
+        'compilation': [{
+            'binary': binary,
+            'configurations': [{
+                'name': name,
+                'result': result.compiler_output if Config.get_visibility(name, Visibility.BUILD) else '' 
+            } for name, result in configurations.items()]
+        } for binary, configurations in binaries.items()],
+        'tests': [{
+            'configuration': configuration, 
+            'cases': [{
+                'name': name,
+                'status': result.get_status() == tester.tests.TestResultStatus.SUCCESS,
+                'result': result.stdout if Config.get_visibility(configuration, Visibility.TESTS) else ''
+            } for name, result in cases.items()]
+        } for configuration, cases in tests_result.items()]
+    }
 
     with open(Config.students_json(), 'w') as f:
         json.dump(students, f, cls=EnhancedJSONEncoder, indent=4)
@@ -145,38 +99,40 @@ def main():
     logger.info('Tester started...')
     logger.debug(Config.dumps())
 
-    try:
-        test_results = {}
 
-        # prepare folder to build tests
-        tests_dir = tempfile.mkdtemp()
-        shutil.copytree(Config.tests_path(), tests_dir, dirs_exist_ok=True)
-    
-        if Config.get_mode() == SubmissionMode.COPY:
-            shutil.copy2(Config.submission_path(), tests_dir)
+    test_results = {}
 
-        logger.debug('Copied files for build to "%s"', tests_dir)
+    # prepare folder to build tests
+    tests_dir = tempfile.mkdtemp()
+    shutil.copytree(Config.tests_path(), tests_dir, dirs_exist_ok=True)
 
-        binaries = { 'tests': build('tests', tests_dir) }
+    if Config.get_mode() == SubmissionMode.COPY:
+        shutil.copy2(Config.submission_path(), tests_dir)
 
-        if Config.get_mode() == SubmissionMode.BUILD:
-            binaries['submission'] = build('submission', Config.submission_path())
+    logger.debug('Copied files for build to "%s"', tests_dir)
 
-        for configuration, binary in binaries['tests'].items():
-            test_results[configuration] = {}
-            tests = tester.tests.Tests(binary.output_path, configuration)
-            for test_case in tests.test_cases:
-                test_result = tests.run_test(test_case, binaries['submission'][configuration].output_path)
-                test_results[configuration][test_case] = test_result
+    binaries = { 'tests': build('tests', tests_dir) }
 
-        create_success_output(binaries, test_results)
+    if Config.get_mode() == SubmissionMode.BUILD:
+        binaries['submission'] = build('submission', Config.submission_path())
 
-        logger.info('Finished.')
+    for configuration, binary in binaries['tests'].items():
+        if binary.errno != 0:
+            continue # build failed
 
-    except tester.compiler.CompilationError as e:
-        create_build_errors(e)
-    except tester.tests.ListTestsError as e:
-        create_list_tests_errors(e)
+        test_results[configuration] = {}
+        tests = tester.tests.Tests(binary.output_path, configuration)
+        for test_case in tests.test_cases:
+            submission_binary = binaries.get('submission', {}).get(configuration, None)
+            if submission_binary and submission_binary.errno != 0:
+                continue # cannot compile submission
+
+            test_result = tests.run_test(test_case, submission_binary.output_path)
+            test_results[configuration][test_case] = test_result
+
+    create_success_output(binaries, test_results)
+
+    logger.info('Finished.')
 
 
 if __name__ == '__main__':

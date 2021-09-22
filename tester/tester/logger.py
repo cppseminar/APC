@@ -40,12 +40,12 @@ logger = logging.getLogger(__name__)
 
 def handle_exception(exc_type, exc_value, exc_traceback):
     try:
-        logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+        logger.exception('Uncaught exception', exc_info=(exc_type, exc_value, exc_traceback))
         logger.debug('Creating json with errors')
 
         output = {
-            'status': 'Unexpection exception occured',
-            'text': 'This should never happen, please report this incident.',
+            'status': 'Exception',
+            'text': 'This should never happen, please report this incident to your friendly administrators.',
         }
 
         with open(Config.teachers_json(), 'w') as f:
