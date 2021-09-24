@@ -1,3 +1,14 @@
+#!/bin/bash
+
+if [ $# -ne 3 ]; then
+    echo "Illegal number of parameters" >&2
+    echo "Usage:" $0 "repo user pass" >&2
+    echo -e "\trepo docker repository" >&2
+    echo -e "\tuser docker username" >&2
+    echo -e "\tpass docker password" >&2
+    exit 2
+fi
+
 # remove old docker packages
 apt-get -y remove docker docker-engine docker.io containerd runc
 
@@ -20,6 +31,9 @@ echo \
 
 # install docker
 apt-get -y install docker-ce docker-ce-cli containerd.io
+
+# login to docker repository
+docker login $1 -u $2 -p $3
 
 # get go compiler
 apt-get -y install golang-go
