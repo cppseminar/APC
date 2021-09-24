@@ -1,0 +1,61 @@
+name: Build microservices
+on: push
+jobs:
+  buildServices:
+    name: Build images and push to registry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login docker
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.STAGING_DOCKER_USER }}
+          password: ${{ secrets.STAGING_DOCKER_PASSWORD }}
+          registry: ${{ secrets.STAGING_DOCKER_URL }}
+
+      - name: Build docker image presenation
+        uses: docker/build-push-action@v2
+        with:
+          context: ./cppseminar/presentation
+          push: true
+          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/presentation:${{ github.sha }}
+
+      - name: Build docker image userservice
+        uses: docker/build-push-action@v2
+        with:
+          context: ./cppseminar/userservice
+          push: true
+          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/userservice:${{ github.sha }}
+
+      - name: Build docker image submissions
+        uses: docker/build-push-action@v2
+        with:
+          context: ./cppseminar/submissions
+          push: true
+          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/submissions:${{ github.sha }}
+  upgradeHelm:
+    name: Send new version to Kubernetes
+    runs-on: ubuntu-latest
+    needs: buildServices
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deliverybot Helm Action
+        uses: deliverybot/helm@v1.7.0
+        with:
+          release: apcchart
+          helm: helm3
+          version: ${{ github.sha }}
+          # track: stable # Maybe in future change to canary
+          task: upgrade
+          namespace: default
+          values: |
+            releaseLabel: "${{ github.sha }}"
+            dockerRepository: ${{ secrets.STAGING_REGISTRY }}
+            websiteHost: ${{ secrets.STAGING_HOST }}
+          chart: ./cppseminar/apchelm
+        env:
+          KUBECONFIG_FILE: ${{ secrets.STAGING_KUBECONFIG }}

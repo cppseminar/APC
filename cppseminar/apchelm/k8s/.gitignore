@@ -1,0 +1,4 @@
+*
+!.gitignore
+!apc-secrets.yaml
+!README.md
