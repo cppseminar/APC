@@ -103,14 +103,13 @@
 
             try {
                 json = $(selector).text()
-                $(selector).text('')
-                $(selector).json2html(JSON.parse(json), templates.parent)
+                $(selector).json2html(JSON.parse(json), templates.parent, { method: 'replace' })
             }
             catch (e) {
                 console.log(e)
                 const err = $('<span class="text-danger"></span>').text('Cannot parse result json, that is pretty bad, contact your friendly administrator with text below.')
                 const details = $('<small class="d-block text-muted"></small>').text(json)
-                $(selector).append(err, details)
+                $(selector).replaceWith(err, details)
             }
         }
 
