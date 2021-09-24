@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euxo pipefail
+
 if [ $# -ne 3 ]; then
     echo "Illegal number of parameters" >&2
     echo "Usage:" $0 "repo user pass" >&2
@@ -22,7 +24,7 @@ apt-get -y install \
     lsb-release
 
 # add official Docker key
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg -y --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
 # use stable repository
 echo \
