@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apc-submissionsservice
+  namespace: apc
+  labels:
+    app: submissionsservice
+    category: backend
+spec:
+  selector:
+    matchLabels:
+      app: submissionsservice
+  revisionHistoryLimit: 2
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: submissionsservice
+        category: backend
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: submissionsservice-pod
+          image:
+            {{- required "Docker repo required" .Values.dockerRepository | indent 1 -}}
+             /services/submissions:
+            {{- .Values.releaseLabel }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            requests:
+              memory: 256M
+              cpu: '0.5'
+            limits:
+              memory: 1G
+              cpu: '1'
+          env:
+            - name: StorageConnectionString
+              valueFrom:
+                secretKeyRef:
+                  key: blobConnectionString
+                  name: general-secrets
+            - name: CosmosSettings__DatabaseName
+              value: devel
+            - name: CosmosSettings__ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  key: cosmosConnectionString
+                  name: general-secrets
