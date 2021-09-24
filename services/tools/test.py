@@ -19,10 +19,6 @@ int main() {
 }
 """
 
-FILE2 = ""
-with open("../../tester/example/submission.cpp", "r") as f:
-    FILE2 = f.read()
-
 def command(returnUrl, docker, addr, customCmd):
     message = {
         "returnUrl" : returnUrl,
@@ -58,19 +54,21 @@ def command1(message):
     })
 
 def command2(message):
-    message.update({
-        "files": {
-            "main.cpp": FILE2,
-        },
-    })
+    with open("../../tester/example/submission.cpp", "r") as f:
+        message.update({
+            "files": {
+                "main.cpp": f.read(),
+            },
+        })
 
 def command3(message):
-    message.update({
-        "memory": 1000 * 1000 * 1000,
-        "files": {
-            "main.cpp": FILE2,
-        },
-    })
+    with open("../../tester/example/submission.cpp", "r") as f:
+        message.update({
+            "memory": 1000 * 1000 * 1000,
+            "files": {
+                "main.cpp": f.read(),
+            },
+        })
 
 class ServerHandler(BaseHTTPRequestHandler):
     def _set_headers(self):
