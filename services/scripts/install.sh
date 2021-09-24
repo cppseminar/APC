@@ -45,8 +45,6 @@ go build -o /usr/local/bin/queued ../cmd/queue
 chmod +x /usr/local/bin/queued
 
 # copy config file
-MY_PATH=$(readlink -f ./queued.service.ini)
-echo "$MY_PATH"
 cp ./queued.service.ini /etc/systemd/system/queued.service
 chmod 644 /etc/systemd/system/queued.service
 

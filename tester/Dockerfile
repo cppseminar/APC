@@ -29,4 +29,4 @@ RUN apt-get -y install crudini \
     && crudini --set /app/config.ini paths output $OUTPUT_PATH
 
 WORKDIR /app
-CMD python -m tester ./config.ini
+CMD python -m tester ./config.ini -C example
