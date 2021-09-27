@@ -35,6 +35,14 @@ jobs:
           context: ./cppseminar/submissions
           push: true
           tags: ${{ secrets.STAGING_DOCKER_URL }}/services/submissions:${{ github.sha }}
+
+      - name: Build docker image test service
+        uses: docker/build-push-action@v2
+        with:
+          context: ./cppseminar/testservice
+          push: true
+          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/testservice:${{ github.sha }}
+
   upgradeHelm:
     name: Send new version to Kubernetes
     runs-on: ubuntu-latest
