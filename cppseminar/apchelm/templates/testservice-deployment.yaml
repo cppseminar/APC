@@ -1,32 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: apc-presentation
+  name: apc-testservice
   namespace: apc
   labels:
-    app: presentation
+    app: testservice
     category: frontend
 spec:
   selector:
     matchLabels:
-      app: presentation
+      app: testservice
   revisionHistoryLimit: 2
-  replicas: 1
+  replicas: 2
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: presentation
-        category: frontend
+        app: testservice
+        category: backend
     spec:
       imagePullSecrets:
         - name: regcred
       containers:
-        - name: presentation-pod
+        - name: testservice-pod
           image:
             {{- required "Docker repo required" .Values.dockerRepository | indent 1 -}}
-             /services/presentation:
+             /services/testservice:
             {{- .Values.releaseLabel }}
           ports:
             - containerPort: 80
@@ -39,19 +39,10 @@ spec:
               memory: 1G
               cpu: '1'
           env:
-            - name: GoogleOid__ClientId
+            - name: COSMOS_CONNECTION_STRING
               valueFrom:
                 secretKeyRef:
-                  key: googleId
+                  key: cosmosConnectionString
                   name: general-secrets
-            - name: GoogleOid__ClientSecret
-              valueFrom:
-                secretKeyRef:
-                  key: googleSecret
-                  name: general-secrets
-            - name: USER_SERVICE
-              value: http://userservice-service.apc
-            - name: SUBMISSION_SERVICE
-              value: http://submissionsservice-service.apc
-            - name: TEST_SERVICE
-              value: http://testservice-service.apc
+            - name: COSMOS_DB_NAME
+              value: devel
