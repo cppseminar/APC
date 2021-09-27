@@ -21,7 +21,7 @@ else
     <div class="alert-warning p-3 border">Not found</div>
 }
 
-@if (Model.TestCaseList != null)
+@if (Model.TestCaseList != null && Model.TestCaseList.Count > 0)
 {
     <table class="table">
         <tr>

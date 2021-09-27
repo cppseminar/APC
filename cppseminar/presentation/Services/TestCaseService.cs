@@ -43,22 +43,22 @@ namespace presentation.Services
             {
                 queryParams["taskId"] = taskId;
             }
-            HttpResponseMessage result = await _client.GetAsync($"cases/?{queryParams}");
 
-            if(!result.IsSuccessStatusCode)
-            {
-                _logger.LogWarning("Request returned status code {code}", result.StatusCode);
-                return new List<TestCaseRest>();
-            }
             try
             {
+                HttpResponseMessage result = await _client.GetAsync($"cases/?{queryParams}");
+                if (!result.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Request returned status code {code}", result.StatusCode);
+                    return new List<TestCaseRest>();
+                }
                 return await result.Content.ReadAsAsync<List<TestCaseRest>>();
             }
             catch(Exception e)
             {
                 _logger.LogWarning("Error during parsing test case list {e}", e);
             }
-            return new List<TestCaseRest>();
+            return null;
 
         }
 

@@ -24,6 +24,10 @@ namespace presentation.Pages.TestCase
         public async Task OnGetAsync()
         {
             Cases = await _testCaseService.GetAll();
+            if (Cases == null) // Error
+            {
+                ModelState.AddModelError(string.Empty, "Failed loading data");
+            }
         }
     }
 }

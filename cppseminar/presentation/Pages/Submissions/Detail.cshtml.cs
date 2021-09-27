@@ -47,7 +47,7 @@ namespace presentation.Pages.Submissions
                 MySubmission =
                     await _submissionService.GetSubmissionAsync(User.GetEmail(), id.ToString());
                 var allCases = await _testCaseService.GetByTask(MySubmission.TaskId);
-                TestCaseList = new List<TestCaseRest>(); // Set it, so it doesn't look like error
+                TestCaseList = new List<TestCaseRest>();
                 foreach (var oneCase in allCases)
                 {
                     if ((await _authService.AuthorizeAsync(
