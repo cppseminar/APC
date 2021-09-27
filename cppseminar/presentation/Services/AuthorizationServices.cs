@@ -54,6 +54,31 @@ namespace presentation.Services
         }
     }
 
+    // Check that user has claims required by test case
+    public class TestCaseAuthorizationService
+    : AuthorizationHandler<OperationAuthorizationRequirement, TestCaseRest>
+
+    {
+        protected override Task HandleRequirementAsync(
+            AuthorizationHandlerContext context,
+            OperationAuthorizationRequirement requirement,
+            TestCaseRest testCase)
+        {
+            if (testCase == null || testCase.ClaimName == null || testCase.ClaimValue == null)
+            {
+                return Task.CompletedTask;
+            }
+            var caseClaim = context.User.FindFirst(
+                claim => claim.Type == testCase.ClaimName && claim.Value == testCase.ClaimValue);
+            if (caseClaim != null)
+            {
+                context.Succeed(requirement);
+            }
+            return Task.CompletedTask;
+        }
+    }
+
+
     public static class ClaimsPrincipalExtension
     {
         public static string GetEmail(this ClaimsPrincipal principal)

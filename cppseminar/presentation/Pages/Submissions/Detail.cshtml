@@ -21,3 +21,29 @@ else
     <div class="alert-warning p-3 border">Not found</div>
 }
 
+@if (Model.TestCaseList != null)
+{
+    <table class="table">
+        <tr>
+            <th>Test Name</th>
+        </tr>
+        @foreach (var testCase in Model.TestCaseList)
+        {
+            <tr>
+                <td>
+                    @testCase.Name
+                </td>
+                <td>
+                    <button class="btn btn-primary">Run test!</button>
+                </td>
+            </tr>
+        }
+
+    </table>
+}
+else
+{
+    <div class="alert-info">
+        <p>There are no tests available</p>
+    </div>
+}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
@@ -17,12 +18,21 @@ namespace presentation.Pages.Submissions
     {
         private ILogger<DetailModel> _logger;
         private SubmissionService _submissionService;
-        public Submission MySubmission { get; set; }
+        private TestCaseService _testCaseService;
+        private IAuthorizationService _authService;
 
-        public DetailModel(ILogger<DetailModel> logger, SubmissionService submissionService)
+        public Submission MySubmission { get; set; }
+        public List<TestCaseRest> TestCaseList { get; set; }
+
+        public DetailModel(ILogger<DetailModel> logger,
+                           SubmissionService submissionService,
+                           TestCaseService testCaseService,
+                           IAuthorizationService authService)
         {
             _logger = logger;
             _submissionService = submissionService;
+            _testCaseService = testCaseService;
+            _authService = authService;
         }
 
         public async Task OnGetAsync([Required]Guid id)
@@ -36,10 +46,20 @@ namespace presentation.Pages.Submissions
             {
                 MySubmission =
                     await _submissionService.GetSubmissionAsync(User.GetEmail(), id.ToString());
+                var allCases = await _testCaseService.GetByTask(MySubmission.TaskId);
+                TestCaseList = new List<TestCaseRest>(); // Set it, so it doesn't look like error
+                foreach (var oneCase in allCases)
+                {
+                    if ((await _authService.AuthorizeAsync(
+                        User, oneCase, AuthorizationConstants.Submit)).Succeeded)
+                    {
+                        TestCaseList.Add(oneCase);
+                    }
+                }
             }
             catch(Exception)
             {
-                ModelState.AddModelError(string.Empty, "Operation failed");
+                ModelState.AddModelError(string.Empty, "Failed loading some data");
             }
 
 

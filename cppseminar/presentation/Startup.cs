@@ -38,8 +38,10 @@ namespace presentation
             services.AddSingleton<SubmissionService>();
             services.AddSingleton<TaskService>();
             services.AddSingleton<AuthenticationService>();
+            services.AddSingleton<TestCaseService>();
             services.AddSingleton<IAuthorizationHandler, AdminAuthorizationService>();
             services.AddSingleton<IAuthorizationHandler, TaskAuthorizationService>();
+            services.AddSingleton<IAuthorizationHandler, TestCaseAuthorizationService>();
             // TODO: Review lifetime of cookies
             services.AddAuthentication(options =>
             {

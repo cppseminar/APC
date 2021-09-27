@@ -1,0 +1,46 @@
+@page
+@model presentation.Pages.TestCase.IndexModel
+
+<h4>Test cases</h4>
+<th:div asp-validation-summary="All" class="alert-danger"></th:div>
+<p>
+    <th:a asp-page="/TestCase/Create">Create new test case</th:a>
+</p>
+<div>
+    @if (Model.Cases != null)
+    {
+        <table class="table">
+            <tr>
+                <th>Name</th>
+                <th>TaskId</th>
+                <th>Max runs</th>
+                <th>Docker image</th>
+                <th>Claims</th>
+                <th>Creator</th>
+            </tr>
+            @foreach (var testCase in Model.Cases)
+            {
+                <tr>
+                    <td>
+                        @testCase.Name
+                    </td>
+                    <td>
+                        @testCase.TaskId
+                    </td>
+                    <td>
+                        @testCase.MaxRuns
+                    </td>
+                    <td>
+                        @testCase.DockerImage
+                    </td>
+                    <td>
+                        @testCase.ClaimName => @testCase.ClaimValue
+                    </td>
+                    <td>
+                        By @testCase.CreatedBy at @testCase.CreatedAt
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+</div>

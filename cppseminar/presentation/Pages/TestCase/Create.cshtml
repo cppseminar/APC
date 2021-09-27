@@ -1,0 +1,63 @@
+@page
+@model presentation.Pages.TestCase.CreateModel
+
+<h4>Create new test case</h4>
+<th:div asp-validation-summary="All" class="alert-danger p-2"></th:div>
+<th:form method="POST" >
+    <table>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.NewCase.Name"></th:label>
+            </th>
+            <td>
+                <th:input asp-for="@Model.NewCase.Name" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.NewCase.TaskId"></th:label>
+            </th>
+            <td>
+                <th:input asp-for="@Model.NewCase.TaskId" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.NewCase.DockerImage"></th:label>
+            </th>
+            <td>
+                <th:input asp-for="@Model.NewCase.DockerImage" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.NewCase.MaxRuns"></th:label>
+            </th>
+            <td>
+                <th:input asp-for="@Model.NewCase.MaxRuns" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.NewCase.ClaimName"></th:label>
+            </th>
+            <td>
+                <th:input asp-for="@Model.NewCase.ClaimName" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.NewCase.ClaimValue"></th:label>
+
+            </th>
+            <td>
+                <th:input asp-for="@Model.NewCase.ClaimValue" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="submit" />
+            </td>
+        </tr>
+    </table>
+</th:form>

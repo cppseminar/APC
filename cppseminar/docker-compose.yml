@@ -41,6 +41,8 @@ services:
             DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
             ASPNETCORE_ENVIRONMENT: Development
             SUBMISSION_SERVICE: http://submissions.local:5004/
+            TEST_SERVICE: http://testservice.local/
+            USER_SERVICE: http://userservice.local/
         restart: "always"
 
     userservice.local:
@@ -56,6 +58,21 @@ services:
             - ./userservice/Services:/src/Services
         ports:
             - 8082:80
+        restart: always
+
+    testservice.local:
+        build:
+            context: ./testservice
+            target: dev
+        networks:
+            - sharednet
+        volumes:
+            - ./testservice/Startup.cs:/src/Startup.cs
+            - ./testservice/Controllers:/src/Controllers
+            - ./testservice/Models:/src/Models
+            - ./testservice/Services:/src/Services
+        ports:
+            - 8083:80
         restart: always
 
     azurite.local:

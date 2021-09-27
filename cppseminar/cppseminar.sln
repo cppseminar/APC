@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "submissions", "submissions\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "userservice", "userservice\userservice.csproj", "{3D56A18E-6EA3-4866-8116-CE18579BBB32}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "testservice", "testservice\testservice.csproj", "{C0376F36-7F71-4B7C-8369-9EA3FCDB363B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{3D56A18E-6EA3-4866-8116-CE18579BBB32}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D56A18E-6EA3-4866-8116-CE18579BBB32}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D56A18E-6EA3-4866-8116-CE18579BBB32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0376F36-7F71-4B7C-8369-9EA3FCDB363B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0376F36-7F71-4B7C-8369-9EA3FCDB363B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0376F36-7F71-4B7C-8369-9EA3FCDB363B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0376F36-7F71-4B7C-8369-9EA3FCDB363B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -33,7 +33,6 @@ namespace presentation.Pages.Tasks
                 IList<TaskModel> taskList = await _service.GetAllTasksAsync();
                 var auth = await _authService.AuthorizeAsync(User, "Administrator");
                 IsAdmin = auth.Succeeded;
-
                 // Show only tasks for which you are authorized
                 foreach (var task in taskList)
                 {
