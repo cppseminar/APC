@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -120,14 +122,18 @@ func killContainerOnBadCtx(ctx context.Context, dockerCli *client.Client, contai
 
 // Run container identified by containerID. Returns stdout, stderr, error
 // This function doesn't log anything, insteads returns detailed error messages
-func runDocker(ctx context.Context, dockerCli *client.Client, containerID string) (string, string, error) {
-	newCancelableContext, cancel := context.WithCancel(ctx)
+func runDocker(ctx context.Context, dockerCli *client.Client, containerID string, timeout uint16) (string, string, error) {
+	// Let's always add 2 seconds to timeout, for startup and so on
+	ctx, cancel := context.WithTimeout(
+		ctx,
+		time.Duration(int64(timeout)+2)*time.Second,
+	)
 	defer cancel()
 
-	defer killContainerOnBadCtx(newCancelableContext, dockerCli, containerID)
-	var containerWaitC <-chan bool = waitExit(newCancelableContext, dockerCli, containerID)
+	defer killContainerOnBadCtx(ctx, dockerCli, containerID)
+	var containerWaitC <-chan bool = waitExit(ctx, dockerCli, containerID)
 
-	response, err := dockerCli.ContainerAttach(newCancelableContext, containerID,
+	response, err := dockerCli.ContainerAttach(ctx, containerID,
 		types.ContainerAttachOptions{
 			Stream: true,
 			Stdout: true,
@@ -135,13 +141,11 @@ func runDocker(ctx context.Context, dockerCli *client.Client, containerID string
 		})
 
 	if err != nil {
-		cancel()
 		return "", "", fmt.Errorf("error on docker attach: %v", err.Error())
 	}
 
-	err = dockerCli.ContainerStart(newCancelableContext, containerID, types.ContainerStartOptions{})
+	err = dockerCli.ContainerStart(ctx, containerID, types.ContainerStartOptions{})
 	if err != nil {
-		cancel()
 		return "", "", fmt.Errorf("error on docker containerstart: %v", err.Error())
 	}
 
@@ -208,14 +212,6 @@ func GetDockerEnv(containerId string) (map[string]string, error) {
 // DockerExec Execute docker image, identified by config.
 // This is blocking call. In the end, stdout will be returned by output string
 func DockerExec(config DockerConfig) (string, error) {
-
-	// Let's always add 2 seconds to timeout, for startup and so on
-	context, cancel := context.WithTimeout(
-		context.Background(),
-		time.Duration(int64(config.Timeout)+2)*time.Second,
-	)
-	defer cancel()
-
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		log.Printf("Error while creating docker client: %v\n", err)
@@ -246,19 +242,39 @@ func DockerExec(config DockerConfig) (string, error) {
 		}
 	}
 
-	container, err := cli.ContainerCreate(context, dockerConfig, dockerHostConfig, nil, nil, "")
+	// Let's always add 2 seconds to timeout, for startup and so on
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		time.Duration(10)*time.Minute,
+	)
+	defer cancel()
+
+	reader, err := cli.ImagePull(ctx, config.DockerImage, types.ImagePullOptions{})
 	if err != nil {
-		log.Printf("Error while creating docker image (%v): %v\n", config.DockerImage, err)
+		log.Printf("Error while pulling docker image (%v): %v\n", config.DockerImage, err)
 		return "", err
 	}
 
-	_, stderr, err := runDocker(context, cli, container.ID)
+	defer reader.Close()
+	_, err = io.Copy(ioutil.Discard, reader)
+	if err != nil {
+		log.Printf("Unable to pull image: %v\n", err)
+		return "", err
+	}
+
+	container, err := cli.ContainerCreate(ctx, dockerConfig, dockerHostConfig, nil, nil, "")
+	if err != nil {
+		log.Printf("Error while creating docker container (%v): %v\n", config.DockerImage, err)
+		return "", err
+	}
+
+	_, stderr, err := runDocker(ctx, cli, container.ID, config.Timeout)
 
 	select {
-	case <-context.Done():
+	case <-ctx.Done():
 		// Timeout expired. Something must have gone very wrong.
 		// Let's prepend to error some text
-		err = errors.New("TIMEOUT expired! " + context.Err().Error())
+		err = errors.New("TIMEOUT expired! " + ctx.Err().Error())
 	default:
 		// Happy path
 		// Fall through here
