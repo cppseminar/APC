@@ -73,6 +73,11 @@ services:
             - ./testservice/Services:/src/Services
         ports:
             - 8083:80
+        depends_on:
+            -  rabbitmq.local
+        environment:
+            TEST_REQUESTS_QUEUE: test-input
+            TEST_RESULTS_QUEUE: test-output
         restart: always
 
     azurite.local:

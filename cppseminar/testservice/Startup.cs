@@ -33,7 +33,7 @@ namespace testservice
                     Configuration["COSMOS_CONNECTION_STRING"],
                     Configuration["COSMOS_DB_NAME"]);
             });
-            //services.AddSingleton<DbService>();
+            services.AddSingleton<RabbitMQService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,6 +53,7 @@ namespace testservice
                 endpoints.MapControllers();
             });
             dbService.Database.EnsureCreated();
+            app.ApplicationServices.GetRequiredService<RabbitMQService>().StartProcessing();
         }
     }
 }

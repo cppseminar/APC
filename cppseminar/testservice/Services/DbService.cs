@@ -23,7 +23,16 @@ namespace testservice.Services
 
             modelBuilder.Entity<TestCase>()
                 .Property(testCase => testCase.Id).ToJsonProperty("id");
+
+            modelBuilder.Entity<TestRun>()
+                .ToContainer("testRuns")
+                .HasNoDiscriminator()
+                .HasPartitionKey(x => x.CreatedBy);
+            modelBuilder.Entity<TestRun>()
+                .Property(req => req.Id).ToJsonProperty("id");
+
         }
         public DbSet<TestCase> Cases { get; set; }
+        public DbSet<TestRun> Tests { get; set; }
     }
 }

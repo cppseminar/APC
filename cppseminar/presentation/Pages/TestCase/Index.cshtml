@@ -17,6 +17,7 @@
                 <th>Docker image</th>
                 <th>Claims</th>
                 <th>Creator</th>
+                <th>Id</th>
             </tr>
             @foreach (var testCase in Model.Cases)
             {
@@ -38,6 +39,9 @@
                     </td>
                     <td>
                         By @testCase.CreatedBy at @testCase.CreatedAt
+                    </td>
+                    <td>
+                        @testCase.Id
                     </td>
                 </tr>
             }
