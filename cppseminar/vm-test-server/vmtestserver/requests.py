@@ -30,6 +30,7 @@ def process_results(data):
             'students': data['students'],
             'teachers': data['teachers'],
             'files': token,
+            'metaData': data['metaData'], # forward metadata
         }
 
         with contextlib.closing(pika.BlockingConnection(
