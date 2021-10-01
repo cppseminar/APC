@@ -2,6 +2,8 @@ package docker
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -28,6 +30,9 @@ type DockerConfig struct {
 	Timeout uint16
 	// Memory Max ram that container can use. Number of bytes or 0 for infinite
 	Memory int64
+	// Docker credentials
+	Username string
+	Password string
 }
 
 // DockerVolume This type should have DockerVolume.Cleanup() called on deletion
@@ -249,7 +254,19 @@ func DockerExec(config DockerConfig) (string, error) {
 	)
 	defer cancel()
 
-	reader, err := cli.ImagePull(ctx, config.DockerImage, types.ImagePullOptions{})
+	authConfig := types.AuthConfig{
+		Username: config.Username,
+		Password: config.Password,
+	}
+	encodedJSON, err := json.Marshal(authConfig)
+	if err != nil {
+		log.Println("Error while marshal json, error:", err)
+		return "", err
+	}
+
+	reader, err := cli.ImagePull(ctx, config.DockerImage, types.ImagePullOptions{
+		RegistryAuth: base64.URLEncoding.EncodeToString(encodedJSON),
+	})
 	if err != nil {
 		log.Printf("Error while pulling docker image (%v): %v\n", config.DockerImage, err)
 		return "", err

@@ -284,6 +284,8 @@ func processMessages(wg *sync.WaitGroup) {
 					DockerImage: msg.DockerImage,
 					Timeout:     uint16(msg.MaxRunTime),
 					Memory:      int64(msg.Memory * 1024 * 1024),
+					Username:    arguments.DockerUsername,
+					Password:    arguments.DockerPassword,
 				}
 
 				result, err := docker.DockerExec(config)

@@ -1,13 +1,12 @@
 #!/bin/bash
 
-set -euxo pipefail
+set -euo pipefail
+{ set +x; } 2>/dev/null
 
-if [ $# -ne 3 ]; then
+if [ $# -ne 1 ]; then
     echo "Illegal number of parameters" >&2
-    echo "Usage:" $0 "repo user pass" >&2
-    echo -e "\trepo docker repository" >&2
-    echo -e "\tuser docker username" >&2
-    echo -e "\tpass docker password" >&2
+    echo "Usage:" $0 "conf_file" >&2
+    echo -e "\tconf_file json with username and password to docker registry" >&2
     exit 2
 fi
 
@@ -34,9 +33,6 @@ echo \
 # install docker
 apt-get -y install docker-ce docker-ce-cli containerd.io
 
-# login to docker repository
-docker login $1 -u $2 -p $3
-
 # get go compiler
 apt-get -y install golang-go
 
@@ -47,6 +43,8 @@ chmod +x /usr/local/bin/queued
 # copy config file
 cp ./queued.service.ini /etc/systemd/system/queued.service
 chmod 644 /etc/systemd/system/queued.service
+
+cp $1 /usr/local/etc/queued.conf.json
 
 # reload units
 systemctl daemon-reload
