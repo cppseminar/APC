@@ -21,7 +21,8 @@ apt-get -y install subversion
 
 svn checkout https://github.com/cppseminar/APC/trunk/services ./queued
 
-# call install
+config=`realpath "$1"`
 
+# call install
 chmod +x ./queued/scripts/install.sh
-( cd ./queued/scripts && exec ./install.sh $1 )
+( cd ./queued/scripts && exec ./install.sh $config )
