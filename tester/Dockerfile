@@ -1,8 +1,8 @@
 FROM gcc:11.2-bullseye
 WORKDIR /
 
-ARG UNITTESTS_PATH=./example/tests
-ARG CONFIG_PATH=./config.ini
+ARG UNITTESTS_PATH=./example/tests/hello-world
+ARG CONFIG_PATH=./example/configs/hello-world/config.ini
 
 ENV OUTPUT_PATH=/app/output
 ENV SUBMISSION_PATH=/app/submission

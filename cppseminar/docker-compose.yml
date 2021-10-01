@@ -118,7 +118,7 @@ services:
         environment:
             RESULTS_BLOB_CONN_STR: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
             RESULTS_QUEUE_NAME: test-output
-            HTTP_LISTEN_PORT: 80
+            VM_TEST_RETURN_ADDR: "vmtestserver.local:80"
             VM_TEST_ADDR: "host.docker.internal:10009"
             RABBIT_MQ: rabbitmq.local
         restart: always

@@ -79,17 +79,15 @@ def process_test(data):
         memory = req.get('memory', None)
 
         # path to submitted file, we should load this from blob storage
-        # currently the file is here
-        submitted_files = req['submittedFiles']
-        for k, v in submitted_files.items():
-            submitted_files[k] = download_file(v)
+        submitted_file = download_file(req['contentUrl'])
 
         vm_request = {
-            #TODO 'returnUrl': 'localhost:' + os.getenv('HTTP_LISTEN_PORT'),
-            'returnUrl': 'localhost:8084',
+            'returnUrl': os.getenv('VM_TEST_RETURN_ADDR'),
             'metaData': meta_data,
             'dockerImage': docker_image,
-            'files': submitted_files,
+            'files': {
+                'main.cpp': submitted_file,
+            },
         }
 
         if max_run_time:
