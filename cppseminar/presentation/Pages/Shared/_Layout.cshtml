@@ -46,6 +46,87 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/json2html/2.1.0/json2html.min.js"></script>
     <script>
+        function resolveTeachersJson(elemId) {
+            const templates = {
+                parent: {
+                    '<>': 'div', html: [
+                        { '<>': 'h1', text: 'Results' },
+                        {
+                            '<>': 'div', html: [
+                                { '<>': 'h2', text: 'Compilation' },
+                                { '<>': 'ul', html: obj => $.json2html(obj.compilation, templates.compilation) }
+                            ]
+                        },
+                        {
+                            '<>': 'div', html: [
+                                { '<>': 'h2', text: 'Tests' },
+                                { '<>': 'ul', html: obj => $.json2html(obj.tests, templates.tests) }
+                            ]
+                        },
+                    ],
+                },
+                compilation: {
+                    '<>': 'li', html: [
+                        { '<>': 'h3', text: '${binary}' },
+                        {
+                            '<>': 'ul', html: [
+                                {
+                                    '<>': 'li', obj: obj => obj.configurations, 'html': [
+                                        { '<>': 'span', text: obj => String.fromCharCode(obj.result.errno === 0 ? 0x274C : 0x2714) },
+                                        { '<>': 'span', text: '${name}', class: obj => obj.result ? 'text-danger' : 'text-success' },
+                                        {
+                                            '<>': 'div', obj: obj => obj.result, html: [
+                                                { '<>': 'div', text: 'errno: ${errno}' },
+                                                { '<>': 'div', text: 'output_path: ${output_path}' },
+                                                { '<>': 'pre', text: '${compiler_output}' },
+                                            ],
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                tests: {
+                    '<>': 'li', html: [
+                        { '<>': 'h3', text: '${configuration}' },
+                        {
+                            '<>': 'ul', html: [
+                                {
+                                    '<>': 'li', obj: obj => obj.cases, 'html': [
+                                        { '<>': 'span', text: obj => String.fromCharCode(obj.result.status === 'Success' ? 0x2714 : 0x274C) },
+                                        { '<>': 'span', text: '${name}', class: obj => obj.status ? 'text-success' : 'text-danger' },
+                                        {
+                                            '<>': 'div', obj: obj => obj.result, html: [
+                                                { '<>': 'div', text: 'status: ${status}' },
+                                                { '<>': 'div', text: 'returncode: ${returncode}' },
+                                                { '<>': 'pre', text: 'stdout: ${stdout}' },
+                                                { '<>': 'pre', text: 'stderr: ${stderr}' },
+                                            ],
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+            }
+
+            let json = ''
+            let selector = '#' + elemId
+
+            try {
+                json = $(selector).text()
+                $(selector).json2html(JSON.parse(json), templates.parent, { method: 'replace' })
+            }
+            catch (e) {
+                console.log(e)
+                const err = $('<span class="text-danger"></span>').text('Cannot parse result json, that is pretty bad.')
+                const details = $('<small class="d-block text-muted"></small>').text(json)
+                $(selector).replaceWith(err, details)
+            }
+        }
+
         function resolveStudentsJson(elemId) {
             const templates = {
                 parent: {
@@ -108,7 +189,7 @@
             }
             catch (e) {
                 console.log(e)
-                const err = $('<span class="text-danger"></span>').text('Cannot parse result json, that is pretty bad, contact your friendly administrator with text below.')
+                const err = $('<span class="text-danger"></span>').text('Cannot parse result json, that is pretty bad, contact your administrator with text below.')
                 const details = $('<small class="d-block text-muted"></small>').text(json)
                 $(selector).replaceWith(err, details)
             }
