@@ -66,12 +66,12 @@ jobs:
           push: true
           tags: ${{ secrets.STAGING_DOCKER_URL }}/services/vm-test-server:${{ github.sha }}
 
-      - name: Build docker image vm-test-client
+      - name: Build docker image vm-test-queue
         uses: docker/build-push-action@v2
         with:
-          context: ./cppseminar/vm-test-client
+          context: ./cppseminar/vm-test-queue
           push: true
-          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/vm-test-client:${{ github.sha }}
+          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/vm-test-queue:${{ github.sha }}
 
   upgradeHelm:
     name: Send new version to Kubernetes
