@@ -46,3 +46,9 @@ spec:
                   name: general-secrets
             - name: COSMOS_DB_NAME
               value: devel
+            - name: MQ_URI
+              value: amqp://rabbitmq-cluster.apc/
+            - name: TEST_REQUESTS_QUEUE
+              value: test-input
+            - name: TEST_RESULTS_QUEUE
+              value: test-output

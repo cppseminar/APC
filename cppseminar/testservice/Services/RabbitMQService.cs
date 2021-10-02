@@ -24,7 +24,7 @@ namespace testservice.Services
             _publishQueue = config["TEST_REQUESTS_QUEUE"] ?? throw new ArgumentException("Request queue is null");
             _subscribeQueue = config["TEST_RESULTS_QUEUE"] ?? throw new ArgumentException("Result queue is null");
             _factory = new ConnectionFactory();
-            _factory.Uri = new Uri("amqp://rabbitmq.local/");
+            _factory.Uri = new Uri(config["MQ_URI"]);
             _factory.ClientProvidedName = "testservice";
             _mqConnection = _factory.CreateConnection();
             _channel = _mqConnection.CreateModel();
