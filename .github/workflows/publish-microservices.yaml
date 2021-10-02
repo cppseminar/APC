@@ -1,8 +1,8 @@
 name: Build microservices
 on: push
 jobs:
-  buildServices:
-    name: Build images and push to registry
+  buildServices1:
+    name: Build first part of images and push to registry
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,6 +36,22 @@ jobs:
           push: true
           tags: ${{ secrets.STAGING_DOCKER_URL }}/services/submissions:${{ github.sha }}
 
+
+  buildServices2:
+    name: Build second part of images and push to registry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login docker
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.STAGING_DOCKER_USER }}
+          password: ${{ secrets.STAGING_DOCKER_PASSWORD }}
+          registry: ${{ secrets.STAGING_DOCKER_URL }}
+
+
       - name: Build docker image test service
         uses: docker/build-push-action@v2
         with:
@@ -43,10 +59,24 @@ jobs:
           push: true
           tags: ${{ secrets.STAGING_DOCKER_URL }}/services/testservice:${{ github.sha }}
 
+      - name: Build docker image vm-test-server
+        uses: docker/build-push-action@v2
+        with:
+          context: ./cppseminar/vm-test-server
+          push: true
+          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/vm-test-server:${{ github.sha }}
+
+      - name: Build docker image vm-test-client
+        uses: docker/build-push-action@v2
+        with:
+          context: ./cppseminar/vm-test-client
+          push: true
+          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/vm-test-client:${{ github.sha }}
+
   upgradeHelm:
     name: Send new version to Kubernetes
     runs-on: ubuntu-latest
-    needs: buildServices
+    needs: [ "buildServices1", "buildServices2" ]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
