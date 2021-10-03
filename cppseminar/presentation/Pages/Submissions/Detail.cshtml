@@ -34,7 +34,10 @@ else
                     @testCase.Name
                 </td>
                 <td>
-                    <button class="btn btn-primary">Run test!</button>
+                    <th:form method="post" >
+                        <th:input type="hidden" asp-for="@Model.TestGuid" value="@testCase.Id" />
+                        <input  class="btn btn-primary" type="submit" value="Run test!"/>
+                    </th:form>
                 </td>
             </tr>
         }

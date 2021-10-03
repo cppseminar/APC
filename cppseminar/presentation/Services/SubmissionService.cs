@@ -86,11 +86,17 @@ namespace presentation.Services
         }
 
         // Returns null on not found, or throws OperationFailedException
-        public async Task<Submission> GetSubmissionAsync(string userEmail, string submissionId)
+        public async Task<Submission> GetSubmissionAsync(string userEmail, string submissionId, bool urlOnly = false)
         {
+            string query = "?contentFormat=";
+            if (urlOnly)
+            {
+                query += "url";
+            }
+
             _logger.LogTrace("Requesting submission {email} / {id}", userEmail, submissionId);
             HttpResponseMessage response = await _client.GetAsync(
-                $"/submission/{HttpUtility.UrlEncode(userEmail)}/{HttpUtility.UrlEncode(submissionId)}/");
+                $"/submission/{HttpUtility.UrlEncode(userEmail)}/{HttpUtility.UrlEncode(submissionId)}/{query}");
             if (!response.IsSuccessStatusCode)
             {
                 if (((int)response.StatusCode) == 404)

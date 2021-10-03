@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Polly;
 using presentation.Model;
 
 namespace presentation.Services
@@ -54,7 +55,7 @@ namespace presentation.Services
                 }
                 return await result.Content.ReadAsAsync<List<TestCaseRest>>();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 _logger.LogWarning("Error during parsing test case list {e}", e);
             }
@@ -72,18 +73,59 @@ namespace presentation.Services
                     var result = await _client.PostAsJsonAsync("cases/", testCase);
                     if (result.IsSuccessStatusCode)
                     {
-                       _logger.LogTrace("Test case creation returned success code");
+                        _logger.LogTrace("Test case creation returned success code");
                         return;
                     }
                     _logger.LogWarning("Test case creation returned code {code}", result.StatusCode);
                 }
                 throw new OperationFailedException("Too many retries");
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 _logger.LogWarning("Creating new test case failed with: {e}", e);
                 throw new OperationFailedException();
             }
+        }
+
+        public async Task<TestCaseRest> GetById(Guid caseId)
+        {
+            _logger.LogTrace("Retrieving test case {id}", caseId);
+            string uriPath = $"cases/{HttpUtility.UrlEncode(caseId.ToString())}";
+
+
+            var retryPolicy = Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(
+                    new[] { TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3) },
+                    onRetry: (exception, retryCount) =>
+                    {
+                        _logger.LogTrace("Retrying failed request error {e}", exception);
+                    });
+
+            var fallbackPolicy = Policy
+                .Handle<Exception>()
+                .FallbackAsync(
+                    fallbackAction: async token => { await Task.Delay(0); },
+                    onFallbackAsync: async (exception) =>
+                    {
+                        _logger.LogWarning("Failed {e}", exception);
+                        await Task.Delay(0); // Get rid of warning
+                    }).WrapAsync(retryPolicy);
+
+            TestCaseRest testCase = null;
+
+            await fallbackPolicy.ExecuteAsync(async () =>
+            {
+                var result = await _client.GetAsync(uriPath);
+                if ((int)result.StatusCode == 404)
+                {
+                    return;
+                }
+                result.EnsureSuccessStatusCode();
+                testCase = await result.Content.ReadAsAsync<TestCaseRest>();
+
+            });
+            return testCase;
         }
     }
 }

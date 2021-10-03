@@ -39,6 +39,7 @@ namespace presentation
             services.AddSingleton<TaskService>();
             services.AddSingleton<AuthenticationService>();
             services.AddSingleton<TestCaseService>();
+            services.AddSingleton<TestService>();
             services.AddSingleton<IAuthorizationHandler, AdminAuthorizationService>();
             services.AddSingleton<IAuthorizationHandler, TaskAuthorizationService>();
             services.AddSingleton<IAuthorizationHandler, TestCaseAuthorizationService>();
