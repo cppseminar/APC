@@ -33,7 +33,13 @@ namespace testservice.Services
         public void StartProcessing()
         {
             _logger.LogTrace("Subscribing to queue");
-            _mqConnection.CreateModel().QueueDeclare(queue: _publishQueue, durable: true, exclusive: false, autoDelete: false);
+            _mqConnection.CreateModel().QueueDeclare(
+                queue: _publishQueue,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                new Dictionary<string, object> { { "x-queue-type", "quorum" } }
+            );
         }
 
         public void StopProcessing()

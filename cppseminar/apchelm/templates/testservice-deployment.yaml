@@ -49,6 +49,6 @@ spec:
             - name: MQ_URI
               value: amqp://rabbitmq-cluster.apc/
             - name: TEST_REQUESTS_QUEUE
-              value: test-input
+              value:  {{ required "Request queue not defined" .Values.testRequestQueue }}
             - name: TEST_RESULTS_QUEUE
               value: test-output

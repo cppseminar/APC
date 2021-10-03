@@ -78,6 +78,7 @@ services:
         environment:
             TEST_REQUESTS_QUEUE: test-input
             TEST_RESULTS_QUEUE: test-output
+            MQ_URI: amqp://rabbitmq.local/
         restart: always
 
     azurite.local:
