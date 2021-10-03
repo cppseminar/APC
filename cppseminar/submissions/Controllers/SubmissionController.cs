@@ -31,13 +31,14 @@ namespace submissions.Controllers
         [HttpGet("{email}")]
         public IEnumerable<Submission> IndexForUser(string email) => _context.Submissions.Where(s => s.UserEmail == email)
                                                                                          .OrderBy(s => s.SubmittedOn)
-                                                                                         .Take(5);
+                                                                                         .Take(30);
 
 
         // https://www.yogihosting.com/aspnet-core-api-controllers/
 
         [HttpGet("{email}/{submissionId}")]
-        public async Task<ActionResult<SubmissionRest>> GetSubmissionAsync(string email, string submissionId)
+        public async Task<ActionResult<SubmissionRest>> GetSubmissionAsync(
+            string email, string submissionId, [FromQuery]string contentFormat)
         {
             _logger.LogTrace("Retrieving submission {id} for {email}", submissionId, email);
             Submission result = await _context.Submissions.FirstOrDefaultAsync(
@@ -49,10 +50,21 @@ namespace submissions.Controllers
             }
             try
             {
+                string content;
+                List<string> bloblPath = new() { email, submissionId };
                 _logger.LogTrace("Found in db, retrieving blob");
-                var content = await _storage.DownloadBlobAsync(new List<string> { email, submissionId });
+                if (contentFormat == "url")
+                {
+                    _logger.LogTrace("Retrieving blob as sas url");
+                    content = _storage.GetUrlBlob(bloblPath);
+                }
+                else
+                {
+                    _logger.LogTrace("Retrieving blob as binary data");
+                    content = (await _storage.DownloadBlobAsync(bloblPath)).ToString();
+                }
                 _logger.LogTrace("Retrieved blob data successfuly");
-                return Ok(new SubmissionRest(result, content.ToString()));
+                return Ok(new SubmissionRest(result, content));
             }
             catch(Exception e)
             {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Azure.Storage.Sas;
 
 namespace submissions.Services
 {
@@ -75,6 +76,28 @@ namespace submissions.Services
                 _logger.LogError("Error during blob donwload {e}", e);
                 throw new ApplicationException("Operation failed");
             }
+        }
+
+        public string GetUrlBlob(List<string> path)
+        {
+            if (!CheckPathParam(path))
+            {
+                _logger.LogError("Invalid path to create url blob {path}", path);
+                throw new ArgumentException($"Invalid path for blob");
+            }
+
+            string blobName = string.Join("/", path);
+            _logger.LogTrace("Creating url for blob {path}", blobName);
+
+            var blobClient = _client.GetBlobContainerClient(_containerName).GetBlobClient(blobName);
+            BlobSasBuilder sasBuilder = new BlobSasBuilder()
+            {
+                ExpiresOn = DateTime.UtcNow.AddDays(1),
+            };
+            sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
+
+            return blobClient.GenerateSasUri(sasBuilder).AbsoluteUri;
+
         }
 
         private bool CheckPathParam(List<string> path)
