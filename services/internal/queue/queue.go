@@ -59,7 +59,6 @@ const schemaStr = `
 		"returnUrl": {
 			"$id": "#/properties/returnUrl",
 			"type": "string",
-			"format": "uri",
 			"title": "The returnUrl schema",
 			"description": "Result of the run will be submited to this URL."
 		},
