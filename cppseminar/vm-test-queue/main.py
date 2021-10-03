@@ -23,7 +23,7 @@ def set_up_logging():
 
     logger = logging.getLogger('pika')
     # it will polute logs with useless stuff when the rabbit mq is not yet runnig
-    # we will switch to warning, when either first connection is made or 
+    # we will switch to warning, when either first connection is made or
     # sufficient time has elapased
     logger.setLevel(logging.CRITICAL)
 
@@ -51,11 +51,13 @@ def forward_request_to_vm_test_server(channel, method, data):
 def connect():
     with closing(pika.BlockingConnection(pika.ConnectionParameters(os.getenv('RABBIT_MQ')))) as connection:
         logging.getLogger('pika').setLevel(logging.WARNING) # we made connection, hooray!
-        
+
         channel = connection.channel()
 
         queue_name = os.getenv('SUBMISSION_QUEUE_NAME')
-        channel.queue_declare(queue_name, durable=True)
+        # We are not going to declare queue here to avoid duplication.
+        # Queue will be declared by test service
+        # channel.queue_declare(queue_name, durable=True)
 
         for msg in channel.consume(queue_name, inactivity_timeout=2):
             if stop.is_set():
@@ -104,7 +106,7 @@ if __name__ == '__main__':
 
     try:
         logger.info('Starting...')
-        
+
         logger.debug('Setting up signals handlers')
         signal.signal(signal.SIGTERM, signal_handler)
         signal.signal(signal.SIGINT, signal_handler)

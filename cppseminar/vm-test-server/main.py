@@ -31,11 +31,11 @@ if __name__ == '__main__':
 
     try:
         logger.info('Starting...')
-        
+
         logger.debug('Setting up SIGTERM handler')
         signal.signal(signal.SIGTERM, signal_term_handler)
 
-        serve(app, port=os.getenv('HTTP_LISTEN_PORT'))
+        serve(app, port=80)
 
         logger.info('Finished.')
     except KeyboardInterrupt:
