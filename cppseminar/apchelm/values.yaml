@@ -2,7 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-releaseLabel: 54e49dfd06829c045b2675e47fa99fd59e9b9805
+releaseLabel: 069609781870226f8b14e2ba33532418c4e7d845
 dockerRepository: apcdevregistry.azurecr.io
 websiteHost: apc.l33t.party
 testRequestQueue: testInput1
+testResultsQueue: testOutput1
+LBinternal: 10.0.0.25
