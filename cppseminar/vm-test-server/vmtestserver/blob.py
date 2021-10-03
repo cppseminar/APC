@@ -1,26 +1,19 @@
 import http.client
+import urllib.request
 import os
 import datetime
 
 from azure.storage.blob import BlobServiceClient, generate_blob_sas
-from urllib.parse import urlparse
 
 class AzureFileError(RuntimeError):
     pass
 
 def download_file(url):
-    uri = urlparse(url)
-
-    connection = http.client.HTTPConnection(uri.netloc, timeout=60)
-    try:
-        connection.request('GET', uri.path + '?' + uri.query)
-        response = connection.getresponse()
+    with urllib.request.urlopen(url) as response:
         if response.status >= 200 and response.status < 300:
             return response.read().decode('utf-8')
 
         raise AzureFileError('Cannot download file {}, ended with status {}.'.format(url, response.status))
-    finally:
-        connection.close()
 
 
 def upload_file_and_get_token(filepath, container, conn_str):

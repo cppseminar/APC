@@ -9,8 +9,6 @@ from vmtestserver.server import app
 
 logger = logging.getLogger(__name__)
 
-
-
 def set_up_logging():
     # setup logging on stdout
     logger = logging.getLogger('')
