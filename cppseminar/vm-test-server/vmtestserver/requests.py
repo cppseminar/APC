@@ -37,11 +37,12 @@ def process_results(data):
             pika.ConnectionParameters(host=os.getenv('RABBIT_MQ')))) as connection:
             channel = connection.channel()
 
-            channel.queue_declare(queue=os.getenv('RESULTS_QUEUE_NAME'), durable=True)
+            # No queue declare here, we expect that queue will be declared by
+            # tester service.
 
             channel.basic_publish(exchange='', routing_key=os.getenv('RESULTS_QUEUE_NAME'), body=json.dumps(req))
 
-    finally:         
+    finally:
         with contextlib.suppress(FileNotFoundError):
             os.remove(zip_file_path)
 
