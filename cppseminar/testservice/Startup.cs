@@ -34,6 +34,7 @@ namespace testservice
                     Configuration["COSMOS_DB_NAME"]);
             });
             services.AddSingleton<RabbitMQService>();
+            services.AddSingleton<StorageService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

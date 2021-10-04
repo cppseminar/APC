@@ -79,6 +79,7 @@ services:
             TEST_REQUESTS_QUEUE: test-input
             TEST_RESULTS_QUEUE: test-output
             MQ_URI: amqp://rabbitmq.local/
+            BLOB_STORAGE_CONNECTION: "DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;"
         restart: always
 
     azurite.local:

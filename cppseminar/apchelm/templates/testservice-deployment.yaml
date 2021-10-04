@@ -52,3 +52,8 @@ spec:
               value:  {{ required "Request queue not defined" .Values.testRequestQueue }}
             - name: TEST_RESULTS_QUEUE
               value: test-output
+            - name: BLOB_STORAGE_CONNECTION
+                valueFrom:
+                  secretKeyRef:
+                    key: blobConnectionString
+                    name: general-secrets

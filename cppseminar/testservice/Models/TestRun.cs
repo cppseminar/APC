@@ -40,4 +40,14 @@ namespace testservice.Models
         public string Message { get; set; }
         public string Name { get; set; }
     }
+
+    public class TestRunConstants
+    {
+        public const string TestCreated = "Created";
+        public const string TestFailed = "Failed";
+        public const string TestFinished = "Finished";
+        public const string FileStudents = "students.json";
+        public const string FileTeachers = "teachers.json";
+        public const string FileZip = "dump.zip";
+    }
 }
