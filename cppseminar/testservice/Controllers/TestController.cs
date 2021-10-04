@@ -26,11 +26,37 @@ namespace testservice.Controllers
             _dbService = dbService;
         }
 
-
-        [HttpGet]
-        public async Task<ActionResult> OnGetAsync()
+        [HttpGet("{userEmail?}")]
+        public ActionResult<IAsyncEnumerable<TestRun>> OnGetList(
+            [FromRoute]string userEmail, [FromQuery]Guid? submissionId)
         {
-            return Ok();
+            var queryable = _dbService.Tests.AsQueryable();
+            if (userEmail != null)
+            {
+                queryable = queryable.Where(test => test.CreatedBy == userEmail);
+            }
+
+            if (submissionId != null)
+            {
+                 queryable = queryable.Where(
+                     test => test.SubmissionId == submissionId.ToString());
+            }
+            return Ok(queryable.OrderBy(test => test.CreatedAt).Take(20).AsAsyncEnumerable());
+        }
+
+        [HttpGet("{userEmail}/{testid:guid}")]
+        public async Task<ActionResult<TestRun>> OnGetAsync(string userEmail, Guid testid)
+        {
+            _logger.LogTrace("Retrieving concrete test {testid} {email}", testid, userEmail);
+            var testRun = await _dbService.Tests.FirstOrDefaultAsync(
+                test => test.Id == testid.ToString() && test.CreatedBy == userEmail);
+            if (testRun == null)
+            {
+                _logger.LogWarning("Test was not found {id}", testid);
+                return NotFound();
+            }
+
+            return Ok(testRun);
         }
 
         [HttpPost]
