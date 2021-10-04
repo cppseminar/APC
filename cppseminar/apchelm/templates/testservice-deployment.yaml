@@ -53,7 +53,7 @@ spec:
             - name: TEST_RESULTS_QUEUE
               value: test-output
             - name: BLOB_STORAGE_CONNECTION
-                valueFrom:
-                  secretKeyRef:
-                    key: blobConnectionString
-                    name: general-secrets
+              valueFrom:
+                secretKeyRef:
+                  key: blobConnectionString
+                  name: general-secrets
