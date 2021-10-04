@@ -1,0 +1,24 @@
+@model List<presentation.Model.TestRun>
+
+
+@if (Model != null)
+{
+    <table class="table">
+        <tr>
+            <th>Test Name</th>
+            <th>Task</th>
+            <th>Created at</th>
+            <th>Status</th>
+        </tr>
+        @foreach (var testRun in Model)
+        {
+            <tr>
+                <td><th:a asp-page="/Tests/Detail">@testRun.TestCaseName</th:a></td>
+                <td>@testRun.TaskName</td>
+                <td>@testRun.CreatedAt</td>
+                <td>@testRun.Status</td>
+            </tr>
+        }
+    </table>
+
+}

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using presentation.Model;
@@ -40,6 +41,24 @@ namespace presentation.Services
                 _logger.LogWarning("Errror during test creation {e}", e);
                 throw new OperationFailedException();
             }
+        }
+
+        public async Task<List<TestRun>> GetTestsForUserAsync(string userName, string submissionId)
+        {
+            return await RetrieveTestsAsync(userName: userName, submissionId: submissionId);
+        }
+
+        private async Task<List<TestRun>> RetrieveTestsAsync(
+            string userName = null, string taskId = null, string submissionId = null)
+        {
+            var query = "?";
+            if (submissionId != null)
+            {
+                query += $"submissionId={HttpUtility.UrlEncode(submissionId)}&";
+            }
+            var response = await _client.GetAsync(
+                $"test/{HttpUtility.UrlEncode(userName ?? string.Empty)}" + query);
+            return await response.Content.ReadAsAsync<List<TestRun>>();
         }
     }
 }

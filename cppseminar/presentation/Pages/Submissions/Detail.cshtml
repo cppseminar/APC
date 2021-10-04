@@ -1,5 +1,6 @@
 @page "{id:guid}"
 @model presentation.Pages.Submissions.DetailModel
+@using presentation.Services;
 
 
 @if (!Model.ModelState.IsValid)
@@ -34,9 +35,9 @@ else
                     @testCase.Name
                 </td>
                 <td>
-                    <th:form method="post" >
+                    <th:form method="post">
                         <th:input type="hidden" asp-for="@Model.TestGuid" value="@testCase.Id" />
-                        <input  class="btn btn-primary" type="submit" value="Run test!"/>
+                        <input class="btn btn-primary" type="submit" value="Run test!" />
                     </th:form>
                 </td>
             </tr>
@@ -49,4 +50,11 @@ else
     <div class="alert-info">
         <p>There are no tests available</p>
     </div>
+}
+
+@if (Model.MySubmission != null)
+{
+    @await Component.InvokeAsync(
+        "TestList",
+        new { userEmail = User.GetEmail(), taskId = "", submissionId = Model.MySubmission.Id })
 }
