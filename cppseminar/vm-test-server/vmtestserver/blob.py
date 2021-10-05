@@ -1,8 +1,8 @@
-import http.client
 import urllib.request
 import os
 import datetime
 
+from urllib.parse import urlparse
 from azure.storage.blob import BlobServiceClient, generate_blob_sas
 
 class AzureFileError(RuntimeError):
@@ -19,7 +19,9 @@ def download_file(url):
 def upload_file_and_get_token(filepath, container, conn_str):
     service = BlobServiceClient.from_connection_string(conn_str)
 
-    blob_client = service.get_blob_client(container=container, blob=os.path.basename(filepath))
+    container_client = service.create_container(container)
+
+    blob_client = container_client.get_blob_client(os.path.basename(filepath))
 
     with open(filepath, 'rb') as f:
         blob_client.upload_blob(f, timeout=300)

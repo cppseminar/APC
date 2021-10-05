@@ -1,6 +1,5 @@
 from waitress import serve
 
-import os
 import logging
 import sys
 import signal

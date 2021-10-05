@@ -24,7 +24,7 @@ def process_results(data):
         with open(zip_file_path, 'wb') as f:
             f.write(result_zip)
 
-        token = upload_file_and_get_token(zip_file_path, 'results', os.getenv('RESULTS_BLOB_CONN_STR'))
+        token = upload_file_and_get_token(zip_file_path, 'vm-test-results', os.getenv('RESULTS_BLOB_CONN_STR'))
 
         req = {
             'students': data['students'],
