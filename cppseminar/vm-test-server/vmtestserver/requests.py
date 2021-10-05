@@ -20,16 +20,24 @@ def process_results(data):
 
     result_zip = base64.b64decode(data['data'])
     zip_file_path = os.path.join(TEMP_DIR, str(uuid.uuid4())) + '.zip'
+    students_file_path = os.path.join(TEMP_DIR, str(uuid.uuid4())) + '.zip'
+    teachers_file_path = os.path.join(TEMP_DIR, str(uuid.uuid4())) + '.zip'
     try:
         with open(zip_file_path, 'wb') as f:
             f.write(result_zip)
 
-        token = upload_file_and_get_token(zip_file_path, 'vm-test-results', os.getenv('RESULTS_BLOB_CONN_STR'))
+        with open(students_file_path, 'w') as f:
+            json.dump(data['students'], f)
+
+        with open(teachers_file_path, 'w') as f:
+            json.dump(data['teachers'], f)
+
+        connection_string = os.getenv('RESULTS_BLOB_CONN_STR')
 
         req = {
-            'students': data['students'],
-            'teachers': data['teachers'],
-            'files': token,
+            'students': upload_file_and_get_token(students_file_path, 'vm-test-students', connection_string),
+            'teachers': upload_file_and_get_token(teachers_file_path, 'vm-test-teachers', connection_string),
+            'files': upload_file_and_get_token(zip_file_path, 'vm-test-results', connection_string),
             'metaData': data['metaData'], # forward metadata
         }
 
@@ -39,15 +47,16 @@ def process_results(data):
 
             # No queue declare here, we expect that queue will be declared by
             # tester service.
-            logger.warning('We are going to basic publish the shit out of this message.')
             channel.basic_publish(exchange='', routing_key=os.getenv('RESULTS_QUEUE_NAME'), body=json.dumps(req))
-            logger.warning('Message basic published.')
+
     except Exception as e:
         logger.error("Encountered exception while processing results.", exc_info=e)
         raise
     finally:
         with contextlib.suppress(FileNotFoundError):
             os.remove(zip_file_path)
+            os.remove(students_file_path)
+            os.remove(teachers_file_path)
 
 def send_request_to_vm(data):
     vm_addr = os.getenv('VM_TEST_ADDR')
