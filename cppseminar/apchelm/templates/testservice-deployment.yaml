@@ -51,7 +51,7 @@ spec:
             - name: TEST_REQUESTS_QUEUE
               value:  {{ required "Request queue not defined" .Values.testRequestQueue }}
             - name: TEST_RESULTS_QUEUE
-              value: test-output
+              value: {{ required "Test output queue missing" .Values.testResultsQueue }}
             - name: BLOB_STORAGE_CONNECTION
               valueFrom:
                 secretKeyRef:
