@@ -19,7 +19,7 @@ def download_file(url):
 def upload_file_and_get_token(filepath, container, conn_str):
     service = BlobServiceClient.from_connection_string(conn_str)
 
-    container_client = service.create_container(container)
+    container_client = service.get_container_client(container)
 
     blob_client = container_client.get_blob_client(os.path.basename(filepath))
 
