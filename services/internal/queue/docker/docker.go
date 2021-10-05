@@ -127,14 +127,7 @@ func killContainerOnBadCtx(ctx context.Context, dockerCli *client.Client, contai
 
 // Run container identified by containerID. Returns stdout, stderr, error
 // This function doesn't log anything, insteads returns detailed error messages
-func runDocker(ctx context.Context, dockerCli *client.Client, containerID string, timeout uint16) (string, string, error) {
-	// Let's always add 2 seconds to timeout, for startup and so on
-	ctx, cancel := context.WithTimeout(
-		ctx,
-		time.Duration(int64(timeout)+2)*time.Second,
-	)
-	defer cancel()
-
+func runDocker(ctx context.Context, dockerCli *client.Client, containerID string) (string, string, error) {
 	defer killContainerOnBadCtx(ctx, dockerCli, containerID)
 	var containerWaitC <-chan bool = waitExit(ctx, dockerCli, containerID)
 
@@ -171,11 +164,44 @@ func runDocker(ctx context.Context, dockerCli *client.Client, containerID string
 	return stdout.String(), stderr.String(), nil
 }
 
-func GetDockerEnv(containerId string) (map[string]string, error) {
-	context, cancel := context.WithTimeout(
-		context.Background(),
-		time.Duration(int64(30))*time.Second, // this should be enough for everyone
-	)
+func PullImage(ctx context.Context, config DockerConfig) {
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(10)*time.Minute)
+	defer cancel()
+
+	authConfig := types.AuthConfig{
+		Username: config.Username,
+		Password: config.Password,
+	}
+	encodedJSON, err := json.Marshal(authConfig)
+	if err != nil {
+		log.Println("Error while marshal json, error:", err)
+		return
+	}
+
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Printf("Error while creating docker client: %v\n", err)
+		return
+	}
+
+	reader, err := cli.ImagePull(ctx, config.DockerImage, types.ImagePullOptions{
+		RegistryAuth: base64.URLEncoding.EncodeToString(encodedJSON),
+	})
+	if err != nil {
+		log.Printf("Error while pulling docker image (%v): %v\n", config.DockerImage, err)
+		return
+	}
+
+	defer reader.Close()
+	_, err = io.Copy(ioutil.Discard, reader)
+	if err != nil {
+		log.Printf("Unable to pull image: %v\n", err)
+		return
+	}
+}
+
+func GetDockerEnv(ctx context.Context, containerId string) (map[string]string, error) {
+	context, cancel := context.WithTimeout(ctx, time.Duration(int64(30))*time.Second)
 	defer cancel()
 
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -216,7 +242,11 @@ func GetDockerEnv(containerId string) (map[string]string, error) {
 
 // DockerExec Execute docker image, identified by config.
 // This is blocking call. In the end, stdout will be returned by output string
-func DockerExec(config DockerConfig) (string, error) {
+func DockerExec(ctx context.Context, config DockerConfig) (string, error) {
+	// Let's always add 2 seconds to timeout, for startup and so on
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(int64(config.Timeout)+2)*time.Second)
+	defer cancel()
+
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		log.Printf("Error while creating docker client: %v\n", err)
@@ -247,45 +277,13 @@ func DockerExec(config DockerConfig) (string, error) {
 		}
 	}
 
-	// Let's always add 2 seconds to timeout, for startup and so on
-	ctx, cancel := context.WithTimeout(
-		context.Background(),
-		time.Duration(10)*time.Minute,
-	)
-	defer cancel()
-
-	authConfig := types.AuthConfig{
-		Username: config.Username,
-		Password: config.Password,
-	}
-	encodedJSON, err := json.Marshal(authConfig)
-	if err != nil {
-		log.Println("Error while marshal json, error:", err)
-		return "", err
-	}
-
-	reader, err := cli.ImagePull(ctx, config.DockerImage, types.ImagePullOptions{
-		RegistryAuth: base64.URLEncoding.EncodeToString(encodedJSON),
-	})
-	if err != nil {
-		log.Printf("Error while pulling docker image (%v): %v\n", config.DockerImage, err)
-		return "", err
-	}
-
-	defer reader.Close()
-	_, err = io.Copy(ioutil.Discard, reader)
-	if err != nil {
-		log.Printf("Unable to pull image: %v\n", err)
-		return "", err
-	}
-
 	container, err := cli.ContainerCreate(ctx, dockerConfig, dockerHostConfig, nil, nil, "")
 	if err != nil {
 		log.Printf("Error while creating docker container (%v): %v\n", config.DockerImage, err)
 		return "", err
 	}
 
-	_, stderr, err := runDocker(ctx, cli, container.ID, config.Timeout)
+	_, stderr, err := runDocker(ctx, cli, container.ID)
 
 	select {
 	case <-ctx.Done():

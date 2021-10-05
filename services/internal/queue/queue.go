@@ -258,7 +258,20 @@ func processMessages(wg *sync.WaitGroup) {
 			defer outputVolume.Cleanup()
 
 			result := func() string {
-				env, err := docker.GetDockerEnv(msg.DockerImage)
+				ctx := context.Background()
+
+				config := docker.DockerConfig{
+					Volumes:     []docker.DockerVolume{},
+					DockerImage: msg.DockerImage,
+					Timeout:     uint16(msg.MaxRunTime),
+					Memory:      int64(msg.Memory * 1024 * 1024),
+					Username:    arguments.DockerUsername,
+					Password:    arguments.DockerPassword,
+				}
+
+				docker.PullImage(ctx, config)
+
+				env, err := docker.GetDockerEnv(ctx, msg.DockerImage)
 				if err != nil {
 					return err.Error()
 				}
@@ -278,16 +291,9 @@ func processMessages(wg *sync.WaitGroup) {
 					}
 				}
 
-				config := docker.DockerConfig{
-					Volumes:     []docker.DockerVolume{outputVolume, submissionVolume},
-					DockerImage: msg.DockerImage,
-					Timeout:     uint16(msg.MaxRunTime),
-					Memory:      int64(msg.Memory * 1024 * 1024),
-					Username:    arguments.DockerUsername,
-					Password:    arguments.DockerPassword,
-				}
+				config.Volumes = append(config.Volumes, outputVolume, submissionVolume)
 
-				result, err := docker.DockerExec(config)
+				result, err := docker.DockerExec(ctx, config)
 
 				if err != nil {
 					// There will be some logs already, so just log request json
