@@ -39,9 +39,12 @@ def process_results(data):
 
             # No queue declare here, we expect that queue will be declared by
             # tester service.
-
+            logger.warning('We are going to basic publish the shit out of this message.')
             channel.basic_publish(exchange='', routing_key=os.getenv('RESULTS_QUEUE_NAME'), body=json.dumps(req))
-
+            logger.warning('Message basic published.')
+    except Exception as e:
+        logger.error("Encountered exception while processing results.", exc_info=e)
+        raise
     finally:
         with contextlib.suppress(FileNotFoundError):
             os.remove(zip_file_path)
