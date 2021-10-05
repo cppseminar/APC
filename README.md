@@ -7,7 +7,7 @@
 | Dev frontend    | ![Development - publish frontend](https://github.com/cppseminar/APC/workflows/Development%20-%20publish%20frontend/badge.svg)|
 | Dev functions   | ![Development - publish api](https://github.com/cppseminar/APC/workflows/Development%20-%20publish%20api/badge.svg)          |
 
-This repository contains source code for APC portal. This portal is used by
+This repository contains source code for APC portal 1&2.  This portal is used by
 students and teachers to assign, submit and test programming homeworks.
 
 Reason for implementing our own solution was having ability to run different
