@@ -183,7 +183,7 @@ namespace testservice.Services
             {
                 _channel.BasicCancel(_consumerTag);
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 // Do nothing
             }

@@ -25,7 +25,7 @@ namespace testservice.Services
             {
                 _client.CreateBlobContainer(_containerName);
             }
-            catch (Azure.RequestFailedException e)
+            catch (Azure.RequestFailedException)
             {
                 // Ignore that container already exists
             }

@@ -77,14 +77,9 @@ namespace testservice.Controllers
             catch(Exception e)
             {
                 _logger.LogError(
-                    "Error while downloading results for test {id} {email}", testid, userEmail);
+                    "Error while downloading results for test {id} {email} {e}", testid, userEmail, e);
                 return StatusCode(500);
             }
-
-
-
-
-            return Ok(testRun);
         }
 
         [HttpPost]
@@ -110,7 +105,7 @@ namespace testservice.Controllers
             TestRequestMessage mqMessage = new() {
                 ContentUrl = testRequest.ContentUrl,
                 DockerImage = testCase.DockerImage,
-                Metadata = testRun.Id
+                MetaData = testRun.Id
             };
             _mqService.Publish(mqMessage.ToJson());
             // TODO: Have publisher ack

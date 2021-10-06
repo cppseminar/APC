@@ -17,6 +17,6 @@ namespace testservice.Models
         }
         public string DockerImage { get; set; }
         public string ContentUrl { get; set; }
-        public string Metadata { get; set; }
+        public string MetaData { get; set; }
     }
 }
