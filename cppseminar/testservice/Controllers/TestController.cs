@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using testservice.Models;
 using testservice.Services;
+using System.Text;
 
 namespace testservice.Controllers
 {
@@ -18,12 +19,14 @@ namespace testservice.Controllers
         private RabbitMQService _mqService;
         private ILogger<TestController> _logger;
         private DbService _dbService;
+        private StorageService _storageService;
 
-        public TestController(ILogger<TestController> logger, RabbitMQService mqService, DbService dbService)
+        public TestController(ILogger<TestController> logger, RabbitMQService mqService, DbService dbService, StorageService storageService)
         {
             _mqService = mqService;
             _logger = logger;
             _dbService = dbService;
+            _storageService = storageService;
         }
 
         [HttpGet("{userEmail?}")]
@@ -55,6 +58,31 @@ namespace testservice.Controllers
                 _logger.LogWarning("Test was not found {id}", testid);
                 return NotFound();
             }
+
+            if (testRun.Status != TestRunConstants.TestFinished)
+            {
+                return Ok(testRun);
+            }
+            // Now we have to download contents
+            try
+            {
+                var studentJson = await _storageService.DownloadResultAsync(
+                    _storageService.CreateName(
+                        userEmail: userEmail,
+                        testId: testid.ToString(),
+                        fileName: TestRunConstants.FileStudents));
+                testRun.Students = Encoding.UTF8.GetString(studentJson);
+                return Ok(testRun);
+            }
+            catch(Exception e)
+            {
+                _logger.LogError(
+                    "Error while downloading results for test {id} {email}", testid, userEmail);
+                return StatusCode(500);
+            }
+
+
+
 
             return Ok(testRun);
         }

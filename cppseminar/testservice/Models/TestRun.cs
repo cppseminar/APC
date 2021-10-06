@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,8 +10,8 @@ namespace testservice.Models
     {
         public TestRun()
         {
-
         }
+
         public TestRun(TestRequest request)
         {
             TaskId = request.TaskId;
@@ -39,6 +40,8 @@ namespace testservice.Models
         public string Id { get; set; }
         public string Message { get; set; }
         public string Name { get; set; }
+        [NotMapped]
+        public string Students { get; set; }
     }
 
     public class TestRunConstants
@@ -46,6 +49,8 @@ namespace testservice.Models
         public const string TestCreated = "Created";
         public const string TestFailed = "Failed";
         public const string TestFinished = "Finished";
+        public const string TestMessageFinished = "All tests finished successfully";
+        public const string TestMessageFailed = "Something went wrong. Please contact your teacher.";
         public const string FileStudents = "students.json";
         public const string FileTeachers = "teachers.json";
         public const string FileZip = "dump.zip";

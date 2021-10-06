@@ -32,7 +32,26 @@ namespace testservice.Services
             _containerClient = _client.GetBlobContainerClient(_containerName);
         }
 
-        public async Task UploadResult(string blobName, byte[] data)
+        public async Task<byte[]> DownloadResultAsync(string blobName)
+        {
+            var blobClient = _containerClient.GetBlobClient(blobName);
+            return (await blobClient.DownloadContentAsync()).Value.Content.ToMemory().ToArray();
+        }
+
+        public string CreateName(string testId, string userEmail, string fileName)
+        {
+            if ((testId ?? "") == ""
+                || (userEmail ?? "") == ""
+                || (fileName ?? "") == "")
+            {
+                throw new ArgumentException("Missing argument");
+            }
+            return HttpUtility.UrlEncode(userEmail) + "/"
+                + HttpUtility.UrlEncode(testId) + "/"
+                + HttpUtility.UrlEncode(fileName);
+        }
+
+        public async Task UploadResultAsync(string blobName, byte[] data)
         {
             var blobClient = _containerClient.GetBlobClient(blobName);
             await blobClient.UploadAsync(BinaryData.FromBytes(data), overwrite: true);

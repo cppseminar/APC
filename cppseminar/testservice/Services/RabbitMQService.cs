@@ -69,7 +69,7 @@ namespace testservice.Services
             }
             catch(Exception e)
             {
-                _logger.LogError("Error during handling received message {message} {e}", args.Body, e);
+                _logger.LogError("Error during handling received message {message} {e}", args.Body.ToArray(), e);
             }
             finally
             {
@@ -87,26 +87,39 @@ namespace testservice.Services
             }
             _logger.LogTrace("Found matching test case");
 
-            using (var client = new WebClient())
+            try
             {
-                _logger.LogTrace("Processing students");
-                var studentData = client.DownloadData(message.Students);
-                await _storageService.UploadResult(
-                    CreateBlobName(testRun.CreatedBy, testRun.Id, TestRunConstants.FileStudents), studentData);
+                using (var client = new WebClient())
+                {
+                    _logger.LogTrace("Processing students");
+                    var studentData = client.DownloadData(message.Students);
+                    await _storageService.UploadResultAsync(
+                        CreateBlobName(testRun.CreatedBy, testRun.Id, TestRunConstants.FileStudents), studentData);
 
-                _logger.LogTrace("Processing teachers");
-                var teacherData = client.DownloadData(message.Teachers);
-                await _storageService.UploadResult(
-                    CreateBlobName(testRun.CreatedBy, testRun.Id, TestRunConstants.FileTeachers), teacherData);
+                    _logger.LogTrace("Processing teachers");
+                    var teacherData = client.DownloadData(message.Teachers);
+                    await _storageService.UploadResultAsync(
+                        CreateBlobName(testRun.CreatedBy, testRun.Id, TestRunConstants.FileTeachers), teacherData);
 
-                _logger.LogTrace("Processing dump");
-                var zipData = client.DownloadData(message.Data);
-                await _storageService.UploadResult(
-                    CreateBlobName(testRun.CreatedBy, testRun.Id, TestRunConstants.FileZip), zipData);
+                    _logger.LogTrace("Processing dump");
+                    var zipData = client.DownloadData(message.Data);
+                    await _storageService.UploadResultAsync(
+                        CreateBlobName(testRun.CreatedBy, testRun.Id, TestRunConstants.FileZip), zipData);
+                }
+                testRun.Status = TestRunConstants.TestFinished;
+                testRun.FinishedAt = DateTime.UtcNow;
+                testRun.Message = TestRunConstants.TestMessageFinished;
+                await dbService.SaveChangesAsync();
             }
-            testRun.Status = TestRunConstants.TestFinished;
-            testRun.FinishedAt = DateTime.UtcNow;
-            await dbService.SaveChangesAsync();
+            catch (Exception e)
+            {
+                _logger.LogError("Error during processing result message contents (updating db) {e}", e);
+                testRun.Status = TestRunConstants.TestFailed;
+                testRun.Message = TestRunConstants.TestMessageFailed;
+                testRun.FinishedAt = DateTime.UtcNow;
+                await dbService.SaveChangesAsync();
+                throw;
+            }
         }
 
         private string CreateBlobName(string userName, string testId, string fileName)
