@@ -37,7 +37,7 @@ def process_results(data):
         req = {
             'students': upload_file_and_get_token(students_file_path, 'vm-test-students', connection_string),
             'teachers': upload_file_and_get_token(teachers_file_path, 'vm-test-teachers', connection_string),
-            'files': upload_file_and_get_token(zip_file_path, 'vm-test-results', connection_string),
+            'data': upload_file_and_get_token(zip_file_path, 'vm-test-results', connection_string),
             'metaData': data['metaData'], # forward metadata
         }
 
