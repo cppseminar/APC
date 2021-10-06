@@ -70,6 +70,7 @@ namespace testservice.Services
             catch(Exception e)
             {
                 _logger.LogError("Error during handling received message {message} {e}", args.Body.ToArray(), e);
+                _logger.LogTrace("Decoded {message}", args.Body.ToString());
             }
             finally
             {
