@@ -189,7 +189,7 @@
             }
             catch (e) {
                 console.log(e)
-                const err = $('<span class="text-danger"></span>').text('Cannot parse result json, that is pretty bad, contact your administrator with text below.')
+                const err = $('<span class="text-danger"></span>').text('Cannot parse results. Please contact your teachers with test id')
                 const details = $('<small class="d-block text-muted"></small>').text(json)
                 $(selector).replaceWith(err, details)
             }

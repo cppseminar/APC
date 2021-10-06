@@ -1,7 +1,59 @@
-@page
+@page "{guid:guid}"
 @model presentation.Pages.Tests.DetailModel
 @{
 }
 
+@if (!ModelState.IsValid)
+{
+    <th:div class="alert-danger p-2" asp-validation-summary="All"></th:div>
+}
 
-Test details
+@if (Model.TestRunResult != null)
+{
+    <h4>Test results</h4>
+    <p>@Model.TestRunResult.Message</p>
+    <div>
+        <table class="table">
+            <tr>
+                <td>Time requested</td>
+                <td>@Model.TestRunResult.CreatedAt</td>
+            </tr>
+
+            <tr>
+                <td>Requested by</td>
+                <td> @Model.TestRunResult.CreatedBy</td>
+            </tr>
+            <tr>
+                <td>Test for</td>
+                <td>@Model.TestRunResult.TaskName</td>
+            </tr>
+            <tr>
+                <td>Tets name</td>
+                <td>@Model.TestRunResult.TestCaseName</td>
+            </tr>
+            <tr>
+                <td>Test id</td>
+                <td>@Model.TestRunResult.Id</td>
+            </tr>
+            @if (Model.TestRunResult.FinishedAt != null)
+            {
+                <tr>
+                    <td>Test finished</td>
+                    <td>@Model.TestRunResult.FinishedAt</td>
+                </tr>
+            }
+        </table>
+    </div>
+    @if (Model.TestRunResult.Students != null)
+    {
+        <nav>
+
+        </nav>
+        <div class="p-3 mt-2 border bg-light">
+            <script type="application/json" id="results-students">
+               @Html.Raw(Model.TestRunResult.Students)
+            </script>
+        </div>
+    }
+
+}

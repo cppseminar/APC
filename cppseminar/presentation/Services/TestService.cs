@@ -48,6 +48,23 @@ namespace presentation.Services
             return await RetrieveTestsAsync(userName: userName, submissionId: submissionId);
         }
 
+        public async Task<TestRun> GetOneTest(string userEmail, Guid testId)
+        {
+            _logger.LogTrace("Retrieving test run {user} {id}", userEmail, testId);
+            string uri = $"test/{HttpUtility.UrlEncode(userEmail)}/{testId.ToString()}";
+            try
+            {
+                var response = await _client.GetAsync(uri);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsAsync<TestRun>();
+            }
+            catch(Exception e)
+            {
+                _logger.LogWarning("Error while retrieving test run {e}");
+                throw new OperationFailedException();
+            }
+        }
+
         private async Task<List<TestRun>> RetrieveTestsAsync(
             string userName = null, string taskId = null, string submissionId = null)
         {
