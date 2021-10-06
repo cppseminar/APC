@@ -37,10 +37,10 @@ spec:
           resources:
             requests:
               memory: 256M
-              cpu: 100mi
+              cpu: 100m
             limits:
               memory: 1G
-              cpu: 200mi
+              cpu: 200m
           env:
             - name: TABLE_STORAGE
               valueFrom:

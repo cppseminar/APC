@@ -34,10 +34,10 @@ spec:
           resources:
             requests:
               memory: 256M
-              cpu: 100mi
+              cpu: 100m
             limits:
               memory: 1G
-              cpu: 300mi
+              cpu: 300m
           env:
             - name: COSMOS_CONNECTION_STRING
               valueFrom:
