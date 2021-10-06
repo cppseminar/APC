@@ -1,9 +1,11 @@
+import contextlib
 import urllib.request
 import os
 import datetime
 
 from urllib.parse import urlparse
 from azure.storage.blob import BlobServiceClient, generate_blob_sas
+from azure.core.exceptions import ResourceExistsError
 
 class AzureFileError(RuntimeError):
     pass
@@ -20,6 +22,9 @@ def upload_file_and_get_token(filepath, container, conn_str):
     service = BlobServiceClient.from_connection_string(conn_str)
 
     container_client = service.get_container_client(container)
+
+    with contextlib.suppress(ResourceExistsError):
+       container_client.create_container()
 
     blob_client = container_client.get_blob_client(os.path.basename(filepath))
 
