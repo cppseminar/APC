@@ -25,12 +25,12 @@ namespace submissions.Controllers
         [HttpGet]
         public IEnumerable<Submission> Index()
         {
-            return _context.Submissions.OrderByDescending(submission => submission.SubmittedOn);
+            return _context.Submissions.OrderByDescending(submission => submission.SubmittedOn).Take(30);
         }
 
         [HttpGet("{email}")]
         public IEnumerable<Submission> IndexForUser(string email) => _context.Submissions.Where(s => s.UserEmail == email)
-                                                                                         .OrderBy(s => s.SubmittedOn)
+                                                                                         .OrderByDescending(s => s.SubmittedOn)
                                                                                          .Take(30);
 
 

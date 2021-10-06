@@ -22,7 +22,7 @@ namespace presentation.Pages.Submissions
         {
             try
             {
-                Submissions = await _submissionService.GetSubmissionsAsync();
+                Submissions = await _submissionService.GetUserSubmissionsAsync(User.GetEmail());
             }
             catch(OperationFailedException e)
             {

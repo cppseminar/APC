@@ -44,7 +44,7 @@ namespace testservice.Controllers
                  queryable = queryable.Where(
                      test => test.SubmissionId == submissionId.ToString());
             }
-            return Ok(queryable.OrderBy(test => test.CreatedAt).Take(20).AsAsyncEnumerable());
+            return Ok(queryable.OrderByDescending(test => test.CreatedAt).Take(20).AsAsyncEnumerable());
         }
 
         [HttpGet("{userEmail}/{testid:guid}")]

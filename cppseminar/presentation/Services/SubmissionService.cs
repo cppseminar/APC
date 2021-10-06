@@ -23,13 +23,14 @@ namespace presentation.Services
             _logger = logger;
         }
 
-        // TODO: This is for admin only, create also user function
-        public async Task<IList<Submission>> GetSubmissionsAsync()
+        public async Task<IList<Submission>> GetUserSubmissionsAsync(string userEmail)
         {
+            userEmail = userEmail ?? "";
+            userEmail = HttpUtility.UrlEncode(userEmail);
             _logger.LogTrace("Requesting submissions from service");
             try
             {
-                HttpResponseMessage message = await _client.GetAsync("/submission/");
+                HttpResponseMessage message = await _client.GetAsync($"/submission/{userEmail}");
                 if (message.IsSuccessStatusCode)
                 {
                     var submissions = await message.Content.ReadAsAsync<List<Submission>>();
@@ -52,6 +53,11 @@ namespace presentation.Services
                 _logger.LogError("Get submissions failed {e}", e);
                 throw new OperationFailedException();
             }
+        }
+
+        public async Task<IList<Submission>> GetSubmissionsAsync()
+        {
+            return await GetUserSubmissionsAsync(null);
         }
 
         public async Task<Submission> CreateSubmissionAsync(Submission submission)
