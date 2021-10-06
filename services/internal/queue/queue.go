@@ -52,7 +52,6 @@ const schemaStr = `
 	"properties": {
 		"metaData": {
 			"$id": "#/properties/metaData",
-			"type": "object",
 			"title": "Metadata of request",
 			"description": "Metadata passed back to returnUrl."
 		},

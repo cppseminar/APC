@@ -54,7 +54,7 @@ def command1(message):
     })
 
 def command2(message):
-    with open("../../tester/example/submission.cpp", "r") as f:
+    with open("../../tester/example/submissions/hello-world/main.cpp", "r") as f:
         message.update({
             "files": {
                 "main.cpp": f.read(),
@@ -65,6 +65,14 @@ def command3(message):
     with open("../../tester/example/submission.cpp", "r") as f:
         message.update({
             "memory": 1000 * 1000 * 1000,
+            "files": {
+                "main.cpp": f.read(),
+            },
+        })
+
+def command4(message):
+    with open("../../tester/example/submissions/auto-tests/main.cpp", "r") as f:
+        message.update({
             "files": {
                 "main.cpp": f.read(),
             },
@@ -126,8 +134,9 @@ def client(args):
         command1,
         command2,
         command3,
+        command4,
     ]
-    print("Select command 0..", len(commands), sep='')
+    print("Select command 0..", len(commands)-1, sep='')
     while True:
         prompt = input("Command> ")
         try:
