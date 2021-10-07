@@ -10,8 +10,8 @@ if [ $# -ne 1 ]; then
     exit 2
 fi
 
-# remove old docker packages
-apt-get -y remove docker docker-engine docker.io containerd runc
+# remove old docker packages, ignore errors
+apt-get -y remove docker docker-engine docker.io containerd runc || true
 
 apt-get update
 
