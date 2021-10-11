@@ -62,14 +62,14 @@ class Config:
 
 
     @classmethod
-    def get_catch2_configurations(cls):
+    def get_catch2_configuration(cls, configuration):
         catch2 = cls._SETTINGS['tests']
 
         result = { 
             key: shlex.split(value.strip('"')) for (key, value) in catch2.items() 
         }
 
-        return result
+        return result.get(configuration, [])
 
     @classmethod
     def output_path(cls):
