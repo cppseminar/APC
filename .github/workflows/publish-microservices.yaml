@@ -1,40 +1,62 @@
 name: Build microservices
-on: push
+on:
+  push:
+    branches: [ "production", "master" ]
+
 jobs:
   buildServices1:
     name: Build first part of images and push to registry
     runs-on: ubuntu-latest
     steps:
+      - name: Set prod environment
+        if: endsWith(github.ref, '/production')
+        run: |
+          echo "DOCKER_URL=${{ secrets.PRODUCTION_DOCKER_URL }}" >> $GITHUB_ENV
+
+      - name: Set dev environment
+        if: endsWith(github.ref, '/production')
+        run: |
+          echo "DOCKER_URL=${{ secrets.STAGING_DOCKER_URL }}" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Login docker
+      - name: Login docker dev
+        if: endsWith(github.ref, '/master')
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.STAGING_DOCKER_USER }}
           password: ${{ secrets.STAGING_DOCKER_PASSWORD }}
           registry: ${{ secrets.STAGING_DOCKER_URL }}
 
+      - name: Login docker prod
+        if: endsWith(github.ref, '/production')
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.PRODUCTION_DOCKER_USER }}
+          password: ${{ secrets.PRODUCTION_DOCKER_PASSWORD }}
+          registry: ${{ secrets.PRODUCTION_DOCKER_URL }}
+
       - name: Build docker image presenation
         uses: docker/build-push-action@v2
         with:
           context: ./cppseminar/presentation
           push: true
-          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/presentation:${{ github.sha }}
+          tags: ${{ env.DOCKER_URL }}/services/presentation:${{ github.sha }}
 
       - name: Build docker image userservice
         uses: docker/build-push-action@v2
         with:
           context: ./cppseminar/userservice
           push: true
-          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/userservice:${{ github.sha }}
+          tags: ${{ env.DOCKER_URL }}/services/userservice:${{ github.sha }}
 
       - name: Build docker image submissions
         uses: docker/build-push-action@v2
         with:
           context: ./cppseminar/submissions
           push: true
-          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/submissions:${{ github.sha }}
+          tags: ${{ env.DOCKER_URL }}/services/submissions:${{ github.sha }}
 
 
   buildServices2:
