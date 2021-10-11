@@ -62,7 +62,7 @@ class GccCompiler:
                 if file.endswith('.cpp'):
                     args = [self._gcc_path, '-c', '-o', obj_file, '--std=c++20', *self._compiler_options, file]
                 elif file.endswith('.c'):
-                    args = [self._gcc_path, '-xc', '-c', '-o', obj_file, '--std=c11', *self._compiler_options, '-Wno-error=vla', file]
+                    args = [self._gcc_path, '-xc', '-c', '-o', obj_file, '--std=c11', *self._compiler_options, '-Wno-error=vla', '-Wno-vla', file]
                 else:
                     continue # skip headers etc.
 
