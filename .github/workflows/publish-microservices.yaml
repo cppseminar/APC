@@ -63,15 +63,34 @@ jobs:
     name: Build second part of images and push to registry
     runs-on: ubuntu-latest
     steps:
+      - name: Set prod environment
+        if: endsWith(github.ref, '/production')
+        run: |
+          echo "DOCKER_URL=${{ secrets.PRODUCTION_DOCKER_URL }}" >> $GITHUB_ENV
+
+      - name: Set dev environment
+        if: endsWith(github.ref, '/master')
+        run: |
+          echo "DOCKER_URL=${{ secrets.STAGING_DOCKER_URL }}" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Login docker
+      - name: Login docker dev
+        if: endsWith(github.ref, '/master')
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.STAGING_DOCKER_USER }}
           password: ${{ secrets.STAGING_DOCKER_PASSWORD }}
           registry: ${{ secrets.STAGING_DOCKER_URL }}
+
+      - name: Login docker prod
+        if: endsWith(github.ref, '/production')
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.PRODUCTION_DOCKER_USER }}
+          password: ${{ secrets.PRODUCTION_DOCKER_PASSWORD }}
+          registry: ${{ secrets.PRODUCTION_DOCKER_URL }}
 
 
       - name: Build docker image test service
@@ -79,21 +98,21 @@ jobs:
         with:
           context: ./cppseminar/testservice
           push: true
-          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/testservice:${{ github.sha }}
+          tags: ${{ env.DOCKER_URL }}/services/testservice:${{ github.sha }}
 
       - name: Build docker image vm-test-server
         uses: docker/build-push-action@v2
         with:
           context: ./cppseminar/vm-test-server
           push: true
-          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/vm-test-server:${{ github.sha }}
+          tags: ${{ env.DOCKER_URL }}/services/vm-test-server:${{ github.sha }}
 
       - name: Build docker image vm-test-queue
         uses: docker/build-push-action@v2
         with:
           context: ./cppseminar/vm-test-queue
           push: true
-          tags: ${{ secrets.STAGING_DOCKER_URL }}/services/vm-test-queue:${{ github.sha }}
+          tags: ${{ env.DOCKER_URL }}/services/vm-test-queue:${{ github.sha }}
 
   upgradeHelm:
     name: Send new version to Kubernetes
@@ -104,6 +123,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Deliverybot Helm Action
+        if: endsWith(github.ref, '/master')
         uses: deliverybot/helm@v1.7.0
         with:
           release: apcchart
