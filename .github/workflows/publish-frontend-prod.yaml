@@ -2,7 +2,7 @@ name: Production - publish frontend
 
 on:
   push:
-    branches: [ production ]
+    branches: [ never ]
 jobs:
   build:
     runs-on: ubuntu-latest

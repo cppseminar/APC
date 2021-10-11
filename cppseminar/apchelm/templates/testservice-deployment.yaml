@@ -45,7 +45,7 @@ spec:
                   key: cosmosConnectionString
                   name: general-secrets
             - name: COSMOS_DB_NAME
-              value: devel
+              value: testsDb
             - name: MQ_URI
               value: amqp://rabbitmq-cluster.apc/
             - name: TEST_REQUESTS_QUEUE

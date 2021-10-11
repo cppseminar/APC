@@ -48,7 +48,7 @@ spec:
                   key: blobConnectionString
                   name: general-secrets
             - name: CosmosSettings__DatabaseName
-              value: devel
+              value: submissionsDb
             - name: CosmosSettings__ConnectionString
               valueFrom:
                 secretKeyRef:
