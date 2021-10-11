@@ -122,7 +122,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Deliverybot Helm Action
+      - name: Deliverybot Helm Action dev
         if: endsWith(github.ref, '/master')
         uses: deliverybot/helm@v1.7.0
         with:
@@ -139,3 +139,19 @@ jobs:
           chart: ./cppseminar/apchelm
         env:
           KUBECONFIG_FILE: ${{ secrets.STAGING_KUBECONFIG }}
+
+      - name: Deliverybot Helm Action prod
+        if: endsWith(github.ref, '/production')
+        uses: deliverybot/helm@v1.7.0
+        with:
+          release: apcchart
+          helm: helm3
+          version: ${{ github.sha }}
+          task: upgrade
+          namespace: default
+          value-files: "./cppseminar/apchelm/values-prod.yaml"
+          values: |
+            releaseLabel: "${{ github.sha }}"
+          chart: ./cppseminar/apchelm
+        env:
+          KUBECONFIG_FILE: ${{ secrets.PRODUCTION_KUBECONFIG }}
