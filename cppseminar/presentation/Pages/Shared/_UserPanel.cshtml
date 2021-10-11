@@ -5,9 +5,11 @@
 <div class="d-inline">
     <span>@User.Identity.Name</span>
     <span>@User.FindFirst(claim => claim.Type == ClaimTypes.Email).Value</span>
+    <span><th:a asp-page="/Auth/Logout">Logout</th:a></span>
 </div>
 }
 else
 {
     <span>Not signed in</span>
+    <span>(<th:a asp-page="/Auth/Login">Login</th:a>)</span>
 }
