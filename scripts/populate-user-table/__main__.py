@@ -16,13 +16,13 @@ def create_entities(file_path, is_admin):
             entities.append({
                 "PartitionKey": line,
                 "RowKey": "isStudent",
-                "ClaimValue": True,
+                "ClaimValue": "true",
             })
 
             entities.append({
                 "PartitionKey": line,
                 "RowKey": "isAdmin",
-                "ClaimValue": is_admin,
+                "ClaimValue": "true" if is_admin else "false",
             })
 
     return entities
