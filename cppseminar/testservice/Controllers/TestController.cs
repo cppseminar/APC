@@ -93,9 +93,17 @@ namespace testservice.Controllers
                 return BadRequest();
             }
             // -------------
-            // TODO: Count test runs for this case
-
-            // ----------
+            if (testRequest.Counted)
+            {
+                _logger.LogTrace("Run is counted, counting test runs");
+                var testedCount = await _dbService.Tests.Where(
+                    test => test.TestCaseId == testCase.Id && test.CreatedBy == testRequest.CreatedBy).CountAsync();
+                if (testedCount >= testCase.MaxRuns)
+                {
+                    _logger.LogTrace("Test runs all spent {} of {}, quitting", testedCount, testCase.MaxRuns);
+                    return StatusCode(402);
+                }
+            }
             // Test runs are ok
             var testRun = new TestRun(testRequest);
             _dbService.Tests.Add(testRun);

@@ -22,5 +22,7 @@ namespace testservice.Models
         public string TestCaseName { get; set; }
         [Required]
         public string ContentUrl { get; set; }
+        [Required]
+        public bool Counted { get; set; }
     }
 }
