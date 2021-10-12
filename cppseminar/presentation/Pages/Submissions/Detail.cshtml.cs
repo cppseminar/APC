@@ -101,12 +101,20 @@ namespace presentation.Pages.Submissions
                 TaskId = submission.TaskId,
                 TaskName = submission.TaskName,
                 TestCaseId = testCase.Id,
-                TestCaseName = testCase.Name
+                TestCaseName = testCase.Name,
+                Counted = !User.IsAdmin()
             };
             try
             {
-                await _testService.CreateTest(testRequest);
-                return RedirectToPage("/Index");
+                if (await _testService.CreateTest(testRequest))
+                {
+                    return RedirectToPage("/Tests/Success");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "You reached limit for max test runs");
+                    return RedirectToPage("/Tests/Limit");
+                }
             }
             catch(Exception)
             {

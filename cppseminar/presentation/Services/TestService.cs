@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -24,7 +25,9 @@ namespace presentation.Services
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
         }
-        public async Task CreateTest(TestRequestRest testRequest)
+        // Returns true if test was created. False if you don't have enough test runs
+        // and throws OperationFailed if something else happens
+        public async Task<bool> CreateTest(TestRequestRest testRequest)
         {
             _logger.LogTrace("Posting new test run {run}", testRequest);
             try
@@ -32,9 +35,14 @@ namespace presentation.Services
                 var result = await _client.PostAsJsonAsync("test/", testRequest);
                 if (result.IsSuccessStatusCode)
                 {
-                    return;
+                    return true;
+                }
+                else if (result.StatusCode == HttpStatusCode.PaymentRequired)
+                {
+                    return false;
                 }
                 _logger.LogWarning("Failed creating test, with status {code}", result.StatusCode);
+                throw new OperationFailedException();
             }
             catch(Exception e)
             {
@@ -60,7 +68,7 @@ namespace presentation.Services
             }
             catch(Exception e)
             {
-                _logger.LogWarning("Error while retrieving test run {e}");
+                _logger.LogWarning("Error while retrieving test run {e}", e);
                 throw new OperationFailedException();
             }
         }

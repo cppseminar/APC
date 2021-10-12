@@ -17,7 +17,6 @@ namespace presentation.Services
             AuthorizationHandlerContext context,
             OperationAuthorizationRequirement requirement)
         {
-            Console.WriteLine("Evaluating");
             if (!context.User.Identity.IsAuthenticated)
             {
                 return Task.CompletedTask;

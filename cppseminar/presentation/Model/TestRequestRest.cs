@@ -22,5 +22,6 @@ namespace presentation.Model
         public string TestCaseName { get; set; }
         [Required]
         public string ContentUrl { get; set; }
+        public bool Counted { get; set; }
     }
 }
