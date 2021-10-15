@@ -71,8 +71,8 @@
                                 { '<>': 'h2', text: 'Tests' },
                                 { '<>': 'ul', html: obj => $.json2html(obj.tests, templates.tests) }
                             ]
-                        },
-                    ],
+                        }
+                    ]
                 },
                 compilation: {
                     '<>': 'li', html: [
@@ -81,15 +81,15 @@
                             '<>': 'ul', html: [
                                 {
                                     '<>': 'li', obj: obj => obj.configurations, 'html': [
-                                        { '<>': 'span', text: obj => String.fromCharCode(obj.result.errno === 0 ? 0x274C : 0x2714) },
-                                        { '<>': 'span', text: '${name}', class: obj => obj.result ? 'text-danger' : 'text-success' },
+                                        { '<>': 'span', text: obj => String.fromCharCode(obj.result.errno === 0 ? 0x2714 : 0x274C) },
+                                        { '<>': 'span', text: '${name}', class: obj => obj.result.errno === 0 ? 'text-success' : 'text-danger' },
                                         {
                                             '<>': 'div', obj: obj => obj.result, html: [
                                                 { '<>': 'div', text: 'errno: ${errno}' },
                                                 { '<>': 'div', text: 'output_path: ${output_path}' },
-                                                { '<>': 'pre', text: '${compiler_output}' },
-                                            ],
-                                        },
+                                                { '<>': 'pre', text: '${compiler_output}' }
+                                            ]
+                                        }
                                     ]
                                 }
                             ]
@@ -104,21 +104,21 @@
                                 {
                                     '<>': 'li', obj: obj => obj.cases, 'html': [
                                         { '<>': 'span', text: obj => String.fromCharCode(obj.result.status === 'Success' ? 0x2714 : 0x274C) },
-                                        { '<>': 'span', text: '${name}', class: obj => obj.status ? 'text-success' : 'text-danger' },
+                                        { '<>': 'span', text: '${name}', class: obj => obj.result.status === 'Success' ? 'text-success' : 'text-danger' },
                                         {
                                             '<>': 'div', obj: obj => obj.result, html: [
                                                 { '<>': 'div', text: 'status: ${status}' },
                                                 { '<>': 'div', text: 'returncode: ${returncode}' },
                                                 { '<>': 'pre', text: 'stdout: ${stdout}' },
-                                                { '<>': 'pre', text: 'stderr: ${stderr}' },
-                                            ],
-                                        },
+                                                { '<>': 'pre', text: 'stderr: ${stderr}' }
+                                            ]
+                                        }
                                     ]
                                 }
                             ]
                         }
                     ]
-                },
+                }
             }
 
             let json = ''
@@ -152,8 +152,8 @@
                                 { '<>': 'h2', text: 'Tests' },
                                 { '<>': 'ul', html: obj => $.json2html(obj.tests, templates.tests) }
                             ]
-                        },
-                    ],
+                        }
+                    ]
                 },
                 compilation: {
                     '<>': 'li', html: [
@@ -186,7 +186,7 @@
                             ]
                         }
                     ]
-                },
+                }
             }
 
             let json = ''
