@@ -1,0 +1,38 @@
+@page
+@model presentation.Pages.Submissions.AllModel
+@{
+}
+
+@{
+    ViewBag.Title = "All Submissions";
+}
+
+<h3>Submissions</h3>
+<th:div asp-validation-summary="All"></th:div>
+<div>
+    <th:form method="get">
+        <label>
+            Filter by user
+            <th:select asp-for="SelectedUser" asp-items="@Model.Users" onchange="this.form.submit();"></th:select>
+        </label>
+    </th:form>
+    <table class="table">
+        @foreach (var submission in Model.Submissions)
+        {
+            <tr>
+                <td>
+                    <th:a asp-page="/Submissions/Detail" asp-route-id="@submission.Id">@submission.Name</th:a>
+                </td>
+                <td>
+                    @submission.TaskName
+                </td>
+                <td>
+                    @submission.UserEmail
+                </td>
+                <td>
+                    @submission.SubmittedOn
+                </td>
+            </tr>
+        }
+    </table>
+</div>
