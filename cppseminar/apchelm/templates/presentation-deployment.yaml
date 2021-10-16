@@ -36,15 +36,6 @@ spec:
             limits:
               memory: 1G
               cpu: 500m
-          livenessProbe:
-            failureThreshold: 1
-            initialDelaySeconds: 10
-            periodSeconds: 11
-            timeoutSeconds: 10
-            httpGet:
-              path: /healthcheck
-              port: 80
-              scheme: HTTP
           env:
             - name: GoogleOid__ClientId
               valueFrom:
