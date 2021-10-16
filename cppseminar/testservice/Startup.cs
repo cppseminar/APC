@@ -35,6 +35,9 @@ namespace testservice
             });
             services.AddSingleton<RabbitMQService>();
             services.AddSingleton<StorageService>();
+            services.AddHealthChecks()
+                .AddCheck<RabbitMQHealthCheck>("rabbitmq-check")
+                .AddCheck<CosmosHealthCheck>("cosmos-check");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,6 +55,7 @@ namespace testservice
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/healthcheck");
             });
             dbService.Database.EnsureCreated();
             app.ApplicationServices.GetRequiredService<RabbitMQService>().StartProcessing();

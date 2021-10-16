@@ -11,13 +11,12 @@ namespace testservice.Services
         public DbService(DbContextOptions<DbService> options)
             :base(options)
         {
-
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TestCase>()
-                .ToContainer("testCases")
+                .ToContainer(DbConstants.TestCaseCollection)
                 .HasNoDiscriminator()
                 .HasPartitionKey(x => x.TaskId); // This partition key is just to have smth
 
@@ -25,7 +24,7 @@ namespace testservice.Services
                 .Property(testCase => testCase.Id).ToJsonProperty("id");
 
             modelBuilder.Entity<TestRun>()
-                .ToContainer("testRuns")
+                .ToContainer(DbConstants.TestRunCollection)
                 .HasNoDiscriminator()
                 .HasPartitionKey(x => x.CreatedBy);
             modelBuilder.Entity<TestRun>()
@@ -34,5 +33,11 @@ namespace testservice.Services
         }
         public DbSet<TestCase> Cases { get; set; }
         public DbSet<TestRun> Tests { get; set; }
+    }
+
+    public class DbConstants
+    {
+        public const string TestCaseCollection = "testCases";
+        public const string TestRunCollection = "testRuns";
     }
 }

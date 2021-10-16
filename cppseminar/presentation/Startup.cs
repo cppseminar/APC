@@ -68,6 +68,7 @@ namespace presentation
                 CloudBlobContainer blobContainer = blobClient.GetContainerReference("cookiekeys");
                 blobContainer.CreateIfNotExists();
                 services.AddDataProtection().PersistKeysToAzureBlobStorage(blobContainer, "keys.xml");
+                // TODO: SetApplicationName
             }
             else
             {

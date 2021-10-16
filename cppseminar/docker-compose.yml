@@ -82,6 +82,10 @@ services:
             MQ_URI: amqp://rabbitmq.local/
             BLOB_STORAGE_CONNECTION: "DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;"
         restart: always
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost/healthcheck"]
+          timeout: 10s
+          start_period: 30s
 
     azurite.local:
         image: mcr.microsoft.com/azure-storage/azurite:3.14.0

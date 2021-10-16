@@ -36,6 +36,7 @@ namespace testservice.Services
             _publishQueue = config["TEST_REQUESTS_QUEUE"] ?? throw new ArgumentException("Request queue is null");
             _subscribeQueue = config["TEST_RESULTS_QUEUE"] ?? throw new ArgumentException("Result queue is null");
             _factory = new ConnectionFactory() { DispatchConsumersAsync = true };
+            _factory.RequestedHeartbeat = TimeSpan.FromSeconds(6); // 5 should be minimum according to docs
             _factory.Uri = new Uri(config["MQ_URI"]);
             _factory.ClientProvidedName = "testservice";
         }
@@ -46,10 +47,25 @@ namespace testservice.Services
             VerifyChannel();
         }
 
-        public void StopProcessing()
+        public bool HealthCheck()
         {
-            _logger.LogTrace("Disconnecting from queue");
-
+            try
+            {
+                if (_mqConnection == null || !_mqConnection.IsOpen)
+                {
+                    throw new Exception("Connection error");
+                }
+                if (_channel == null || !_channel.IsOpen)
+                {
+                    throw new Exception("Channel error");
+                }
+                return true;
+            }
+            catch(Exception e)
+            {
+                _logger.LogWarning("RabbitMQ healthcheck failed with {e}", e);
+                return false;
+            }
         }
 
         private async Task HandleEvent(object sender, BasicDeliverEventArgs args)
