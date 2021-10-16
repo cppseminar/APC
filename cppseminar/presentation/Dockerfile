@@ -11,14 +11,14 @@ WORKDIR /app
 EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
-#FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build 
+#FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build
 WORKDIR /src
 COPY ["presentation.csproj", "."]
 RUN dotnet restore "presentation.csproj"
 COPY ["Model", "Model"]
 COPY  "Pages" "Pages"
 COPY "Services" "Services"
-COPY ["Program.cs", "Startup.cs", "appsettings.json", "appsettings.Development.json", "."] 
+COPY ["Program.cs", "Startup.cs", "appsettings.json", "appsettings.Development.json", "."]
 
 FROM build as dev
 EXPOSE 8080

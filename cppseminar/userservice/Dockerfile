@@ -7,7 +7,6 @@ WORKDIR /src
 COPY ["userservice.csproj", "./userservice.csproj"]
 RUN dotnet restore "userservice.csproj"
 COPY . .
-WORKDIR "/src"
 RUN dotnet build "userservice.csproj" -c Release -o /app/build
 
 FROM build as dev

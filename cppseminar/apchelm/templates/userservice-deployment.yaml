@@ -22,8 +22,6 @@ spec:
         app: userservice
         category: backend
     spec:
-      imagePullSecrets:
-        - name: regcred
       containers:
         - name: userservice-pod
           image:

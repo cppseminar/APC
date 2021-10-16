@@ -2,12 +2,16 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Azure.Storage.Blob;
+using Microsoft.Azure.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using presentation.Services;
+using System;
 
 namespace presentation
 {
@@ -56,6 +60,20 @@ namespace presentation
                 AuthenticationService authInstance = new AuthenticationService(Configuration);
                 options.Events.OnCreatingTicket = context => AuthenticationService.OnCreateTicketAsync(authInstance, context);
             });
+
+            CloudStorageAccount keyStorageAccount;
+            if (CloudStorageAccount.TryParse(Configuration["STORAGE_CONNECTION_STRING"], out keyStorageAccount))
+            {
+                CloudBlobClient blobClient = keyStorageAccount.CreateCloudBlobClient();
+                CloudBlobContainer blobContainer = blobClient.GetContainerReference("cookiekeys");
+                blobContainer.CreateIfNotExists();
+                services.AddDataProtection().PersistKeysToAzureBlobStorage(blobContainer, "keys.xml");
+            }
+            else
+            {
+                throw new ArgumentException("Cannot parse connection string to key storage");
+            }
+
             services.AddAuthorization(options => {
                 options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
                                                                          .Build();
@@ -68,7 +86,6 @@ namespace presentation
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseForwardedHeaders();
-            // TODO: Use volume for cookie encryption keys
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

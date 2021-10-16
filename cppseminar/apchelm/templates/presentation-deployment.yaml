@@ -11,7 +11,7 @@ spec:
     matchLabels:
       app: presentation
   revisionHistoryLimit: 2
-  replicas: 1
+  replicas: 2
   strategy:
     type: RollingUpdate
   template:
@@ -20,8 +20,6 @@ spec:
         app: presentation
         category: frontend
     spec:
-      imagePullSecrets:
-        - name: regcred
       containers:
         - name: presentation-pod
           image:
@@ -55,3 +53,8 @@ spec:
               value: http://submissionsservice-service.apc
             - name: TEST_SERVICE
               value: http://testservice-service.apc
+            - name: STORAGE_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  key: blobConnectionString
+                  name: general-secrets

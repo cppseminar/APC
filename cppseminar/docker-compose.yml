@@ -43,6 +43,7 @@ services:
             SUBMISSION_SERVICE: http://submissions.local:5004/
             TEST_SERVICE: http://testservice.local/
             USER_SERVICE: http://userservice.local/
+            STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
         restart: "always"
 
     userservice.local:
