@@ -8,9 +8,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using presentation.Model;
 using presentation.Services;
 
-namespace presentation.Pages.TestCase
+namespace presentation.Pages.Admin.TestCase
 {
-    [Authorize("Administrator")]
     public class IndexModel : PageModel
     {
         private TestCaseService _testCaseService;

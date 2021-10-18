@@ -1,5 +1,5 @@
 @page
-@model presentation.Pages.Users.IndexModel
+@model presentation.Pages.Admin.Users.IndexModel
 
 <th:div asp-validation-summary="All"></th:div>
 
@@ -7,7 +7,7 @@
     @foreach (var user in Model.AllUsers)
     {
         <tr>
-            <td><th:a asp-page="/Users/Index" asp-page-handler="Detail" asp-route-email="@user"> @user</th:a></td>
+            <td><th:a asp-page="/Admin/Users/Index" asp-page-handler="Detail" asp-route-email="@user"> @user</th:a></td>
         </tr>
     }
 </table>

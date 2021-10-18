@@ -9,11 +9,11 @@ using Microsoft.Extensions.Logging;
 using presentation.Model;
 using presentation.Services;
 
-namespace presentation.Pages.Submissions
+namespace presentation.Pages.Admin.Submissions
 {
-    public class AllModel : PageModel
+    public class ListModel : PageModel
     {
-        public AllModel(ILogger<AllModel> logger, SubmissionService submissionService, AuthenticationService authService)
+        public ListModel(ILogger<ListModel> logger, SubmissionService submissionService, AuthenticationService authService)
         {
             _logger = logger;
             _submissionService = submissionService;
@@ -22,7 +22,6 @@ namespace presentation.Pages.Submissions
 
         public async Task OnGetAsync()
         {            
-            Console.WriteLine(SelectedUser);
             try
             {
                 if (SelectedUser == "")
@@ -57,7 +56,7 @@ namespace presentation.Pages.Submissions
         public List<SelectListItem> Users = null;
 
 
-        private ILogger<AllModel> _logger = null;
+        private ILogger<ListModel> _logger = null;
         private SubmissionService _submissionService = null;
         private AuthenticationService _authService = null;
     }

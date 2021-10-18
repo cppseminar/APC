@@ -33,9 +33,9 @@
                         <li class="nav-item"><th:a asp-page="/Submissions/Index" class="nav-link">Your Submissions</th:a></li>
                         @if (User.IsAdmin())
                         {
-                            <li class="nav-item"><th:a asp-page="/Users/Index" class="nav-link">Users</th:a></li>
-                            <li class="nav-item"><th:a asp-page="/TestCase/Index" class="nav-link">Test cases</th:a></li>
-                            <li class="nav-item"><th:a asp-page="/Submissions/All" class="nav-link">All Submissions</th:a></li>
+                            <li class="nav-item"><th:a asp-page="/Admin/Users/Index" class="nav-link">Users</th:a></li>
+                            <li class="nav-item"><th:a asp-page="/Admin/TestCase/Index" class="nav-link">Test cases</th:a></li>
+                            <li class="nav-item"><th:a asp-page="/Admin/Submissions/List" class="nav-link">All Submissions</th:a></li>
                         }
                     </ul>
                 </div>

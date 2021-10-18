@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using presentation.Model;
 using presentation.Services;
 
-namespace presentation.Pages.Users
+namespace presentation.Pages.Admin.Users
 {
     [Authorize("Administrator")]
     public class IndexModel : PageModel

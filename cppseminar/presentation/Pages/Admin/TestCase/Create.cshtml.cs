@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using presentation.Model;
 using presentation.Services;
 
-namespace presentation.Pages.TestCase
+namespace presentation.Pages.Admin.TestCase
 {
     public class CreateModel : PageModel
     {
