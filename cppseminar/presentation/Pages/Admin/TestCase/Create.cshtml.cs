@@ -39,7 +39,7 @@ namespace presentation.Pages.Admin.TestCase
             try
             {
                 await _testCaseService.CreateCase(NewCase);
-                return RedirectToPage("/TestCase/Index");
+                return RedirectToPage("/Admin/TestCase/Index");
             }
             catch(Exception e)
             {

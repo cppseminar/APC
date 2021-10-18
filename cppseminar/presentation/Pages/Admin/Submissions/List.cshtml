@@ -21,7 +21,11 @@
         {
             <tr>
                 <td>
-                    <th:a asp-page="/Submissions/Detail" asp-route-id="@submission.Id">@submission.Name</th:a>
+                    <th:a asp-page="/Admin/Submissions/Detail"
+                          asp-route-user="@submission.UserEmail"
+                          asp-route-submissionId="@submission.Id">
+                        @submission.Name
+                    </th:a>
                 </td>
                 <td>
                     @submission.TaskName

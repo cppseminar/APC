@@ -1,0 +1,9 @@
+@page "{user}/{submissionId:guid}"
+@model presentation.Pages.Admin.Submissions.DetailModel
+
+<th:div asp-validation-summary="All" class="alert-danger"></th:div>
+
+@if (Model.CurrentSubmission != null)
+{
+    <pre class="editor">@Model.CurrentSubmission.Content</pre>
+}
