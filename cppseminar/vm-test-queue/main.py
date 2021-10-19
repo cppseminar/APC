@@ -36,7 +36,6 @@ def forward_request_to_vm_test_server(channel, method, data):
         connection.request('POST', '/test', data)
         response = connection.getresponse()
         if response.status >= 200 and response.status < 300:
-            channel.basic_ack(delivery_tag = method.delivery_tag)
             return True
         else:
             logger.warning('Http request POST /test on %s failed with %d %s', server_addr, response.status, response.reason)
@@ -59,17 +58,23 @@ def connect():
         # Queue will be declared by test service
         # channel.queue_declare(queue_name, durable=True)
 
-        for msg in channel.consume(queue_name, inactivity_timeout=2):
-            if stop.is_set():
-                logger.info('Breaking from msg loop.')
-                break
+        try:
+            # we set auto ack to True, if we cannot forward the message we 
+            # siply discard it, it is not ideal, but for now better, than
+            # fail in a loop
+            for msg in channel.consume(queue_name, auto_ack=True, inactivity_timeout=2):
+                if stop.is_set():
+                    logger.info('Breaking from msg loop.')
+                    break
 
-            if msg == (None, None, None):
-                continue
+                if msg == (None, None, None):
+                    continue
 
-            method, _, body = msg
-            if not forward_request_to_vm_test_server(channel, method, body):
-                logger.warning('Cannot forward message %s', body.decode('utf8'))
+                method, _, body = msg
+                if not forward_request_to_vm_test_server(channel, method, body):
+                    logger.warning('Cannot forward message %s', body.decode('utf8'))
+        except Exception as e:
+            logger.error("Unhandled exception in message loop!", exc_info=e)
 
 
 def run():
