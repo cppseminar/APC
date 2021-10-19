@@ -31,7 +31,7 @@ namespace testservice.Controllers
 
         [HttpGet("{userEmail?}")]
         public ActionResult<IAsyncEnumerable<TestRun>> OnGetList(
-            [FromRoute]string userEmail, [FromQuery]Guid? submissionId)
+            [FromRoute]string userEmail, [FromQuery]Guid? submissionId, [FromQuery]Guid? taskId)
         {
             var queryable = _dbService.Tests.AsQueryable();
             if (userEmail != null)
@@ -44,11 +44,17 @@ namespace testservice.Controllers
                  queryable = queryable.Where(
                      test => test.SubmissionId == submissionId.ToString());
             }
+            if (taskId != null)
+            {
+                queryable = queryable.Where(
+                    test => test.TaskId == taskId.ToString());
+            }
             return Ok(queryable.OrderByDescending(test => test.CreatedAt).Take(20).AsAsyncEnumerable());
         }
 
         [HttpGet("{userEmail}/{testid:guid}")]
-        public async Task<ActionResult<TestRun>> OnGetAsync(string userEmail, Guid testid)
+        public async Task<ActionResult<TestRun>> OnGetAsync(
+            [FromRoute] string userEmail, [FromRoute] Guid testid)
         {
             _logger.LogTrace("Retrieving concrete test {testid} {email}", testid, userEmail);
             var testRun = await _dbService.Tests.FirstOrDefaultAsync(

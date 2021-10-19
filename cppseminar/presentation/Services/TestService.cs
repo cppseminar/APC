@@ -51,15 +51,19 @@ namespace presentation.Services
             }
         }
 
-        public async Task<List<TestRun>> GetTestsForUserAsync(string userName, string submissionId)
+        public async Task<List<TestRun>> GetTestsAsync(string userEmail, string taskId, string submissionId)
         {
-            return await RetrieveTestsAsync(userName: userName, submissionId: submissionId);
+            userEmail = !string.IsNullOrEmpty(userEmail) ? userEmail : null;
+            taskId = !string.IsNullOrEmpty(taskId) ? taskId : null;
+            submissionId = !string.IsNullOrEmpty(submissionId) ? submissionId : null;
+
+            return await RetrieveTestsAsync(userName: userEmail, submissionId: submissionId, taskId: taskId);
         }
 
         public async Task<TestRun> GetOneTest(string userEmail, Guid testId)
         {
             _logger.LogTrace("Retrieving test run {user} {id}", userEmail, testId);
-            string uri = $"test/{HttpUtility.UrlEncode(userEmail)}/{testId.ToString()}";
+            string uri = $"test/{HttpUtility.UrlEncode(userEmail)}/{testId}";
             try
             {
                 var response = await _client.GetAsync(uri);
@@ -73,7 +77,7 @@ namespace presentation.Services
             }
         }
 
-        private async Task<List<TestRun>> RetrieveTestsAsync(
+        public async Task<List<TestRun>> RetrieveTestsAsync(
             string userName = null, string taskId = null, string submissionId = null)
         {
             var query = "?";
@@ -81,8 +85,13 @@ namespace presentation.Services
             {
                 query += $"submissionId={HttpUtility.UrlEncode(submissionId)}&";
             }
+            if (taskId != null)
+            {
+                query += $"taskId={HttpUtility.UrlEncode(taskId)}&";
+            }
+
             var response = await _client.GetAsync(
-                $"test/{HttpUtility.UrlEncode(userName ?? string.Empty)}" + query);
+                $"test/{HttpUtility.UrlEncode(userName)}/" + query);
             return await response.Content.ReadAsAsync<List<TestRun>>();
         }
     }

@@ -20,21 +20,8 @@ namespace presentation.Pages.Shared.Components.TestList
             string taskId,
             string submissionId)
         {
-            if (submissionId == string.Empty)
-            {
-                submissionId = null;
-            }
-
-            if (userEmail != null)
-            {
-                var items = await _testService.GetTestsForUserAsync(userEmail, submissionId);
-                return View(items);
-
-            }
-            else
-            {
-                throw new Exception("Not implemented");
-            }
+            var items = await _testService.GetTestsAsync(userEmail, taskId, submissionId);
+            return View(items);
         }
     }
 }
