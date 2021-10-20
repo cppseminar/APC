@@ -10,12 +10,15 @@
 
 @if (Model.MySubmission != null)
 {
-    <div>
-        <h4>@Model.MySubmission.TaskName</h4>
-        <p>Submitted on: @Model.MySubmission.SubmittedOn</p>
-        <pre class="editor">@Model.MySubmission.Content</pre>
+<div>
+    <h3>@Model.MySubmission.TaskName</h3>
+    <p>Submitted on: @Model.MySubmission.SubmittedOn</p>
+    @if (User.IsAdmin())
+    {
         <p><small>Id: @Model.MySubmission.Id</small></p>
-    </div>
+    }
+    <pre class="editor">@Model.MySubmission.Content</pre>
+</div>
 }
 else
 {

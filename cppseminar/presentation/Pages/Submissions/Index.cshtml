@@ -8,8 +8,19 @@
 <h3>Submissions</h3>
 <th:div asp-validation-summary="All"></th:div>
 <div>
-    <span>Your submissions</span>
-    <table class="table">
+    <span>All your submissions are listed on this page.</span>
+    <table class="table mt-3">
+        <tr>
+            <th>
+                Submission
+            </th>
+            <th>
+                Task
+            </th>
+            <th>
+                Submission time
+            </th>
+        </tr>
         @foreach (var submission in Model.Submissions)
         {
             <tr>
