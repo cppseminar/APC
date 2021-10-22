@@ -78,6 +78,14 @@ namespace testservice.Controllers
                         testId: testid.ToString(),
                         fileName: TestRunConstants.FileStudents));
                 testRun.Students = Encoding.UTF8.GetString(studentJson);
+
+                var teachersJson = await _storageService.DownloadResultAsync(
+                    _storageService.CreateName(
+                        userEmail: userEmail,
+                        testId: testid.ToString(),
+                        fileName: TestRunConstants.FileTeachers));
+                testRun.Teachers = Encoding.UTF8.GetString(teachersJson);
+
                 return Ok(testRun);
             }
             catch(Exception e)

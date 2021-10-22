@@ -42,6 +42,8 @@ namespace testservice.Models
         public string Name { get; set; }
         [NotMapped]
         public string Students { get; set; }
+        [NotMapped]
+        public string Teachers { get; set; }
     }
 
     public class TestRunConstants
