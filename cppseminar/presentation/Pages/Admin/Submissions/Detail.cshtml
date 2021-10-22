@@ -1,9 +1,71 @@
 @page "{user}/{submissionId:guid}"
 @model presentation.Pages.Admin.Submissions.DetailModel
+@using presentation.Services;
 
-<th:div asp-validation-summary="All" class="alert-danger"></th:div>
+
+@if (!Model.ModelState.IsValid)
+{
+    <th:div asp-validation-summary="All" class="alert-danger p-3 border"></th:div>
+}
 
 @if (Model.CurrentSubmission != null)
 {
-    <pre class="editor">@Model.CurrentSubmission.Content</pre>
+    <div>
+        <h3>Task: @Model.CurrentSubmission.TaskName</h3>
+        <p>Submitted on: @Model.CurrentSubmission.SubmittedOn</p>
+        <p>Submitted by: @Model.CurrentSubmission.UserEmail</p>
+        <p><small>Id: @Model.CurrentSubmission.Id</small></p>
+        <pre class="editor">@Model.CurrentSubmission.Content</pre>
+    </div>
+}
+else
+{
+    <div class="alert-warning p-3 border">Not found</div>
+}
+
+@if (Model.TestCaseList != null && Model.TestCaseList.Count > 0)
+{
+    <table class="table">
+        <tr>
+            <th>Test Name</th>
+        </tr>
+        @foreach (var testCase in Model.TestCaseList)
+        {
+            <tr>
+                <td>
+                    @testCase.Name
+                </td>
+                <td>
+                    <th:form method="post">
+                        <th:input type="hidden" asp-for="@Model.TestGuid" value="@testCase.Id" />
+                        <input class="btn btn-primary" type="submit" value="Run test!" />
+                    </th:form>
+                </td>
+            </tr>
+        }
+
+    </table>
+}
+else
+{
+    <div class="alert-info">
+        <p>There are no tests available</p>
+    </div>
+}
+
+@if (Model.CurrentSubmission != null)
+{
+    <h3>User tests</h3>
+    <div>
+        @await Component.InvokeAsync(
+            "TestList",
+            new { userEmail = @Model.CurrentSubmission.UserEmail, taskId = "", submissionId = Model.CurrentSubmission.Id, isAdmin = true })
+    </div>
+
+    <h3>Your tests</h3>
+    <div>
+        @await Component.InvokeAsync(
+            "TestList",
+            new { userEmail = User.GetEmail(), taskId = "", submissionId = Model.CurrentSubmission.Id, isAdmin = true })
+    </div>
 }

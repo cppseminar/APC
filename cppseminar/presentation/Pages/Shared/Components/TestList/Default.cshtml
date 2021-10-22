@@ -13,7 +13,20 @@
         @foreach (var testRun in Model)
         {
             <tr>
-                <td><th:a asp-page="/Tests/Detail" asp-route-guid="@testRun.Id">@testRun.TestCaseName</th:a></td>
+                @if (ViewData["IsAdmin"] as bool? ?? false)
+                {
+                    <td>
+                        <th:a asp-page="/Admin/Test/Detail"
+                              asp-route-testId="@testRun.Id"
+                              asp-route-userEmail="@testRun.CreatedBy">
+                            @testRun.TestCaseName
+                        </th:a>
+                    </td>
+                }
+                else
+                {
+                    <td><th:a asp-page="/Tests/Detail" asp-route-guid="@testRun.Id">@testRun.TestCaseName</th:a></td>
+                }
                 <td>@testRun.TaskName</td>
                 <td>@testRun.CreatedAt</td>
                 <td>@testRun.Status</td>
