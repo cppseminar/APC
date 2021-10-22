@@ -96,7 +96,7 @@ class Tests:
             shutil.copy2(submission_binary, submission_path)
             env = { 'SUBMISSIONPATH': submission_path }
 
-        args = [*self._options, test_case]
+        args = [*self._options, test_case.replace(',', '\,')] # comma in test is not allowed, you need to escape it
 
         logger.debug('Starting tests file %s, with arguments "%s" current working directory "%s"', catch_path, ', '.join(args), temp_dir)
 
