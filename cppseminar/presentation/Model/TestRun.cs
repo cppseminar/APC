@@ -20,5 +20,6 @@ namespace presentation.Model
         public string Message { get; set; }
         public string Name { get; set; }
         public string Students { get; set; }
+        public string Teachers { get; set; }
     }
 }

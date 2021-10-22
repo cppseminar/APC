@@ -1,0 +1,59 @@
+@page "{userEmail}/{testId:guid}"
+@model presentation.Pages.Admin.Test.DetailModel
+
+
+@if (Model.TestResult != null)
+{
+    <h4>Test results</h4>
+    <p>@Model.TestResult.Message</p>
+    <div>
+        <table class="table">
+            <tr>
+                <td>Time requested</td>
+                <td>@Model.TestResult.CreatedAt</td>
+            </tr>
+
+            <tr>
+                <td>Requested by</td>
+                <td> @Model.TestResult.CreatedBy</td>
+            </tr>
+            <tr>
+                <td>Test for</td>
+                <td>@Model.TestResult.TaskName</td>
+            </tr>
+            <tr>
+                <td>Tets name</td>
+                <td>@Model.TestResult.TestCaseName</td>
+            </tr>
+            <tr>
+                <td>Test id</td>
+                <td>@Model.TestResult.Id</td>
+            </tr>
+            @if (Model.TestResult.FinishedAt != null)
+            {
+                <tr>
+                    <td>Test finished</td>
+                    <td>@Model.TestResult.FinishedAt</td>
+                </tr>
+            }
+        </table>
+    </div>
+
+    @if (Model.TestResult.Students != null)
+    {
+        <div class="p-3 mt-2 border bg-light">
+            <script type="application/json" id="results-students">
+               @Html.Raw(Model.TestResult.Students)
+            </script>
+        </div>
+    }
+
+    @if (Model.TestResult.Teachers != null)
+    {
+        <div class="p-3 mt-2 border bg-light">
+            <script type="application/json" id="results-teachers">
+               @Html.Raw(Model.TestResult.Teachers)
+            </script>
+        </div>
+    }
+}
