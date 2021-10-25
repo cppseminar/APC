@@ -93,7 +93,7 @@ class GccCompiler:
             if gcc.returncode != 0:
                 logger.error('Cannot link files, check out logs at "%s"', self._output_path)
                 return CompilationResult(gcc.returncode, '', gcc.stdout.decode('utf-8'))
-            
+
             logger.info('File(s) %s successfuly compiled and linked', self._output_path)
             return CompilationResult(0, output, compile_output.decode('utf-8'))
 

@@ -5,7 +5,7 @@ import shutil
 import subprocess
 from enum import Enum
 from typing import Final
-import os
+import os, pwd
 from dataclasses import dataclass
 
 
@@ -90,6 +90,13 @@ class Tests:
         catch_path = os.path.join(temp_dir, self.CATCH_EXEC_NAME)
         shutil.copy2(self.binary, catch_path)
 
+        os.chmod(temp_dir, 0o777) # everyone os allowed to do everything
+        os.chmod(catch_path, 0o777) 
+
+        pw_record = pwd.getpwnam("apc-test")
+        user_uid = pw_record.pw_uid
+        user_gid = pw_record.pw_gid
+
         env = {}
         if submission_binary:
             submission_path = os.path.join(temp_dir, self.SUBMISSION_EXEC_NAME)
@@ -100,7 +107,17 @@ class Tests:
 
         logger.debug('Starting tests file %s, with arguments "%s" current working directory "%s"', catch_path, ', '.join(args), temp_dir)
 
-        catch = subprocess.run([catch_path, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120, cwd=temp_dir, env=env)
+        def demote(user_uid, user_gid):
+            os.setgid(user_gid)
+            os.setuid(user_uid)
+
+        catch = subprocess.run([catch_path, *args],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=lambda: demote(user_uid, user_gid),
+            timeout=300,
+            cwd=temp_dir,
+            env=env)
 
         stdout = catch.stdout.decode('utf-8')
         stderr = catch.stderr.decode('utf-8')

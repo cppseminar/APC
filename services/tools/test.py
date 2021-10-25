@@ -8,6 +8,7 @@ import http.client
 import json
 import tempfile
 import os
+import traceback
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -141,8 +142,8 @@ def client(args):
         prompt = input("Command> ")
         try:
             print(command(returnUrl, args.docker, args.url + ':' + str(args.port), commands[int(prompt)]))
-        except Exception as e:
-            print(e)
+        except Exception:
+            traceback.print_exc()
 
 
 def server(args):

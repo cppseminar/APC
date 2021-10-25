@@ -14,7 +14,8 @@ RUN apt-get update \
     && mkdir -p /app/tests \
     && mkdir -p /app/tester \
     && mkdir -p $SUBMISSION_PATH \
-    && mkdir -p $OUTPUT_PATH
+    && mkdir -p $OUTPUT_PATH \
+    && useradd -ms /bin/bash apc-test
     
 COPY ./tester /app/tester
 COPY $UNITTESTS_PATH /app/tests
@@ -27,9 +28,6 @@ RUN apt-get -y install crudini \
     && crudini --set /app/config.ini paths submission $SUBMISSION_PATH \
     && crudini --set /app/config.ini paths tests /app/tests \
     && crudini --set /app/config.ini paths output $OUTPUT_PATH
-
-RUN useradd -ms /bin/bash apc-test
-USER apc-test
 
 WORKDIR /app
 CMD python -m tester ./config.ini
