@@ -28,5 +28,8 @@ RUN apt-get -y install crudini \
     && crudini --set /app/config.ini paths tests /app/tests \
     && crudini --set /app/config.ini paths output $OUTPUT_PATH
 
+RUN useradd -ms /bin/bash apc-test
+USER apc-test
+
 WORKDIR /app
 CMD python -m tester ./config.ini
