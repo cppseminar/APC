@@ -258,10 +258,6 @@ func DockerExec(ctx context.Context, config DockerConfig) (string, error) {
 		NetworkDisabled: true,
 	}
 
-	if os.Getuid() >= 0 {
-		dockerConfig.User = strconv.Itoa(os.Getuid()) // this is only for posix os
-	}
-
 	var dockerHostConfig = &container.HostConfig{
 		AutoRemove:  true,
 		NetworkMode: "none",
