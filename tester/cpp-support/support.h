@@ -3,13 +3,32 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
+struct buffer_t {
+    char* buffer;
+    size_t size;
+    size_t capacity;
+};
+
+bool buffer_allocate(struct buffer_t* buf, size_t size);
+
+bool buffer_append(struct buffer_t* buf, char* data, size_t size);
+
+// -2 allocation error
+// -1 delim not there
+// 0 success
+int buffer_extract_delim(struct buffer_t* buf, char delim, char** output);
+
+bool buffer_empty(struct buffer_t* buf);
 
 typedef struct process_t
 {
-    FILE *send_to_child;
-    FILE *read_from_child;
+    int send_to_child;
+    int read_from_child;
     pid_t pid;
     int status;
+    struct buffer_t stdout_buffer;
 } process_t;
 
 int process_create(const char *process_name, const char *const args[], size_t argc, process_t *result);
