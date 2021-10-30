@@ -59,7 +59,12 @@ class Process {
             };
             
             if (data) {
-                return data.get();
+                // trim trailing whitespace
+                std::string result = data.get();
+                auto it = std::find_if(result.rbegin(), result.rend(), [](auto c) { return !isspace(c); });
+                result.resize(std::distance(result.begin(), it.base()));
+
+                return result;
             }
 
             return std::nullopt;

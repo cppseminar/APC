@@ -225,7 +225,7 @@ int process_create(const char *process_name, const char *const args[], size_t ar
             close(syncpipe[0]);
 
             // initilize stdout buffer
-            if (!buffer_allocate(&result->stdout_buffer, 2)) {
+            if (!buffer_allocate(&result->stdout_buffer, 2048)) {
                 close(result->read_from_child);
                 close(result->send_to_child);
                 return -1;
@@ -332,7 +332,7 @@ char *process_read_line(process_t *process, int timeout)
             ms_timeout = ms_timeout - poll_time < 0 ? 0 : ms_timeout - poll_time;
         }
 
-        char buffer[4];
+        char buffer[2048];
         ssize_t count = read(process->read_from_child, buffer, sizeof(buffer));
         if (count < 0) {
             // do not report end of file conditions
