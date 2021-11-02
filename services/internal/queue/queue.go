@@ -254,7 +254,11 @@ func processMessages(wg *sync.WaitGroup) {
 			}()
 
 			var outputVolume docker.DockerVolume
-			defer outputVolume.Cleanup()
+			// we do not want to delte the tmp files, it may be useful,
+			// also the line below will not do the trick, since args
+			// are bound when defer is called, not when the function is
+			// called, so it will call Cleanup on empty path :(
+			//defer outputVolume.Cleanup()
 
 			result := func() string {
 				ctx := context.Background()
