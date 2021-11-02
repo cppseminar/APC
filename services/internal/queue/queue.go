@@ -316,6 +316,8 @@ func processMessages(wg *sync.WaitGroup) {
 			tmp, err := ioutil.TempFile(outputPath, "__msg__*.json")
 			if err == nil {
 				_, err = tmp.Write(msgJson)
+				tmp.Close()
+				defer os.Remove(tmp.Name())
 			}
 
 			if err != nil {
@@ -369,6 +371,9 @@ func processMessages(wg *sync.WaitGroup) {
 				log.Println("Cannot forward request", err)
 				return
 			}
+
+			resp.Body.Close() // no need to defer this
+
 			if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 				log.Println("Forward request failed", resp)
 				return

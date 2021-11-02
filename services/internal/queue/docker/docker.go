@@ -183,6 +183,8 @@ func PullImage(ctx context.Context, config DockerConfig) {
 		return
 	}
 
+	defer cli.Close()
+
 	reader, err := cli.ImagePull(ctx, config.DockerImage, types.ImagePullOptions{
 		RegistryAuth: base64.URLEncoding.EncodeToString(encodedJSON),
 	})
@@ -208,6 +210,8 @@ func GetDockerEnv(ctx context.Context, containerId string) (map[string]string, e
 		log.Printf("Error while creating docker client: %v\n", err)
 		return nil, err
 	}
+
+	defer cli.Close()
 
 	var dockerContainerConfig = &container.Config{
 		Image:           containerId,
@@ -251,6 +255,8 @@ func DockerExec(ctx context.Context, config DockerConfig) (string, error) {
 		log.Printf("Error while creating docker client: %v\n", err)
 		return "", err
 	}
+
+	defer cli.Close()
 
 	var dockerConfig = &container.Config{
 		Image:           config.DockerImage,
