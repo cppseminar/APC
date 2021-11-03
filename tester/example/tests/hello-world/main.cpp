@@ -28,3 +28,22 @@ TEST_CASE("Echo back", "[example]") {
 
     REQUIRE(p.Wait(2s) == 0);
 }
+
+TEST_CASE("Get data", "[example]") {
+    auto file = GetData("input.txt");
+
+    std::ifstream in(file);
+    REQUIRE(in.is_open());
+
+    std::string line;
+    REQUIRE(std::getline(in, line));
+
+    REQUIRE(line == "Hello world!");
+}
+
+TEST_CASE("Cannot modify data", "[example]") {
+    auto file = GetData("input.txt");
+
+    std::ofstream out(file);
+    REQUIRE(!out.is_open());
+}

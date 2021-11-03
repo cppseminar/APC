@@ -127,9 +127,18 @@ inline void RemoveFile(const std::filesystem::path& path) {
 
 inline std::string GetSubmissionPath() {
     const char* submission = std::getenv("SUBMISSIONPATH");
-    if (submission == NULL) {
+    if (submission == nullptr) {
         submission = "./submission";
     }
 
     return submission;
+}
+
+inline std::filesystem::path GetData(const std::string& filename) {
+    const char* data_path = std::getenv("DATAPATH");
+    if (data_path == nullptr) {
+        throw std::runtime_error("Cannot get DATAPATH env");
+    }
+
+    return std::filesystem::path(data_path) / filename;
 }
