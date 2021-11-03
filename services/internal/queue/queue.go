@@ -144,9 +144,9 @@ func readJsonData(path string) (map[string]interface{}, error) {
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
 	var result map[string]interface{}
-	json.Unmarshal([]byte(byteValue), &result)
+	err = json.Unmarshal([]byte(byteValue), &result)
 
-	return result, nil
+	return result, err
 }
 
 func zipOutputToBase64(output_path string) (string, error) {
