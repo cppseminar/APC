@@ -298,10 +298,10 @@ func processMessages(wg *sync.WaitGroup) {
 
 				if err != nil {
 					// There will be some logs already, so just log request json
-					msgJson, err := json.Marshal(msg)
-					if err != nil {
+					msgJson, errJson := json.Marshal(msg)
+					if errJson != nil {
 						// we are deeply screwed...
-						log.Panicln("<3>Cannot format message as json!", err)
+						log.Panicln("<3>Cannot format message as json!", errJson)
 					}
 
 					log.Println("<3>Error while running docker image on message", string(msgJson))
