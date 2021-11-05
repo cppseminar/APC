@@ -472,6 +472,7 @@ func startHttpServer(wg *sync.WaitGroup, serverURL string) *http.Server {
 
 func Run(ctx context.Context, out io.Writer) int {
 	log.SetOutput(out)
+	log.SetFlags(0)
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, unix.SIGTERM)
