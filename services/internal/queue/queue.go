@@ -113,7 +113,7 @@ func getSchema() *gojsonschema.Schema {
 
 	schema, err := gojsonschema.NewSchema(schemaLoader)
 	if err != nil {
-		log.Panicln("Cannot load json schema ", err)
+		log.Panicln("<3>Cannot load json schema ", err)
 	}
 
 	return schema
@@ -122,7 +122,7 @@ func getSchema() *gojsonschema.Schema {
 func getVolume(guestPath string, readOnly bool) docker.DockerVolume {
 	path, err := ioutil.TempDir("", "dockerVolume")
 	if err != nil {
-		log.Panicln("Cannot create tmp folder", err)
+		log.Panicln("<3>Cannot create tmp folder", err)
 	}
 
 	return docker.DockerVolume{
@@ -135,7 +135,7 @@ func getVolume(guestPath string, readOnly bool) docker.DockerVolume {
 func readJsonData(path string) (map[string]interface{}, error) {
 	jsonFile, err := os.Open(path)
 	if err != nil {
-		log.Println(err)
+		log.Println("<3>Error opening path with json", err)
 		return nil, err
 	}
 	// defer the closing of our jsonFile so that we can parse it later on
@@ -152,14 +152,13 @@ func readJsonData(path string) (map[string]interface{}, error) {
 func zipOutputToBase64(output_path string) (string, error) {
 	output_path, err := filepath.Abs(output_path)
 	if err != nil {
-		log.Printf("Cannot resolve absolute form of output_path (%s)\n", output_path)
-		log.Println(err)
+		log.Printf("<3>Cannot resolve absolute form of output_path (%s) %v\n", output_path, err)
 		return "", err
 	}
 
 	f, err := ioutil.TempFile("", "output*")
 	if err != nil {
-		log.Println(err)
+		log.Println("<3>Cannot create temp file", err)
 		return "", err
 	}
 
@@ -173,7 +172,7 @@ func zipOutputToBase64(output_path string) (string, error) {
 
 		walker := func(path string, info os.FileInfo, err error) error {
 			if err != nil {
-				log.Println(err)
+				log.Println("<3>Error while walking path", err)
 				return err
 			}
 			if info.IsDir() {
@@ -181,14 +180,14 @@ func zipOutputToBase64(output_path string) (string, error) {
 			}
 			file, err := os.Open(path)
 			if err != nil {
-				log.Println(err)
+				log.Println("<3>Cannot open file", err)
 				return err
 			}
 			defer file.Close()
 
 			// make the path relative, so zip will display it nicely
 			if !strings.HasPrefix(path, output_path) {
-				log.Panicf("We make sure output_path (%s) is absolute, but path (%s) is not prefix.", output_path, path)
+				log.Panicf("<3>We make sure output_path (%s) is absolute, but path (%s) is not prefix.", output_path, path)
 			}
 
 			path = strings.TrimPrefix(path, output_path)
@@ -196,13 +195,13 @@ func zipOutputToBase64(output_path string) (string, error) {
 
 			f, err := zipWriter.Create(path)
 			if err != nil {
-				log.Println(err)
+				log.Println("<3>Cannot create zip writer", err)
 				return err
 			}
 
 			_, err = io.Copy(f, file)
 			if err != nil {
-				log.Println(err)
+				log.Println("<3>File copy failed", err)
 				return err
 			}
 
@@ -222,7 +221,7 @@ func zipOutputToBase64(output_path string) (string, error) {
 
 	data, err := ioutil.ReadFile(f.Name())
 	if err != nil {
-		log.Println(err)
+		log.Println("<3>Reading of file failed", err)
 		return "", err
 	}
 
@@ -235,21 +234,20 @@ func processMessages(wg *sync.WaitGroup) {
 	for {
 		msg, more := <-queue
 		if !more {
-			log.Println("Message queue empty and closed.")
+			log.Println("<6>Message queue empty and closed.")
 			return
 		}
 
-		log.Println("Start processing of message.")
+		log.Println("<6>Start processing of message.")
 
 		func() {
 			// This is to always log last request, in case something went terribly bad
 			defer func() {
 				r := recover()
 				if r != nil {
-					log.Printf("Panicing on message %v\n", msg)
-					panic(r) // just fail quickly
+					log.Panicf("<3>Panicing on message %v", msg.MetaData) // just fail quickly
 				} else {
-					log.Println("Finished processing of message.")
+					log.Println("<6>Finished processing of message.")
 				}
 			}()
 
@@ -289,7 +287,7 @@ func processMessages(wg *sync.WaitGroup) {
 
 					err := ioutil.WriteFile(path, []byte(content), 0644)
 					if err != nil {
-						log.Println(err)
+						log.Println("<3>Cannot write submission file", err)
 						return err.Error()
 					}
 				}
@@ -300,7 +298,13 @@ func processMessages(wg *sync.WaitGroup) {
 
 				if err != nil {
 					// There will be some logs already, so just log request json
-					log.Printf("Error while running docker image on message %+v\n", msg)
+					msgJson, err := json.Marshal(msg)
+					if err != nil {
+						// we are deeply screwed...
+						log.Panicln("<3>Cannot format message as json!", err)
+					}
+
+					log.Println("<3>Error while running docker image on message", string(msgJson))
 					return err.Error()
 				}
 
@@ -313,7 +317,7 @@ func processMessages(wg *sync.WaitGroup) {
 			// save whole message there so it will be available in the zip file
 			msgJson, err := json.MarshalIndent(msg, "", " ")
 			if err != nil {
-				log.Println("Cannot save msg to json", err)
+				log.Println("<4>Cannot save msg to json", err)
 				msgJson = []byte(err.Error())
 			}
 
@@ -325,7 +329,7 @@ func processMessages(wg *sync.WaitGroup) {
 			}
 
 			if err != nil {
-				log.Println("Cannot write json", err)
+				log.Println("<4>Cannot write json", err)
 			}
 
 			output := map[string]interface{}{"result": result}
@@ -358,13 +362,13 @@ func processMessages(wg *sync.WaitGroup) {
 
 			body, err := json.Marshal(output)
 			if err != nil {
-				log.Println("Cannot create json", err)
+				log.Println("<3>Cannot create json", err)
 				return
 			}
 
 			req, err := http.NewRequest("POST", "http://"+strings.TrimRight(msg.ReturnURL, "/")+"/results", bytes.NewBuffer(body))
 			if err != nil {
-				log.Println("Cannot create request", err)
+				log.Println("<3>Cannot create request", err)
 				return
 			}
 
@@ -372,14 +376,14 @@ func processMessages(wg *sync.WaitGroup) {
 
 			resp, err := httpClient.Do(req)
 			if err != nil {
-				log.Println("Cannot forward request", err)
+				log.Println("<3>Cannot forward request", err)
 				return
 			}
 
 			resp.Body.Close() // no need to defer this
 
 			if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-				log.Println("Forward request failed", resp)
+				log.Println("<3>Forward request failed", resp)
 				return
 			}
 		}()
@@ -405,12 +409,12 @@ func processTestRequestInternal(r *http.Request) int {
 
 	result, err := schema.Validate(jsonDocument)
 	if err != nil {
-		log.Println(err)
+		log.Println("<3>Cannot validate json against schema", err)
 		return http.StatusBadRequest
 	}
 
 	if !result.Valid() {
-		log.Println(result.Errors())
+		log.Println("<3>Json schema validation failed", result.Errors())
 		return http.StatusBadRequest
 	}
 
@@ -420,14 +424,14 @@ func processTestRequestInternal(r *http.Request) int {
 		Memory:     2048,
 	}
 	if err := json.Unmarshal(req, &msg); err != nil {
-		log.Println(err)
+		log.Println("<3>Cannot parse json", err)
 		return http.StatusBadRequest
 	}
 
 	select {
 	case queue <- msg: // normally just add it
 	default: // we are full
-		log.Println("Queue is full")
+		log.Println("<3>Queue is full")
 		return http.StatusTooManyRequests
 	}
 
@@ -438,7 +442,7 @@ func serverHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/test" && r.Method == "POST" {
 		w.WriteHeader(processTestRequestInternal(r))
 	} else {
-		log.Printf("Unsupported request %v %v ip %v", r.Method, r.URL.Path, r.RemoteAddr)
+		log.Printf("<3>Unsupported request %v %v ip %v\n", r.Method, r.URL.Path, r.RemoteAddr)
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
@@ -457,9 +461,9 @@ func startHttpServer(wg *sync.WaitGroup, serverURL string) *http.Server {
 
 		// always returns error. ErrServerClosed on graceful close
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-			log.Fatalf("Listen and serve failed with: %v\n", err)
+			log.Fatalf("<3>Listen and serve failed with: %v\n", err)
 		} else {
-			log.Println("Server stopped gracefully...")
+			log.Println("<6>Server stopped gracefully...")
 		}
 	}()
 
@@ -473,13 +477,12 @@ func Run(ctx context.Context, out io.Writer) int {
 	signal.Notify(signalChan, os.Interrupt, unix.SIGTERM)
 	defer signal.Stop(signalChan)
 
-	log.Println("Queued is starting.")
+	log.Println("<6>Queued is starting.")
 
 	defer func() {
 		r := recover()
 		if r != nil {
-			log.Printf("Panicing %v\n", r)
-			panic(r)
+			log.Panicln("<3>Panicing", r)
 		}
 	}()
 
@@ -495,12 +498,12 @@ func Run(ctx context.Context, out io.Writer) int {
 	// start process messages queue
 	go processMessages(exitDone)
 
-	log.Println("Starting http server on", serverURL, "...")
+	log.Println("<6>Starting http server on", serverURL, "...")
 
 	srv := startHttpServer(exitDone, serverURL)
 
 	<-signalChan // wait for signal
-	log.Printf("Got SIGINT/SIGTERM, exiting...")
+	log.Printf("<6>Got SIGINT/SIGTERM, exiting...\n")
 
 	// using 10 as timeout so http server has some time to quit
 	func() {
@@ -508,7 +511,7 @@ func Run(ctx context.Context, out io.Writer) int {
 		defer cancel()
 
 		if err := srv.Shutdown(ctx); err != nil {
-			log.Println("Cannot shutdown server", err)
+			log.Println("<4>Cannot shutdown server", err)
 			os.Exit(1)
 		}
 	}()
@@ -518,7 +521,7 @@ func Run(ctx context.Context, out io.Writer) int {
 	// wait for goroutine started in startHttpServer() to stop
 	exitDone.Wait()
 
-	log.Println("Queued has ended.")
+	log.Println("<6>Queued has ended.")
 
 	return 0
 }

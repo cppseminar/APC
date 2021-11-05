@@ -25,7 +25,7 @@ func parseArgs() Arguments {
 	flag.Parse()
 
 	if *serverPort == 0 {
-		log.Println("Wrong parameters given")
+		log.Println("<4>Wrong parameters given")
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -35,11 +35,11 @@ func parseArgs() Arguments {
 	if *configFile != "" {
 		content, err := ioutil.ReadFile(*configFile)
 		if err != nil {
-			log.Println("Cannot read file, error:", err)
+			log.Println("<3>Cannot read file, error:", err)
 			os.Exit(1)
 		}
 		if err := json.Unmarshal(content, &result); err != nil {
-			log.Println("Cannot parse json, error:", err)
+			log.Println("<3>Cannot parse json, error:", err)
 			os.Exit(1)
 		}
 	}

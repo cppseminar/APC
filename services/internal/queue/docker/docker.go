@@ -48,7 +48,7 @@ type DockerVolume struct {
 func (volume DockerVolume) Cleanup() {
 	err := os.RemoveAll(volume.HostPath)
 	if err != nil {
-		log.Printf("[WARNING] Error deleting tmp folder %v with error %v\n", volume.HostPath, err)
+		log.Printf("<4>Error deleting tmp folder %v with error %v\n", volume.HostPath, err)
 	}
 }
 
@@ -63,7 +63,7 @@ func (volume DockerVolume) GetMount() string {
 func waitExit(ctx context.Context, dockerCli *client.Client, containerID string) <-chan bool {
 	if len(containerID) == 0 {
 		// containerID can never be empty
-		panic("Error: waitExit needs a containerID as parameter")
+		log.Panicln("<3>waitExit needs a containerID as parameter")
 	}
 
 	// WaitConditionNextExit is used to wait for the next time the state changes
@@ -77,14 +77,14 @@ func waitExit(ctx context.Context, dockerCli *client.Client, containerID string)
 		select {
 		case result := <-resultC:
 			if result.Error != nil || result.StatusCode != 0 {
-				log.Printf("Container returned error code\n\t%#v\n", result)
+				log.Printf("<3>Container returned error code %+v\n", result)
 				statusC <- false
 				return
 			}
 			statusC <- true
 
 		case err := <-errC:
-			log.Printf("Error in container wait: %v\n", err)
+			log.Printf("<3>Error in container wait: %v\n", err)
 			statusC <- false
 		}
 	}()
@@ -103,21 +103,10 @@ func killContainerOnBadCtx(ctx context.Context, dockerCli *client.Client, contai
 		defer cancel()
 		err := dockerCli.ContainerKill(newCtx, containerID, "KILL")
 		if err != nil {
-			if strings.Contains(err.Error(), "is not running") {
-				// This is failsafe, there is small probability in timeouts going
-				// so funny, that after context expiry, this container would
-				// actually stop. In that case we don't want to panic
-				log.Printf("WARNING: Please research this case further")
-				return
-			} else if strings.Contains(err.Error(), "No such container") {
-				// Same as above
-				log.Printf("WARNING: Please research this case further")
-				return
-			}
-
-			panic("Container kill after timeout failed!" + err.Error())
+			log.Println("<3>Container kill after timeout failed!", err)
+		} else {
+			log.Println("<4>Container kill successful, id:", containerID)
 		}
-		log.Printf("Container kill successful %v", containerID)
 	default:
 		// Context is not expired. This was just deffered call, but container is
 		// already dead. This happens all the time and is expected.
@@ -173,13 +162,13 @@ func PullImage(ctx context.Context, config DockerConfig) {
 	}
 	encodedJSON, err := json.Marshal(authConfig)
 	if err != nil {
-		log.Println("Error while marshal json, error:", err)
+		log.Println("<3>Error while marshal json:", err)
 		return
 	}
 
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		log.Printf("Error while creating docker client: %v\n", err)
+		log.Println("<3>Error while creating docker client: ", err)
 		return
 	}
 
@@ -189,14 +178,14 @@ func PullImage(ctx context.Context, config DockerConfig) {
 		RegistryAuth: base64.URLEncoding.EncodeToString(encodedJSON),
 	})
 	if err != nil {
-		log.Printf("Error while pulling docker image (%v): %v\n", config.DockerImage, err)
+		log.Printf("<3>Error while pulling docker image (%v): %v\n", config.DockerImage, err)
 		return
 	}
 
 	defer reader.Close()
 	_, err = io.Copy(ioutil.Discard, reader)
 	if err != nil {
-		log.Printf("Unable to pull image: %v\n", err)
+		log.Println("<3>Unable to pull image:", err)
 		return
 	}
 }
@@ -207,7 +196,7 @@ func GetDockerEnv(ctx context.Context, containerId string) (map[string]string, e
 
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		log.Printf("Error while creating docker client: %v\n", err)
+		log.Println("<3>Error while creating docker client:", err)
 		return nil, err
 	}
 
@@ -224,13 +213,13 @@ func GetDockerEnv(ctx context.Context, containerId string) (map[string]string, e
 
 	container, err := cli.ContainerCreate(context, dockerContainerConfig, dockerHostConfig, nil, nil, "")
 	if err != nil {
-		log.Printf("Error while creating docker image (%v): %v\n", containerId, err)
+		log.Printf("<3>Error while creating docker image (%v): %v\n", containerId, err)
 		return nil, err
 	}
 
 	json, err := cli.ContainerInspect(context, container.ID)
 	if err != nil {
-		log.Printf("Error while inspecting docker container %v: %v\n", containerId, err)
+		log.Printf("<3>Error while inspecting docker container %v: %v\n", containerId, err)
 		return nil, err
 	}
 
@@ -252,7 +241,7 @@ func DockerExec(ctx context.Context, config DockerConfig) (string, error) {
 
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		log.Printf("Error while creating docker client: %v\n", err)
+		log.Println("<3>Error while creating docker client:", err)
 		return "", err
 	}
 
@@ -280,7 +269,7 @@ func DockerExec(ctx context.Context, config DockerConfig) (string, error) {
 
 	container, err := cli.ContainerCreate(ctx, dockerConfig, dockerHostConfig, nil, nil, "")
 	if err != nil {
-		log.Printf("Error while creating docker container (%v): %v\n", config.DockerImage, err)
+		log.Printf("<3>Error while creating docker container (%v): %v\n", config.DockerImage, err)
 		return "", err
 	}
 
@@ -297,7 +286,7 @@ func DockerExec(ctx context.Context, config DockerConfig) (string, error) {
 	}
 
 	if err != nil {
-		log.Printf("Error: %v\tConfig: %#v\n", err.Error(), config)
+		log.Printf("<3>Error: %v Config: %+v\n", err.Error(), config)
 		return "", err
 	}
 
