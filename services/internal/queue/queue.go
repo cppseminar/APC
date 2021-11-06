@@ -420,7 +420,7 @@ func processTestRequestInternal(r *http.Request) int {
 
 	// so here the request is validated, we are good to go and create new message
 	msg := requestMessage{
-		MaxRunTime: 300,
+		MaxRunTime: 500, // 300 for test and 200 for build
 		Memory:     2048,
 	}
 	if err := json.Unmarshal(req, &msg); err != nil {
