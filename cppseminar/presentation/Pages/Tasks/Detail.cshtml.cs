@@ -73,7 +73,7 @@ namespace presentation.Pages.Tasks
                 return RedirectToPage("/Tasks/Index");
             }
             TaskDetail = retrievedTask; // Now it's ok to show user this task
-            if (TaskDetail.IsEnded())
+            if (TaskDetail.IsEnded() && !User.IsAdmin())
             {
                 _logger.LogTrace("Submission is after deadline passed {deadline}", TaskDetail.Ends);
                 ModelState.AddModelError(string.Empty, "Task deadline has passed");
