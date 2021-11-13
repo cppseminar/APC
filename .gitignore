@@ -118,3 +118,6 @@ tags
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# VS user files
+*.csproj.user
