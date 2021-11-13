@@ -388,12 +388,17 @@ int process_wait(process_t *process, int timeout)
             default:
             {
                 // we have succesfully waited for the process
+                if (WIFEXITED(process->status))
+                    return WEXITSTATUS(process->status);
+
                 if (WIFSIGNALED(process->status)) {
-                    fprintf(stderr, "Child process terminated %d.", process->status);
+                    fprintf(stderr, "Child process terminated by signal %d.", WTERMSIG(process->status));
+
+                    if (WCOREDUMP(process->status)) {
+                        fprintf(stderr, "Child core dumped.");
+                    }
                     return EXIT_FAILURE;
                 }
-     
-                return WEXITSTATUS(process->status);
             }
             }
         }
