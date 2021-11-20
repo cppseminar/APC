@@ -1,0 +1,88 @@
+---
+- name: Setup LOGSTASH
+  become: yes
+  become_user: root
+  tags:
+    - logstash
+  block:
+  - name: Download logstash
+    ansible.builtin.get_url:
+      dest: "{{ logstash_deb_path}}"
+      force: no
+      url: https://artifacts.elastic.co/downloads/logstash/logstash-7.15.2-amd64.deb
+      checksum: sha1:4dc9f0d61e6aed781e02fed89c2d535424f8dae7
+
+  - name: Install logstash
+    ansible.builtin.apt:
+      deb: ~/logstash-ansible.deb
+
+  - name: Copy logstash exe config
+    ansible.builtin.template:
+      backup: true
+      dest: /etc/logstash/logstash.yml
+      src: logstash.yml
+
+  - name: Create logstash config folder
+    ansible.builtin.file:
+      state: directory
+      path: /etc/logstash/conf.d/
+      owner: root
+
+  - name: Copy logstash pipeline
+    ansible.builtin.template:
+      backup: true
+      dest: /etc/logstash/conf.d/logstash.conf
+      src: logstash.conf
+
+  - name: Create logstash folder for persistence
+    ansible.builtin.file:
+      state: directory
+      path: "{{ logstash_dir }}"
+      owner: root
+      mode: 555 # Let everyone see inside
+
+  - name: Find installed plugins
+    register: find_output
+    ansible.builtin.find:
+      paths: /usr/share/logstash
+      file_type: directory
+      recurse: true
+      patterns:
+        - logstash-output-syslog*
+
+  - name: Install logstash syslog output plugin
+    async: 600
+    poll: 20
+    ansible.builtin.command:
+      argv:
+        - /usr/share/logstash/bin/logstash-plugin
+        - install
+        - logstash-output-syslog
+    when: find_output.matched == 0
+
+  - name: Show install output
+    ansible.builtin.debug:
+      var: "install_out"
+
+  - name: Enable logstash service
+    ansible.builtin.systemd:
+      enabled: true
+      name: logstash.service
+
+  - name: Restart logstash service
+    ansible.builtin.systemd:
+      state: restarted
+      name: logstash.service
+
+- name: setup SOCAT for log forwarding
+  become: yes
+  become_user: root
+  tags:
+    - socat
+  block:
+  - name: Install socat
+    ansible.builtin.apt:
+      name: socat
+      state: present
+
+

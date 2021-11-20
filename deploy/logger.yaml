@@ -1,0 +1,8 @@
+---
+- name: Setup logstash server
+  hosts: all
+  become: yes
+  remote_user: root
+  roles:
+    - role: logstash
+
