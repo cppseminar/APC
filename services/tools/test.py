@@ -20,9 +20,10 @@ int main() {
 }
 """
 
+
 def command(returnUrl, docker, addr, customCmd):
     message = {
-        "returnUrl" : returnUrl,
+        "returnUrl": returnUrl,
         "dockerImage": docker,
         "maxRunTime": 300,
         "metaData": {
@@ -37,7 +38,7 @@ def command(returnUrl, docker, addr, customCmd):
     connection = http.client.HTTPConnection(addr, timeout=10)
     connection.request("POST", "/test", json.dumps(message))
     response = connection.getresponse()
-    return f"Response status: {response.status}"    
+    return f"Response status: {response.status}"
 
 
 def command0(message):
@@ -47,12 +48,14 @@ def command0(message):
         },
     })
 
+
 def command1(message):
     message.update({
         "files": {
             "main.cpp": FILE1,
         },
     })
+
 
 def command2(message):
     with open("../../tester/example/submissions/hello-world/main.cpp", "r") as f:
@@ -61,6 +64,7 @@ def command2(message):
                 "main.cpp": f.read(),
             },
         })
+
 
 def command3(message):
     with open("../../tester/example/submission.cpp", "r") as f:
@@ -71,6 +75,7 @@ def command3(message):
             },
         })
 
+
 def command4(message):
     with open("../../tester/example/submissions/auto-tests/main.cpp", "r") as f:
         message.update({
@@ -78,6 +83,7 @@ def command4(message):
                 "main.cpp": f.read(),
             },
         })
+
 
 class ServerHandler(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -122,7 +128,6 @@ class ServerHandler(BaseHTTPRequestHandler):
             print(f"Body not a json, size {len(b)}, error {error}")
             print(b)
 
-
     def print_request(self):
         ...
 
@@ -141,7 +146,8 @@ def client(args):
     while True:
         prompt = input("Command> ")
         try:
-            print(command(returnUrl, args.docker, args.url + ':' + str(args.port), commands[int(prompt)]))
+            print(command(returnUrl, args.docker, args.url +
+                  ':' + str(args.port), commands[int(prompt)]))
         except Exception:
             traceback.print_exc()
 
@@ -152,14 +158,13 @@ def server(args):
     httpd.serve_forever()
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Tester")
 
     subparsers = parser.add_subparsers()
 
     parser_client = subparsers.add_parser('client')
-    parser_client.add_argument('--url', type=str, default='')
+    parser_client.add_argument('--url', type=str, default='0.0.0.0')
     parser_client.add_argument('--port', type=int, required=True)
     parser_client.add_argument('--docker', type=str, required=True)
     parser_client.add_argument('--returnPort', type=int, required=True)

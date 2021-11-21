@@ -250,6 +250,7 @@ func DockerExec(ctx context.Context, config DockerConfig) (string, error) {
 	var dockerConfig = &container.Config{
 		Image:           config.DockerImage,
 		NetworkDisabled: true,
+		Env:             []string{fmt.Sprintf("TIMEOUT=%d", config.Timeout)},
 	}
 
 	var dockerHostConfig = &container.HostConfig{
