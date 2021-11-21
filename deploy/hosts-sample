@@ -1,0 +1,8 @@
+[all:vars]
+logstash_tcp_port=REDACTED
+[server]
+REDACTED	ansible_user=azureuser ansible_ssh_private_key_file=./private.pem
+
+[journal_clients]
+REDACTED	ansible_user=azureuser ansible_ssh_private_key_file=./dev-tester.pem
+REDACTED	ansible_user=azureuser ansible_ssh_private_key_file=./prod-tester.pem

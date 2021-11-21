@@ -1,0 +1,30 @@
+---
+- name: Setup Journalbeat
+  become: yes
+  become_user: root
+  block:
+  - name: Download journalbeat
+    ansible.builtin.get_url:
+      dest: ~/journalbeat.deb
+      force: no
+      url: https://artifacts.elastic.co/downloads/beats/journalbeat/journalbeat-7.15.2-amd64.deb
+      checksum: sha1:4570bf98b3f7c326e1a9a6d58e68653c8ba23d09
+
+  - name: Install journalbeat
+    ansible.builtin.apt:
+      deb: ~/journalbeat.deb
+
+  - name: Copy journal config
+    ansible.builtin.template:
+      src: journalbeat.yml
+      dest: /etc/journalbeat/journalbeat.yml
+
+  - name: Enable journalbeat service
+    ansible.builtin.systemd:
+      enabled: true
+      name: journalbeat.service
+
+  - name: Restart journalbeat service
+    ansible.builtin.systemd:
+      state: restarted
+      name: journalbeat.service
