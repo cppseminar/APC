@@ -60,10 +60,6 @@
         - logstash-output-syslog
     when: find_output.matched == 0
 
-  - name: Show install output
-    ansible.builtin.debug:
-      var: "install_out"
-
   - name: Enable logstash service
     ansible.builtin.systemd:
       enabled: true
@@ -74,15 +70,5 @@
       state: restarted
       name: logstash.service
 
-- name: setup SOCAT for log forwarding
-  become: yes
-  become_user: root
-  tags:
-    - socat
-  block:
-  - name: Install socat
-    ansible.builtin.apt:
-      name: socat
-      state: present
-
-
+  - name: Setup socat
+    import_tasks: socat.yml

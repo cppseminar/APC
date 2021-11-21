@@ -3,3 +3,4 @@ logstash_deb_name: logstash-ansible.deb
 logstash_deb_path: ~/{{ logstash_deb_name }}
 logstash_tcp_port: 22907
 logstash_dir: /var/logstash
+syslog_tcp_port: 1234

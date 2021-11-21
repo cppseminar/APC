@@ -1,0 +1,27 @@
+---
+- name: Setup Socat for log forwarding
+  become: yes
+  become_user: root
+  tags: socat
+  block:
+
+  - name: Install socat
+    ansible.builtin.apt:
+      name: socat
+      state: present
+
+  - name: SOCAT - Copy socat service file
+    ansible.builtin.template:
+      src: syslog_socat.service
+      dest: /etc/systemd/system/syslog_socat.service
+
+  - name: Enable socat service
+    ansible.builtin.systemd:
+      enabled: true
+      name: syslog_socat.service
+
+  - name: Restart socat service
+    ansible.builtin.systemd:
+      state: restarted
+      name: syslog_socat.service
+
