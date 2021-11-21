@@ -1,4 +1,3 @@
-from tester.config import Config
 import logging
 import tempfile
 import shutil
@@ -8,6 +7,8 @@ from typing import Final
 import os, pwd
 from dataclasses import dataclass
 
+from tester.timeout import TimeoutManager
+from tester.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ class ListTestsError(Exception):
 class TestResultStatus(str, Enum):
     SUCCESS = 'Success'
     FAILED = 'Failed'
+    TIMEOUT = 'Timeout'
     LEAK_SANITIZER = 'Leak sanitizer'
     ADDR_SANITIZER = 'Address sanitizer'
     DBG_CONTAINERS = 'Debug containers'
@@ -33,6 +35,9 @@ class TestResult:
     stderr: str
 
     def get_status(self):
+        if self.returncode == -2147483649:
+            return TestResultStatus.TIMEOUT
+
         if self.returncode > 0:
             if (self.stderr.find('In function:') != -1 
                     and self.stderr.find('Error:') != -1
@@ -82,7 +87,7 @@ class Tests:
         return stdout.splitlines()
 
     def run_test(self, test_case, submission_binary = None):
-        logger.info('Running test "%s" in configuration %s for binary "%s"', test_case, self.configuration, submission_binary)
+        logger.info('Running test "%s" in configuration "%s".', test_case, self.configuration)
 
         temp_dir = tempfile.mkdtemp()
         logger.debug('Using folder "%s"', temp_dir)
@@ -114,18 +119,24 @@ class Tests:
             os.setgid(user_gid)
             os.setuid(user_uid)
 
-        catch = subprocess.run([catch_path, *args],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            preexec_fn=lambda: demote(user_uid, user_gid),
-            timeout=300,
-            cwd=temp_dir,
-            env=env)
+        with TimeoutManager() as timeout:
+            try:
+                catch = subprocess.run([catch_path, *args],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    preexec_fn=lambda: demote(user_uid, user_gid),
+                    timeout=timeout,
+                    cwd=temp_dir,
+                    env=env)
 
-        stdout = catch.stdout.decode('utf-8')
-        stderr = catch.stderr.decode('utf-8')
+                stdout = catch.stdout.decode('utf-8')
+                stderr = catch.stderr.decode('utf-8')
 
-        logger.info('Test finished errno: %d', catch.returncode)
-        logger.debug('Test stdout: "%s"\n stderr: "%s"', stdout, stderr)
+                logger.info('Test finished errno: %d', catch.returncode)
+                logger.debug('Test stdout: "%s"\n stderr: "%s"', stdout, stderr)
 
-        return TestResult(catch.returncode, stdout, stderr)
+                return TestResult(catch.returncode, stdout, stderr)
+            except subprocess.TimeoutExpired:
+                logger.info('Test timeouted.')
+                # first negative number that cannot be represented with 32 bit signed int (assuming 2-complement)
+                return TestResult(-2147483649, '', 'Subprocess timeout expired!')

@@ -4,6 +4,7 @@ import subprocess
 import os
 import errno
 
+from tester.timeout import TimeoutManager
 from tester.config import Config
 
 logger = logging.getLogger(__name__)
@@ -70,14 +71,15 @@ class GccCompiler:
                 
                 logger.debug('Running g++ (compile phase) with options %s', ' '.join(args))
 
-                gcc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=300)
-                compile_output += gcc.stdout
-            
-                if gcc.returncode != 0:
-                    logger.warn('Cannot compile file "%s", check out logs at "%s"', file, self._output_path)
-                    return CompilationResult(gcc.returncode, '', gcc.stdout.decode('utf-8'))
+                with TimeoutManager() as timeout:
+                    gcc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout)
+                    compile_output += gcc.stdout
+                
+                    if gcc.returncode != 0:
+                        logger.warn('Cannot compile file "%s", check out logs at "%s"', file, self._output_path)
+                        return CompilationResult(gcc.returncode, '', gcc.stdout.decode('utf-8'))
 
-                obj_files.append(obj_file) # add new object file to compile
+                    obj_files.append(obj_file) # add new object file to compile
 
             # link it together
             logger.debug('Running link phase')
@@ -87,19 +89,20 @@ class GccCompiler:
             args = [self._gcc_path, '-o', output, *obj_files, *self._linker_options]
             logger.debug('Running g++ (link phase) with options %s', ' '.join(args))
 
-            gcc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=300)
-            compile_output += gcc.stdout
+            with TimeoutManager() as timeout:
+                gcc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout)
+                compile_output += gcc.stdout
 
-            if gcc.returncode != 0:
-                logger.error('Cannot link files, check out logs at "%s"', self._output_path)
-                return CompilationResult(gcc.returncode, '', gcc.stdout.decode('utf-8'))
+                if gcc.returncode != 0:
+                    logger.error('Cannot link files, check out logs at "%s"', self._output_path)
+                    return CompilationResult(gcc.returncode, '', gcc.stdout.decode('utf-8'))
 
             logger.info('File(s) %s successfuly compiled and linked', self._output_path)
             return CompilationResult(0, output, compile_output.decode('utf-8'))
 
         except subprocess.TimeoutExpired as e:
-            logger.fatal('Gcc cannot compile/link files in less than 300seconds!')
-            return CompilationResult(errno.ETIME, '', 'Gcc reach timeout 300s.')
+            logger.fatal('Gcc cannot compile/link files in less than timeout provided by docker!')
+            return CompilationResult(errno.ETIME, '', 'Gcc reach timeout.')
 
         finally:
             logger.debug('Writing output compilation log "%s".', compile_log)

@@ -88,6 +88,8 @@ def create_success_output(binaries, tests_result):
     with open(Config.students_json(), 'w') as f:
         json.dump(students, f, cls=EnhancedJSONEncoder, indent=4)
 
+from tester.timeout import TimeoutManager
+
 def main():
     """
     Main entry point of our python tester. It will first of all
@@ -98,7 +100,6 @@ def main():
     tester.logger.configure()
     logger.info('Tester started...')
     logger.debug(Config.dumps())
-
 
     test_results = {}
 
