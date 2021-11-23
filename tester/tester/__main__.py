@@ -88,8 +88,6 @@ def create_success_output(binaries, tests_result):
     with open(Config.students_json(), 'w') as f:
         json.dump(students, f, cls=EnhancedJSONEncoder, indent=4)
 
-from tester.timeout import TimeoutManager
-
 def main():
     """
     Main entry point of our python tester. It will first of all
@@ -105,10 +103,12 @@ def main():
 
     # prepare folder to build tests
     tests_dir = tempfile.mkdtemp()
-    shutil.copytree(Config.tests_path(), tests_dir, dirs_exist_ok=True)
-
     if Config.get_mode() == SubmissionMode.COPY:
-        shutil.copy2(Config.submission_path(), tests_dir)
+        # this is quite a hack, input file is always named main.cpp, so 
+        # we need to change that to header file
+        shutil.copy2(os.path.join(Config.submission_path(), 'main.cpp'), os.path.join(tests_dir, 'submission.h'))
+
+    shutil.copytree(Config.tests_path(), tests_dir, dirs_exist_ok=True)
 
     logger.debug('Copied files for build to "%s"', tests_dir)
 
@@ -125,10 +125,13 @@ def main():
         tests = tester.tests.Tests(binary.output_path, configuration)
         for test_case in tests.test_cases:
             submission_binary = binaries.get('submission', {}).get(configuration, None)
-            if submission_binary and submission_binary.errno != 0:
-                continue # cannot compile submission
+            if submission_binary:
+                if submission_binary.errno != 0:
+                    continue # cannot compile submission
 
-            test_result = tests.run_test(test_case, submission_binary.output_path)
+                test_result = tests.run_test(test_case, submission_binary.output_path)
+            else:
+                test_result = tests.run_test(test_case)
             test_results[configuration][test_case] = test_result
 
     create_success_output(binaries, test_results)
