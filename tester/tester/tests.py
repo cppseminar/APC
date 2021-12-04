@@ -38,7 +38,7 @@ class TestResult:
         if self.returncode == -2147483649:
             return TestResultStatus.TIMEOUT
 
-        if self.returncode > 0:
+        if self.returncode != 0:
             if (self.stderr.find('In function:') != -1 
                     and self.stderr.find('Error:') != -1
                     and self.stderr.find('__debug') != -1):
