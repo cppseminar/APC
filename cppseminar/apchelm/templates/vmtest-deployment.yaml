@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vm-service-deployment
+  name: apc-vm-service-deployment
   namespace: apc
   labels:
-    app: presentation
+    app: vmservice
     category: frontend
 spec:
   selector:
