@@ -85,7 +85,7 @@ def run():
         try:
             if total_waittime >= 30:
                 # if we cannot start in more than 30s, there is something seriosly wrong with us, so log it
-                logging.getLogger('pika').setLevel(logging.WARNING)
+                logging.getLogger('pika').setLevel(logging.ERROR)
 
             connect()
             break
