@@ -17,6 +17,8 @@ def set_up_logging():
     logger = logging.getLogger('azure')
     logger.setLevel(logging.WARNING)
 
+    logger = logging.getLogger('pika')
+    logger.setLevel(logging.WARNING)
 
 def signal_term_handler(signum, _):
     logger.info('Received signal %d', signum)
