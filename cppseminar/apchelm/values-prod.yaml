@@ -2,9 +2,11 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+projectName: APC
 releaseLabel: 9ea65762ac4387886e7606286b2e25aa35799fb1
 dockerRepository: apcprodregistry.azurecr.io
 websiteHost: www.cppseminar.net
 testRequestQueue: testInput1
 testResultsQueue: testOutput1
 LBinternal: 10.1.0.25
+environment: prod

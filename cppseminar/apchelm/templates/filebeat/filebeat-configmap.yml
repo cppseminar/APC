@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: apc
+  labels:
+    app: filebeat
+data:
+  filebeat.yml: |-
+    filebeat.autodiscover:
+      providers:
+        - type: kubernetes
+          namespace: apc
+          templates:
+          - condition.contains:
+                kubernetes.labels.category: backend
+            config:
+              - type: container
+                paths:
+                  - /var/log/containers/${data.kubernetes.pod.name}*.log
+                fields:
+                  source: kubernetes
+                  project: {{ required "Project name value required" .Values.projectName }}
+                  environment: {{ required "Env value required" .Values.environment }}
+    output.logstash:
+      hosts: ['${LOGSTASH_HOST}']
+    #logging.level: debug
