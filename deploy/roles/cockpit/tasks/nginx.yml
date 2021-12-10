@@ -1,0 +1,31 @@
+---
+- name: Setup nginx
+  become: yes
+  become_user: root
+  tags: nginx
+  block:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+
+    - name: Copy nginx config
+      ansible.builtin.template:
+        src: nginx_cockpit.conf
+        dest: /etc/nginx/sites-available/cockpit.conf
+
+    - name: Enable nginx cockpit config
+      ansible.builtin.file:
+        state: link
+        src: /etc/nginx/sites-available/cockpit.conf
+        dest: /etc/nginx/sites-enabled/default
+
+    - name: Enable nginx service
+      ansible.builtin.systemd:
+        enabled: true
+        name: nginx.service
+
+    - name: Restart nginx service
+      ansible.builtin.systemd:
+        state: restarted
+        name: nginx.service
+
