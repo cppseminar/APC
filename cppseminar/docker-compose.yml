@@ -19,6 +19,7 @@ services:
             DOTNET_WATCH_SUPPRESS_MSBUILD_INCREMENTALISM: 1
             DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
             DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
+            LOG_PRETTY: 1
         restart: "always"
 
     presentation.local:
@@ -27,6 +28,7 @@ services:
             target: dev
         volumes:
             - ./presentation/Startup.cs:/src/Startup.cs
+            - ./presentation/Program.cs:/src/Program.cs
             - ./presentation/Model:/src/Model
             - ./presentation/Pages:/src/Pages
             - ./presentation/Services:/src/Services
@@ -44,6 +46,7 @@ services:
             TEST_SERVICE: http://testservice.local/
             USER_SERVICE: http://userservice.local/
             STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
+            LOG_PRETTY: 1
         restart: "always"
 
     userservice.local:
@@ -54,11 +57,14 @@ services:
             - sharednet
         volumes:
             - ./userservice/Startup.cs:/src/Startup.cs
+            - ./userservice/Program.cs:/src/Program.cs
             - ./userservice/Controllers:/src/Controllers
             - ./userservice/Models:/src/Models
             - ./userservice/Services:/src/Services
         ports:
             - 8082:80
+        environment:
+            LOG_PRETTY: 1
         restart: always
 
     testservice.local:
@@ -69,6 +75,7 @@ services:
             - sharednet
         volumes:
             - ./testservice/Startup.cs:/src/Startup.cs
+            - ./testservice/Program.cs:/src/Program.cs
             - ./testservice/Controllers:/src/Controllers
             - ./testservice/Models:/src/Models
             - ./testservice/Services:/src/Services
@@ -81,6 +88,7 @@ services:
             TEST_RESULTS_QUEUE: test-output
             MQ_URI: amqp://rabbitmq.local/
             BLOB_STORAGE_CONNECTION: "DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;"
+            LOG_PRETTY: 1
         restart: always
         healthcheck:
           test: ["CMD", "curl", "-f", "http://localhost/healthcheck"]
