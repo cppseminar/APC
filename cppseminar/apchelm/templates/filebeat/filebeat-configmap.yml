@@ -22,6 +22,48 @@ data:
                   source: kubernetes
                   project: {{ required "Project name value required" .Values.projectName }}
                   environment: {{ required "Env value required" .Values.environment }}
+    processors:
+      - decode_json_fields:
+          fields: ["message"]
+          target: decodedMessage
+      - script:
+          lang: javascript
+          source: >
+            function process(event) {
+              var message = event.Get("decodedMessage.@m")
+              if (message !== null) {
+                event.Put("message", message)
+              } else {
+              // This is bad event and we set up warning flag
+                event.Put("priority", "4")
+                return;
+              }
+              // Json was decoded, so it's more or less ok
+              var priority = "3"
+              var level = event.Get("decodedMessage.@l")
+              if (level === "Verbose") {
+                priority = "6"
+              }
+              if (level === "Warning") {
+                priority = "4"
+              }
+              if (level === null) {
+                priority = "5"
+              }
+              event.Put("priority", priority)
+            }
+
     output.logstash:
       hosts: ['${LOGSTASH_HOST}']
     #logging.level: debug
+
+
+# Mapping for messages is like this
+# |-------------+---------+---------------+---------------|
+# | .Net        | Serilog | Syslog        | Syslog number |
+# |-------------+---------+---------------+---------------|
+# | Error       | Error   | Error         |             3 |
+# | Warning     | Warning | warning       |             4 |
+# | Information | ------  | Notice        |             5 |
+# | Trace       | Verbose | Informational |             6 |
+# |-------------+---------+---------------+---------------|
