@@ -9,8 +9,8 @@
     ansible.builtin.get_url:
       dest: "{{ logstash_deb_path}}"
       force: no
-      url: https://artifacts.elastic.co/downloads/logstash/logstash-7.15.2-amd64.deb
-      checksum: sha1:4dc9f0d61e6aed781e02fed89c2d535424f8dae7
+      url: https://artifacts.elastic.co/downloads/logstash/logstash-7.16.1-amd64.deb
+      checksum: sha1:e8d9a35e4a8a6c238dd915ab701691ae864e7908
 
   - name: Install logstash
     ansible.builtin.apt:
