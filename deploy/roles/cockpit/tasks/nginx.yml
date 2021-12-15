@@ -1,10 +1,8 @@
 ---
 - name: Setup nginx
-  become: yes
-  become_user: root
-  tags: nginx
   block:
     - name: Install nginx
+      tags: nginx
       ansible.builtin.apt:
         name: nginx
 
@@ -18,6 +16,25 @@
         state: link
         src: /etc/nginx/sites-available/cockpit.conf
         dest: /etc/nginx/sites-enabled/default
+
+    - name: Create folder for certificates
+      ansible.builtin.file:
+        state: directory
+        path: "{{ certdir_path }}"
+        mode: 0600
+
+    - name: Copy public cert
+      ansible.builtin.copy:
+        dest: "{{ cert_path }}"
+        mode: 0400
+        src: domain.cert.pem
+    
+
+    - name: Copy public cert
+      ansible.builtin.copy:
+        dest: "{{ certkey_path }}"
+        mode: 0400
+        src: private.key.pem
 
     - name: Enable nginx service
       ansible.builtin.systemd:

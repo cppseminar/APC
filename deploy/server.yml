@@ -1,8 +1,16 @@
 ---
 - name: Setup logstash server
   hosts: server
+  gather_facts: false
   become: yes
   remote_user: root
-  roles:
-    - role: logstash
+  tasks:
+    - name: Deploy logstash
+      ansible.builtin.include_role:
+        name: logstash
+
+    - name: Deploy cockpit
+      ansible.builtin.include_role:
+        name: cockpit
+
 

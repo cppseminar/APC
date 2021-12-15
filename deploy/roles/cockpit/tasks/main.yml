@@ -2,35 +2,14 @@
 - name: Setup cockpit
   become: yes
   become_user: root
-  tags: cockpit
   block:
-  - name: Install cockpit
-    ansible.builtin.apt:
-      name: cockpit
 
-  - name: Copy cockpit config
-    ansible.builtin.template:
-      src: cockpit.conf
-      dest: /etc/cockpit/cockpit.conf
+  - name: Include nginx
+    import_tasks: nginx.yml
+    tags: nginx
 
-  - name: Create logger user with password
-    ansible.builtin.user:
-      group: systemd-journal
-      comment: This user should be used only for cockpit login
-      create_home: no
-      name: log-reader
-      password: $1$IP7Smfew$S2E8pM1C.JCRjRaTnNeaW/
+  - name: Include Cockpit
+    import_tasks: cockpit.yml
+    tags: cockpit
 
-  - name: Enable cockpit service
-    ansible.builtin.systemd:
-      enabled: true
-      name: cockpit.service
-
-  - name: Restart cockpit service
-    ansible.builtin.systemd:
-      state: restarted
-      name: cockpit.service
-
-- name: Include nginx
-  import_tasks: nginx.yml
 
