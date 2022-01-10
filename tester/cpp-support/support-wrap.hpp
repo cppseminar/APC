@@ -12,6 +12,10 @@ extern "C" {
 #include <memory>
 #include <filesystem>
 #include <string.h>
+#include <concepts>
+#include <algorithm>
+#include <limits>
+#include <charconv>
 
 class Process {
     public:
@@ -141,4 +145,35 @@ inline std::filesystem::path GetData(const std::string& filename) {
     }
 
     return std::filesystem::path(data_path) / filename;
+}
+
+template<std::unsigned_integral T>
+inline std::string to_binary(T n)
+{
+    std::string result;
+
+    if (n == 0) {
+        result = "0";
+    }
+
+    while (n != 0) {
+        result.push_back(n % 2 == 0 ? '0': '1');
+        n /= 2;
+    }
+
+    std::ranges::reverse(result);
+    return result;
+}
+
+template<std::unsigned_integral T>
+inline std::string to_hex(T n)
+{
+    std::string result(std::numeric_limits<T>::digits / 4, '\0'); // +2 for 0x
+
+    auto [ptr, ec] = std::to_chars(result.data(), result.data() + result.size(), n, 16);
+    if (ec != std::errc())
+        throw std::runtime_error("to_chars failed with error");
+
+    result.resize(std::distance(result.data(), ptr));
+    return result;
 }
