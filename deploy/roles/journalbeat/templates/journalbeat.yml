@@ -24,5 +24,3 @@ processors:
         environment: {{ journal_environment }}
         source: journal
   # - add_host_metadata: ~
-
-

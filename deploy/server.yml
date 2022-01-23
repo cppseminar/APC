@@ -1,5 +1,5 @@
 ---
-- name: Setup logstash server
+- name: Setup logstash&cockpit server
   hosts: server
   gather_facts: false
   become: yes
@@ -12,5 +12,6 @@
     - name: Deploy cockpit
       ansible.builtin.include_role:
         name: cockpit
+      tags: cockpit
 
 
