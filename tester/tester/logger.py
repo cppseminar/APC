@@ -12,7 +12,7 @@ def configure():
         'disable_existing_loggers': False,
         'formatters': {
             'verbose': {
-                'format': '{levelname:8s} {asctime} {module:14s} {funcName:15s} {message}',
+                'format': '{levelname:8s} {asctime} {module:10s} {funcName:20s} {message}',
                 'style': '{',
             }
         },

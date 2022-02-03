@@ -1,33 +1,47 @@
+# do not build this file directly, use create-docker.ps1, it wiil set up
+# all the required paths and copy whatever is needed
+
 FROM gcc:11.2-bullseye
 WORKDIR /
 
-ARG UNITTESTS_PATH=./example/tests/hello-world
-ARG CONFIG_PATH=./example/configs/hello-world/config.ini
-
 ENV OUTPUT_PATH=/app/output
 ENV SUBMISSION_PATH=/app/submission
+ENV TESTS_PATH=/app/tests
+ENV DATA_PATH=/app/data
+ENV SUBMISSION_PROJECT=/app/submission-cmake
 
-# install python adn create folders
+# install dependencies, create folders
 RUN apt-get update \
     && apt-get -y install python \
     && apt-get -y install python-is-python3 \
-    && mkdir -p /app/tests \
+    && apt-get -y install cmake \
+    && apt-get -y install git \
+    && apt-get -y install curl zip unzip tar \
     && mkdir -p /app/tester \
+    && mkdir -p $TESTS_PATH \
     && mkdir -p $SUBMISSION_PATH \
     && mkdir -p $OUTPUT_PATH \
+    && mkdir -p $SUBMISSION_PROJECT \
     && useradd -ms /bin/bash apc-test
-    
+
+# copy required files
 COPY ./tester /app/tester
-COPY $UNITTESTS_PATH /app/tests
-COPY ./cpp-support /app/tests
+COPY ./tests/src $TESTS_PATH
+COPY ./cpp-support $TESTS_PATH
+COPY ./tests/dat $DATA_PATH
+COPY ./submission-cmake $SUBMISSION_PROJECT
+COPY ./tests/config.ini /app/config.ini
 
-COPY $CONFIG_PATH /app/config.ini
+# install vckpg, catch2
+WORKDIR /app
+RUN git clone https://github.com/Microsoft/vcpkg.git \
+    && ./vcpkg/bootstrap-vcpkg.sh \
+    && ./vcpkg/vcpkg install catch2
 
-RUN apt-get -y install crudini \
-    && crudini --set /app/config.ini paths compiler g++ \
-    && crudini --set /app/config.ini paths submission $SUBMISSION_PATH \
-    && crudini --set /app/config.ini paths tests /app/tests \
-    && crudini --set /app/config.ini paths output $OUTPUT_PATH
+# create makefiles for tests
+WORKDIR $TESTS_PATH
+RUN cmake -B ./build-debug -S . -DCMAKE_TOOLCHAIN_FILE=/app/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Debug \
+    && cmake -B ./build-release -S . -DCMAKE_TOOLCHAIN_FILE=/app/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release
 
 WORKDIR /app
 ENTRYPOINT ["python", "-m", "tester", "./config.ini"]

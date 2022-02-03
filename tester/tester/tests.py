@@ -39,7 +39,7 @@ class TestResult:
             return TestResultStatus.TIMEOUT
 
         if self.returncode != 0:
-            if (self.stderr.find('In function:') != -1 
+            if (self.stderr.find('In function:') != -1
                     and self.stderr.find('Error:') != -1
                     and self.stderr.find('__debug') != -1):
                 return TestResultStatus.DBG_CONTAINERS
@@ -63,7 +63,7 @@ class Tests:
         self.binary = binary
         self.configuration = configuration
         self._options = Config.get_catch2_configuration(configuration)
-        self.test_cases = self._list_tests() 
+        self.test_cases = self._list_tests()
 
 
     def _list_tests(self):
@@ -96,7 +96,7 @@ class Tests:
         shutil.copy2(self.binary, catch_path)
 
         os.chmod(temp_dir, 0o777) # everyone os allowed to do everything
-        os.chmod(catch_path, 0o777) 
+        os.chmod(catch_path, 0o777)
 
         pw_record = pwd.getpwnam("apc-test")
         user_uid = pw_record.pw_uid
@@ -106,9 +106,9 @@ class Tests:
         if submission_binary:
             submission_path = os.path.join(temp_dir, self.SUBMISSION_EXEC_NAME)
             shutil.copy2(submission_binary, submission_path)
-            env = { 
+            env = {
                 'SUBMISSIONPATH': submission_path,
-                'DATAPATH': Config.tests_path(),
+                'DATAPATH': Config.data_path(),
             }
 
         args = [*self._options, test_case.replace(',', '\,')] # comma in test is not allowed, you need to escape it

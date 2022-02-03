@@ -4,6 +4,8 @@ extern "C" {
 #include "support.h"
 }
 
+#include <fstream>
+#include <iostream>
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -59,9 +61,9 @@ class Process {
         std::optional<std::string> ReadLine(std::chrono::seconds timeout) {
             std::unique_ptr<char, decltype(&std::free)> data{
                 process_read_line(&p, timeout.count()),
-                &std::free 
+                &std::free
             };
-            
+
             if (data) {
                 // trim trailing whitespace
                 std::string result = data.get();
@@ -78,15 +80,15 @@ private:
 };
 
 enum class TmpFileMode {
-    Rw = TFM_RW, 
-    Ro = TFM_RO, 
+    Rw = TFM_RW,
+    Ro = TFM_RO,
     Wo = TFM_WO,
 };
 
 inline std::filesystem::path CreateTempFile(const std::vector<char>& data, TmpFileMode mode = TmpFileMode::Rw) {
     std::unique_ptr<char, decltype(&std::free)> file{
         create_tmp_file(data.data(), data.size(), static_cast<tmp_file_mode>(mode)),
-        &std::free 
+        &std::free
     };
 
     if (file == nullptr) {

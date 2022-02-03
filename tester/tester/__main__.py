@@ -1,9 +1,12 @@
+"""This script is very interconnected with Dockerfile and paths there
+be sure to check the file if you plan to change something.
+"""
+
 import logging
 import os
 import shutil
 import dataclasses
 import json
-import tempfile
 
 from tester.config import Config, SubmissionMode, Visibility
 import tester.logger
@@ -16,7 +19,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, tester.tests.TestResult):
             return {
-                'status': o.get_status(), 
+                'status': o.get_status(),
                 **dataclasses.asdict(o)
             }
         elif dataclasses.is_dataclass(o):
@@ -24,25 +27,50 @@ class EnhancedJSONEncoder(json.JSONEncoder):
         else:
             return super().default(o)
 
+def build(project_path):
+    build_result = compiler.compile_cmake_project(project_path)
 
-def build(out_dir, in_dir):
-    build_path = os.path.join(Config.output_path(), out_dir)
+    build_output = os.path.join(Config.build_output_path(), project_path.replace('/', '_') + '.txt')
 
-    # we need to create the build directory
-    os.makedirs(build_path, exist_ok=True)
+    with open(build_output, "w") as text_file:
+        text_file.write(build_result.compiler_output)
 
-    binaries = {}
+    return build_result
 
-    for configuration in Config.get_configurations():
-        dir = os.path.join(build_path, configuration)
-        os.mkdir(dir)
+def build_tests():
+    # copy submission to main test file
+    if Config.get_mode() == SubmissionMode.COPY:
+        # this is quite a hack, input file is always named main.cpp, so
+        # we need to change that to header file
+        shutil.copy2(os.path.join(Config.submission_path(), 'main.cpp'), os.path.join(Config.tests_path(), 'submission.h'))
 
-        comp = compiler.GccCompiler(configuration, dir)
+    result = {}
+    for configuration in ['debug', 'release']:
+        result[configuration] = build(os.path.join(Config.tests_path(), 'build-' + configuration))
 
-        binaries[configuration] = comp.compile(in_dir)
+    return result
 
-    return binaries
+def build_submission():
+    if Config.get_mode() != SubmissionMode.BUILD:
+        return {}
 
+    shutil.copy2(os.path.join(Config.submission_path(), 'main.cpp'), Config.submission_project())
+
+    result = {}
+    for configuration in ['debug', 'release']:
+        project_result = compiler.compile_cmake_lists(Config.submission_project(), configuration)
+
+        build_output = os.path.join(Config.build_output_path(), Config.submission_project().replace('/', '_') + '-' + configuration + '-cmake-lists.txt')
+
+        with open(build_output, "w") as text_file:
+            text_file.write(project_result.compiler_output)
+
+        if project_result.errno != 0:
+            return {}
+
+        result[configuration] = build(project_result.output_path)
+
+    return result
 
 def create_success_output(binaries, tests_result):
     logger.debug('Creating json with tests results')
@@ -56,9 +84,9 @@ def create_success_output(binaries, tests_result):
             } for name, result in configurations.items()]
         } for binary, configurations in binaries.items()],
         'tests': [{
-            'configuration': configuration, 
+            'configuration': configuration,
             'cases': [{
-                'name': name, 
+                'name': name,
                 'result': result
             } for name, result in cases.items()]
         } for configuration, cases in tests_result.items()]
@@ -72,11 +100,11 @@ def create_success_output(binaries, tests_result):
             'binary': binary,
             'configurations': [{
                 'name': name,
-                'result': result.compiler_output if Config.get_visibility(name, Visibility.BUILD) else '' 
+                'result': result.compiler_output if Config.get_visibility(name, Visibility.BUILD) else ''
             } for name, result in configurations.items()]
         } for binary, configurations in binaries.items()],
         'tests': [{
-            'configuration': configuration, 
+            'configuration': configuration,
             'cases': [{
                 'name': name,
                 'status': result.get_status() == tester.tests.TestResultStatus.SUCCESS,
@@ -91,7 +119,7 @@ def create_success_output(binaries, tests_result):
 def main():
     """
     Main entry point of our python tester. It will first of all
-    load settings, compile sources, run tests and collect results, 
+    load settings, compile sources, run tests and collect results,
     then it will pack those and send everything to output folder.
     """
     # start logger
@@ -99,23 +127,14 @@ def main():
     logger.info('Tester started...')
     logger.debug(Config.dumps())
 
+    compiler.check_cmake()
+
     test_results = {}
 
-    # prepare folder to build tests
-    tests_dir = tempfile.mkdtemp()
-    if Config.get_mode() == SubmissionMode.COPY:
-        # this is quite a hack, input file is always named main.cpp, so 
-        # we need to change that to header file
-        shutil.copy2(os.path.join(Config.submission_path(), 'main.cpp'), os.path.join(tests_dir, 'submission.h'))
-
-    shutil.copytree(Config.tests_path(), tests_dir, dirs_exist_ok=True)
-
-    logger.debug('Copied files for build to "%s"', tests_dir)
-
-    binaries = { 'tests': build('tests', tests_dir) }
+    binaries = { 'tests': build_tests() }
 
     if Config.get_mode() == SubmissionMode.BUILD:
-        binaries['submission'] = build('submission', Config.submission_path())
+        binaries['submission'] = build_submission()
 
     for configuration, binary in binaries['tests'].items():
         if binary.errno != 0:

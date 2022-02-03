@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
-#include "./catch.hpp"
+#include <catch.hpp>
 #include "./support-wrap.hpp"
 
 #include <string>
@@ -68,7 +68,7 @@ TEST_CASE("afterfree", "[debug][release]") {
     REQUIRE(p.Wait(2s) == 0);
 }
 
-TEST_CASE("Perf test", "[benchmark]") {
+TEST_CASE("Perf test", "[release]") {
     BENCHMARK("Perf test") {
         Process p(GetSubmissionPath(), {"bench"});
 

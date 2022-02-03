@@ -15,7 +15,6 @@ class SubmissionMode(enum.Enum):
 
 _parser = argparse.ArgumentParser()
 _parser.add_argument('conf_path', help='Path to ini file with appropriate configuration')
-_parser.add_argument('-C', '--configuration', help='Run just one configuration, without it will run all')
 _args = _parser.parse_args()
 
 def _load_config(path):
@@ -34,24 +33,6 @@ class Config:
         return f'Current config: \n {s}'
 
     @classmethod
-    def get_configurations(cls):
-        if _args.configuration:
-            return [_args.configuration]
-        
-        return list(dict.fromkeys([
-            *cls._SETTINGS['compiler'].keys(),
-            *cls._SETTINGS['linker'].keys(),
-        ]))
-
-    @classmethod
-    def get_compiler_settings(cls, configuration):
-        return shlex.split(cls._SETTINGS['compiler'].get(configuration, '').strip('"'))
-
-    @classmethod
-    def get_linker_settings(cls, configuration):
-        return shlex.split(cls._SETTINGS['linker'].get(configuration, '').strip('"'))
-
-    @classmethod
     def get_visibility(cls, configuration: str, visibility: Visibility):
         data = cls._SETTINGS['visibility']
 
@@ -65,15 +46,24 @@ class Config:
     def get_catch2_configuration(cls, configuration):
         catch2 = cls._SETTINGS['tests']
 
-        result = { 
-            key: shlex.split(value.strip('"')) for (key, value) in catch2.items() 
+        result = {
+            key: shlex.split(value.strip('"')) for (key, value) in catch2.items()
         }
 
         return result.get(configuration, [])
 
     @classmethod
     def output_path(cls):
-        dir = cls._SETTINGS['paths']['output']
+        dir = os.getenv('OUTPUT_PATH')
+
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+
+        return dir
+
+    @classmethod
+    def build_output_path(cls):
+        dir = os.path.join(os.getenv('OUTPUT_PATH'), 'build')
 
         if not os.path.exists(dir):
             os.mkdir(dir)
@@ -82,15 +72,19 @@ class Config:
 
     @classmethod
     def submission_path(cls):
-        return cls._SETTINGS['paths']['submission']
+        return os.getenv('SUBMISSION_PATH')
 
     @classmethod
-    def compiler_path(cls):
-        return cls._SETTINGS['paths']['compiler']
+    def submission_project(cls):
+        return os.getenv('SUBMISSION_PROJECT')
 
     @classmethod
     def tests_path(cls):
-        return cls._SETTINGS['paths']['tests']
+        return os.getenv('TESTS_PATH')
+
+    @classmethod
+    def data_path(cls):
+        return os.getenv('DATA_PATH')
 
     @classmethod
     def teachers_json(cls):
