@@ -41,24 +41,43 @@
       owner: root
       mode: 555 # Let everyone see inside
 
-  - name: Find installed plugins
-    register: find_output
-    ansible.builtin.find:
-      paths: /usr/share/logstash
-      file_type: directory
-      recurse: true
-      patterns:
-        - logstash-output-syslog*
-
-  - name: Install logstash syslog output plugin
-    async: 600
-    poll: 20
-    ansible.builtin.command:
+  ## PLUGIN ##
+  - name: Check if plugin is installed
+    command:
       argv:
-        - /usr/share/logstash/bin/logstash-plugin
-        - install
-        - logstash-output-syslog
-    when: find_output.matched == 0
+        - grep
+        - output-journal
+        - /usr/share/logstash/Gemfile
+    register: journalLookup
+    failed_when: journalLookup.rc != 1 and journalLookup.rc != 0
+
+  - name: Install logstash journal
+    when: journalLookup.rc != 0
+    block:
+      - name: Download plugin
+        ansible.builtin.get_url:
+          url: https://github.com/lukas-manduch/logstash-output-journal/releases/download/0.1.1/logstash-output-journal-0.1.1.gem
+          force: no
+          dest: "{{ logstash_journal_path }}"
+          checksum: sha256:618099d4e6e1ba295ec14af913f4dfb9f30c8bfa08af51f1acf33a28e2784400
+            #   - name: Install logstash syslog output plugin
+            #     async: 600
+            #     poll: 20
+            #     ansible.builtin.command:
+            #       argv:
+            #         - /usr/share/logstash/bin/logstash-plugin
+            #         - install
+            #         - logstash-output-syslog
+            #     when: find_output.matched == 0
+      - name: Install logstash output journal
+        async: 600
+        poll: 20
+        ansible.builtin.command:
+          argv:
+            - /usr/share/logstash/bin/logstash-plugin
+            - install
+            -  "{{ logstash_journal_path }}"
+
 
   - name: Enable logstash service
     ansible.builtin.systemd:
@@ -70,5 +89,5 @@
       state: restarted
       name: logstash.service
 
-  - name: Setup socat
-    import_tasks: socat.yml
+#   - name: Setup socat
+#     import_tasks: socat.yml
