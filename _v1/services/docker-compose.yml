@@ -1,0 +1,48 @@
+version: "3.8"
+services:
+    queue:
+        container_name: queue1
+        env_file: .env
+        build:
+            context: ./queue
+            network: host
+        init: true
+        restart: always
+        logging:
+            driver: json-file
+            options:
+                max-size: "200k"
+                max-file: "10"
+
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - sources:/volume
+
+    input-proxy:
+        env_file: .env
+        entrypoint: ["/src/input-proxy.exe", "--port", "10017", "--url", "http://queue:10009"]
+        ports:
+            - 10017:10017
+        build:
+            context: ./input-proxy
+            network: host
+        logging:
+            driver: json-file
+            options:
+                max-size: "200k"
+                max-file: "10"
+
+    output-proxy:
+        env_file: .env
+        build:
+            context: ./output-proxy
+            network: host
+        logging:
+            driver: json-file
+            options:
+                max-size: "200k"
+                max-file: "10"
+
+volumes:
+    sources:
+        external: true
