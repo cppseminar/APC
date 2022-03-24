@@ -1,0 +1,4 @@
+#!/bin/sh
+# TODO: q is for quite mode - no logging. Plugging in logging might be
+# a good idea
+exec /usr/sbin/sshd -D -q -f /home/user/sshd_config/sshd_config

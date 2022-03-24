@@ -65,6 +65,7 @@ function act2 {
     mkdir  -p $CONTAINER_PATH/usr
     mkdir  -p $CONTAINER_PATH/tmp
     mkdir  -p $CONTAINER_PATH/var
+    mkdir  -p $CONTAINER_PATH/run
     mkdir  -p $CONTAINER_PATH/oldroot
 
     mount --bind $CONTAINER_PATH $CONTAINER_PATH
@@ -79,12 +80,22 @@ function act2 {
     # What about home?
     # TODO: Size!!!!
     mount -t tmpfs swap $CONTAINER_PATH/tmp
-    mount -t tmpfs swap $CONTAINER_PATH/home
-    mkdir  -p "$CONTAINER_PATH/home/s6"
     mount -t tmpfs swap $CONTAINER_PATH/root
+    mount -t tmpfs swap $CONTAINER_PATH/home
+    mount -t tmpfs swap $CONTAINER_PATH/run
+    mkdir  -p "$CONTAINER_PATH/home/user"
+    mkdir  -p "$CONTAINER_PATH/root/.ssh"
+    mkdir  -p "$CONTAINER_PATH/run/sshd"
+    chmod 0700 "$CONTAINER_PATH/run/sshd"
     # https://stackoverflow.com/questions/8148715/how-to-set-limit-on-directory-size-in-linux
-    echo "Filesystem created"
+    echo "Filesystem created, creating services"
+
+    cp -r "$PRIVATE_ROOT"/sshd_config "$CONTAINER_PATH/home/user/sshd_config"
+    cp "$PRIVATE_ROOT/authorized_keys" "$CONTAINER_PATH/root/.ssh/authorized_keys"
+    cp -r "$PRIVATE_ROOT"/s6 "$CONTAINER_PATH/home/user/s6"
     cp "$(realpath $0)" $CONTAINER_PATH/tmp/nss.sh
+
+    chmod -R +x "$CONTAINER_PATH/home/user/s6"
     pivot_root "$CONTAINER_PATH" "$CONTAINER_PATH"/oldroot
     # For umount to work, we need /proc
     mount --rbind /oldroot/proc /proc
@@ -94,8 +105,8 @@ function act2 {
 }
 
 function act3 {
-    unshare -p --mount-proc --fork /usr/bin/s6-svscan /home/s6
-    #unshare --mount-proc -p --fork /usr/bin/bash
+    #unshare -p --mount-proc --fork /usr/bin/s6-svscan /home/s6
+    unshare --mount-proc -Up --fork /usr/bin/bash
     #unshare -m /bin/bash
 }
 
