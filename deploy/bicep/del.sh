@@ -1,1 +1,1 @@
-az group delete -n apc2-deployment
+az group delete -n apc-deployment

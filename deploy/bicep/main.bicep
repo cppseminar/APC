@@ -14,10 +14,3 @@ module nets 'modules/networks.bicep' = {
     prefix: prefix
   }
 }
-
-module logging 'modules/logging.bicep' = {
-  name: 'logging'
-  params: {
-
-  }
-}
