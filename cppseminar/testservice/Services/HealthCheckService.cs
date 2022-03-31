@@ -34,15 +34,13 @@ namespace testservice.Services
 
     public class CosmosHealthCheck : IHealthCheck
     {
-        private Container _container;
         private ILogger<CosmosHealthCheck> _logger;
+        private IConfiguration _config;
 
         public CosmosHealthCheck(IConfiguration config, ILogger<CosmosHealthCheck> logger)
         {
-            _container = new CosmosClient(config["COSMOS_CONNECTION_STRING"])
-                .GetDatabase(config["COSMOS_DB_NAME"])
-                .GetContainer(DbConstants.TestCaseCollection);
             _logger = logger;
+            _config = config;
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(
@@ -51,16 +49,21 @@ namespace testservice.Services
         {
             try
             {
-                var result = await _container.ReadContainerAsync();
-                if ((int)result.StatusCode > 299)
-                {
-                    _logger.LogWarning("Healthcheck on cosmosDb failed with {code}", result.StatusCode);
-                    return HealthCheckResult.Unhealthy($"Cannot read cosmos db, code {result.StatusCode}");
-                }
+                var container = new CosmosClient(_config["COSMOS_CONNECTION_STRING"])
+                    .GetDatabase(_config["COSMOS_DB_NAME"])
+                    .GetContainer(DbConstants.TestCaseCollection);
+
+                //var result = await container.ReadContainerAsync();
+                //if ((int)result.StatusCode > 299)
+                //{
+                //    _logger.LogWarning("Healthcheck on cosmosDb failed with {code}", result.StatusCode);
+                //    return HealthCheckResult.Unhealthy($"Cannot read cosmos db, code {result.StatusCode}");
+                //}
                 return HealthCheckResult.Healthy("ok");
             }
             catch (Exception e)
             {
+                _logger.LogWarning("Healthcheck on cosmosDb failed with {code}", e);
                 return HealthCheckResult.Unhealthy($"Healthcheck failed with {e}");
             }
         }

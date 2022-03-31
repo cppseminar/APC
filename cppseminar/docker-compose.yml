@@ -19,8 +19,11 @@ services:
             DOTNET_WATCH_SUPPRESS_MSBUILD_INCREMENTALISM: 1
             DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
             DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
+            CosmosSettings__DatabaseName: apctest
+            CosmosSettings__ConnectionString: ${COSMOS_CONN_STR}
+            StorageConnectionString: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
             LOG_PRETTY: 1
-        restart: "always"
+        restart: always
 
     presentation.local:
         build:
@@ -46,8 +49,10 @@ services:
             TEST_SERVICE: http://testservice.local/
             USER_SERVICE: http://userservice.local/
             STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
+            GoogleOid__ClientId: ${GOOGLE_CLIENT_ID}
+            GoogleOid__ClientSecret: ${GOOGLE_CLIENT_SECRET}
             LOG_PRETTY: 1
-        restart: "always"
+        restart: always
 
     userservice.local:
         build:
@@ -65,6 +70,7 @@ services:
             - 8082:80
         environment:
             LOG_PRETTY: 1
+            TABLE_STORAGE: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;TableEndpoint=http://azurite.local:10002/azuriteuser;
         restart: always
 
     testservice.local:
@@ -82,29 +88,36 @@ services:
         ports:
             - 8083:80
         depends_on:
-            -  rabbitmq.local
+            rabbitmq.local:
+                condition: service_healthy
         environment:
             TEST_REQUESTS_QUEUE: test-input
             TEST_RESULTS_QUEUE: test-output
             MQ_URI: amqp://rabbitmq.local/
-            BLOB_STORAGE_CONNECTION: "DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;"
+            BLOB_STORAGE_CONNECTION: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
+            COSMOS_CONNECTION_STRING: ${COSMOS_CONN_STR}
+            COSMOS_DB_NAME: apctest
             LOG_PRETTY: 1
         restart: always
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost/healthcheck"]
+          test: ['CMD', 'curl', '-f', 'http://localhost/healthcheck']
           timeout: 10s
-          start_period: 30s
 
     azurite.local:
         image: mcr.microsoft.com/azure-storage/azurite:3.14.0
         volumes:
             - azurite_data:/data
         ports:
-            - 10000:10000
+            - 10000:10000 # blob storage
+            - 10002:10002 # tables
         command:
-            - azurite-blob
-            - "--blobHost"
+            - azurite
+            - --blobHost
             - 0.0.0.0
+            - --tableHost
+            - 0.0.0.0
+            - --location
+            - /data
         networks:
             - sharednet
         environment:
@@ -117,6 +130,9 @@ services:
             context: ./vm-test-queue
         networks:
             - sharednet
+        depends_on:
+            testservice.local:
+                condition: service_healthy
         environment:
             SUBMISSION_QUEUE_NAME: test-input
             VM_TEST_SERVER: vmtestserver.local:80
@@ -133,22 +149,26 @@ services:
         environment:
             RESULTS_BLOB_CONN_STR: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
             RESULTS_QUEUE_NAME: test-output
-            VM_TEST_RETURN_ADDR: "vmtestserver.local:80"
-            VM_TEST_ADDR: "host.docker.internal:10009"
+            VM_TEST_RETURN_ADDR: vmtestserver.local:80
+            VM_TEST_ADDR: host.docker.internal:10009
             RABBIT_MQ: rabbitmq.local
         restart: always
 
     rabbitmq.local:
         image: rabbitmq:3-management-alpine
-        container_name: 'rabbitmq'
+        container_name: rabbitmq
         ports:
             - 5672:5672
             - 15672:15672
         networks:
             - sharednet
         restart: always
+        healthcheck:
+            test: rabbitmq-diagnostics -q ping
 
 networks:
-    sharednet: {}
+    sharednet:
+
 volumes:
-    azurite_data: {}
+    azurite_data:
+    cosmosdb_data:

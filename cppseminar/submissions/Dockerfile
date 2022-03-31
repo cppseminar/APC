@@ -9,14 +9,18 @@ WORKDIR /app
 EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
-WORKDIR /src
-COPY ["submissions.csproj", "./submissions.csproj"]
-RUN dotnet restore "submissions.csproj"
-COPY . .
 WORKDIR "/src"
+COPY "submissions.csproj" "submissions.csproj"
+RUN dotnet restore "submissions.csproj"
+
+COPY "Controllers" "Controllers"
+COPY "Data" "Data"
+COPY "Models" "Models"
+COPY "Services" "Services"
+COPY ["Program.cs", "Startup.cs", "appsettings.json", "."]
 RUN dotnet build "submissions.csproj" -c Release -o /app/build
 
-FROM build as dev
+FROM build AS dev
 CMD dotnet watch run --urls=http://0.0.0.0:5004
 
 FROM build AS publish

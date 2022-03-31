@@ -6,15 +6,17 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
-COPY ["testservice.csproj", "."]
+COPY "testservice.csproj" "."
 RUN dotnet restore "testservice.csproj"
-COPY . .
-WORKDIR "/src"
+
+COPY "Controllers" "Controllers"
+COPY "Models" "Models"
+COPY "Services" "Services"
+COPY ["Program.cs", "Startup.cs", "appsettings.json", "."]
 RUN dotnet build "testservice.csproj" -c Release -o /app/build
 
 FROM build as dev
 CMD dotnet watch run --urls=http://0.0.0.0:80
-
 
 FROM build AS publish
 RUN dotnet publish "testservice.csproj" -c Release -o /app/publish
