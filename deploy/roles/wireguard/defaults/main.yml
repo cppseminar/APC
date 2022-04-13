@@ -1,0 +1,10 @@
+---
+id: 0
+address: "192.168.22.1/32"
+private_key: override me
+route_list:
+  - "192.168.22.0/24"
+  - "192.168.23.0/24"
+peers:
+  - public_key: redacted
+    #endpoint: optional

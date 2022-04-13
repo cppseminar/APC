@@ -1,0 +1,13 @@
+---
+- name: Setup wireguard
+  become: yes
+  become_user: root
+  block:
+  - name: Install wireguard
+    ansible.builtin.apt:
+      name: wireguard
+      state: latest
+  - name: Copy wireguard config
+    ansible.builtin.template:
+      dest: /etc/wireguard/wireguard{{ id }}.conf
+      src: wireguard.conf

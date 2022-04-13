@@ -1,0 +1,9 @@
+---
+- name: Setup wireguard for dev-ap
+  gather_facts: false
+  hosts: dev_ap
+  become: yes
+  tasks:
+    - name: Setup wireguard
+      include_role:
+        name: wireguard
