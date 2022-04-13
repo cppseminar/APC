@@ -53,6 +53,8 @@ namespace testservice.Services
                     .GetDatabase(_config["COSMOS_DB_NAME"])
                     .GetContainer(DbConstants.TestCaseCollection);
 
+                // https://github.com/Azure/azure-cosmos-dotnet-v3/issues/1610#issuecomment-886720013
+                // we cannot do ReadContainerAsync on healtcheck, it will not work in long run
                 //var result = await container.ReadContainerAsync();
                 //if ((int)result.StatusCode > 299)
                 //{
