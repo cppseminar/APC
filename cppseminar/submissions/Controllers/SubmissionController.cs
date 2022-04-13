@@ -29,9 +29,18 @@ namespace submissions.Controllers
         }
 
         [HttpGet("{email}")]
-        public IEnumerable<Submission> IndexForUser(string email) => _context.Submissions.Where(s => s.UserEmail == email)
-                                                                                         .OrderByDescending(s => s.SubmittedOn)
-                                                                                         .Take(30);
+        public ActionResult<IAsyncEnumerable<Submission>> IndexForUser(string email, [FromQuery]Guid? taskId)
+        {
+            var queryable = _context.Submissions.AsQueryable();
+
+            if (taskId != null)
+            {
+                queryable = queryable.Where(
+                    test => test.TaskId == taskId.ToString());
+            }
+
+            return Ok(queryable.OrderByDescending(test => test.SubmittedOn).Take(30).AsAsyncEnumerable());
+        }
 
 
         // https://www.yogihosting.com/aspnet-core-api-controllers/
