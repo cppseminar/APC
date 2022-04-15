@@ -78,10 +78,17 @@ COPY "cosmosdb-emulator.pem" "/usr/local/share/ca-certificates/cosmosdb-emulator
 RUN update-ca-certificates
 ```
 
-From C# connection should work with the cert imported. But from PYthon it will not and seems like the easiest way to do it there is to disable cert validation. Just set `connection_verify` to `False`.
+From C# connection should work with the cert imported. But from Python it will not and seems like the easiest way to do it there is to disable cert validation. Just set `connection_verify` to `False`.
 
-## Conclusion
+## Healtcheck
 
-**Why don't we use it?**
+It takes some time for cosmos db emulator to start. Linux version do not have `/GetStatus` command (or at least it is not easily avaiable). What you can do is to create new docker file with content like 
 
-First of all it starts like 30 seconds. But the may dealbreaker was the fact you need to run it several times, since it even start to work and then it sometimes fails to respond in 65seconds. Which results in timeout. It really annoys me.
+```docker
+FROM mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
+
+RUN apt-get update && \
+    apt-get -y install curl
+```
+
+Then you can add healtcheck by running `curl -k -f https://localhost:8081/_explorer/emulator.pem`. It is probably not ideal, but it is working. 
