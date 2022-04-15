@@ -1,56 +1,34 @@
-# Apc portal v1
+# Apc portal
 
-*(legacy v1 version of APC portal)*
+## Development
 
-|     App name    |                                                 Status                                                                       |
-| ----------------| ---------------------------------------------------------------------------------------------------------------------------- |
-| Prod frontend   | ![Production - publish frontend](https://github.com/cppseminar/APC/workflows/Production%20-%20publish%20frontend/badge.svg)  |
-| Prod functions  | ![Production - publish api](https://github.com/cppseminar/APC/workflows/Production%20-%20publish%20api/badge.svg)            |
-| Dev frontend    | ![Development - publish frontend](https://github.com/cppseminar/APC/workflows/Development%20-%20publish%20frontend/badge.svg)|
-| Dev functions   | ![Development - publish api](https://github.com/cppseminar/APC/workflows/Development%20-%20publish%20api/badge.svg)          |
+To successfully run portal locally, you need to have docker installed (on Windows it can be Docker Desktop) and access to some kind of virtual machine (for example Hyper-V) with Linux running. Make sure you can access the VM and the VM can access the host (on Windows Hyper-V adapters are part of the Unidentified networks, so they are treated as public, so some FW rules are needed).
 
-This repository contains source code for APC portal 1&2.  This portal is used by
-students and teachers to assign, submit and test programming homeworks.
+### Create google app
 
-Reason for implementing our own solution was having ability to run different
-tests on submission by students and running even more tests by teacher later.
+Go to <https://console.cloud.google.com/apis/credentials/> and create new app. Set
 
-## Architecture
-One of our primary targets was to create system with low maintenance costs. For
-this reason we used Azure serverless solutions as much as possible.
+* Authorized Javascript origins to `http://localhost:8080`
+* Authorized redirect URIs to `http://localhost:8080/signin-google`
 
-This project consists of these logical parts:
- - Frontend - Javascript (React) application (hosted on Azure BLOB Storage)
- - Backend - Azure functions (on consumption plan)
- - Database - We choose Azure Cosmos DB with Mongo API (can switch to real Mongo)
- - Tester - Python commmand line script able to compile (gcc + msvc) and test
-            source codes
- - API Mangement - Azure gateway for our backend, used to handle Google Auth and
-                   limit request rate
- - Virtual machine - Azure VM able to run docker orchestrator.
- - Go services - Services to run Tester scripts and communicate with our Backend
+Keep the client id and secret you will need them.
 
-Because test and submissions are usually happening more often when submission
-deadline approaches, vms are automatically turned off and deallocated by azure
-orchestration functions (via automation account).  These are then turned on
-automatically, when test request is queued.
+### Provision tester VM
 
-Communication between our backend and Go services running in VM is signed via
-JWT, due to not having dns names for testers (it could be done, but who would
-do it 😀)
+After you create new Linux machine.
 
+1. Copy file `./services/scripts/deploy.sh`.
+2. Create new configuration file (for example `config.json`) where you put two values `dockerUsername` and `dockerPassword`. Those shoud be username and password of docker repository where are the images to run tests. This is probably the only part where you need some kind of external service. Also make sure the repository is reachable.
+3. Run `./deploy.sh config.json`.
+4. If everything runs ok, you should see that the `queued` service is running.
 
-### Directory structure
-Here is basic directory structure for this project, some of these might have
-their own READMEs.
-```
-testscripts/
-│ .vscode/          Basic settings fo vs code
-│ assets/           Scripts, configs etc. basically things that don't belong anywhere
-│ frontend/         React web app - frontend for our portal
-│ functions/        Azure functions - REST api backend
-│ functions_test/   Tests for azure functions
-│ services/         Golang daemons for VMs, where we run tests
-│ tester/           Python scripts used for black box testing C++ programs
+### Run all services
 
-```
+1. Copy cosmos db certificate from `./cppseminar/cosmosdb-emul/emulator.pem` to both `./cppseminar/submissions` and `./cppseminar/testservice`.
+2. Go to `./cppseminar` and run `docker compose up` you need to have few environment variables present (e.g. create `.env` file there or just set them)
+   * COSMOS_CONN_STR=AccountEndpoint=https://172.19.0.100:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw== (this is set to local cosmos db emulator, it is present, because sometimes the emulator just won't run in that case you can replace it to actual cosmos instance)
+   * `GOOGLE_CLIENT_ID` google client id
+   * `GOOGLE_CLIENT_SECRET` google client secret
+   * `VM_TEST_ADDR_PORT` address of VM where tester will run with port (be default it is `10009`), for example `172.23.193.24:10009`
+   * `VM_TEST_RETURN_ADDR` ip address where `vmtestserver` can be reached, it is probably the ip of host of the vm in previous env, for example `172.23.193.1`
+3. After everything has started go to <http://localhost:8080/> and you are good to go.
