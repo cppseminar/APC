@@ -6,13 +6,10 @@
   remote_user: root
   tasks:
     - name: Deploy logstash
-      tags: logstash
       ansible.builtin.include_role:
         name: logstash
 
     - name: Deploy cockpit
       ansible.builtin.include_role:
         name: cockpit
-      tags: cockpit
-
 

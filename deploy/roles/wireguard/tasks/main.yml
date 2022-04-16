@@ -3,11 +3,20 @@
   become: yes
   become_user: root
   block:
-  - name: Install wireguard
-    ansible.builtin.apt:
-      name: wireguard
-      state: latest
-  - name: Copy wireguard config
-    ansible.builtin.template:
-      dest: /etc/wireguard/wireguard{{ id }}.conf
-      src: wireguard.conf
+   - name: Install wireguard
+     ansible.builtin.apt:
+       name: wireguard
+       state: latest
+   - name: Copy wireguard config
+     ansible.builtin.template:
+       dest: /etc/wireguard/wireguard{{ id }}.conf
+       src: wireguard.conf
+
+   - name: Make wg persistent in systemd
+     when: persist_systemd
+     block:
+       - name: Setting up systemd
+         ansible.builtin.systemd:
+           name: wg-quick@wireguard{{ id  }}
+           state: restarted
+           enabled: true
