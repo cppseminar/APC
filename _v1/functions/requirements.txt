@@ -1,7 +1,0 @@
-azure-functions
-azure-functions-durable
-azure-cosmosdb-table
-azure-storage-blob
-pymongo
-cerberus
-python-jose
