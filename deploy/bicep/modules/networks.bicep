@@ -13,17 +13,6 @@ resource vnetTesters 'Microsoft.Network/virtualNetworks@2021-02-01' = {
   }
 }
 
-resource vnetAks 'Microsoft.Network/virtualNetworks@2021-02-01' = {
-  name: '${prefix}-network-aks'
-  location: location
-  properties: {
-    addressSpace: {
-      addressPrefixes: [
-        '10.1.0.0/20'
-      ]
-    }
-  }
-}
 
 
 // PEERINGS

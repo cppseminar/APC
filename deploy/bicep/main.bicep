@@ -6,11 +6,30 @@ param location string = 'germanywestcentral'
 param prefix string
 
 
-
-module nets 'modules/networks.bicep' = {
-  name: 'asfd'
+module apcCompute 'modules/aks.bicep' = {
+  name: '${prefix}-apc-deploy'
   params: {
     location: location
     prefix: prefix
+    aksSubnet: network.outputs.aksSubnet
+  }
+}
+
+module network 'modules/mainnet.bicep' = {
+  name: '${prefix}-vnet-deploy'
+  params: {
+    location: location
+    prefix: prefix
+  }
+}
+
+module ssset 'modules/scaleset.bicep' = {
+  name: '${prefix}-sset-deploy'
+  params: {
+    location: location
+    prefix: prefix
+    lbSubnet: network.outputs.lbSubnet
+    lbIp: network.outputs.lbIp
+    ssSubnet: network.outputs.ssetSubnet
   }
 }
