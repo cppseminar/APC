@@ -2,34 +2,6 @@ param prefix string
 param location string
 param aksSubnet string
 
-// resource vnetAks 'Microsoft.Network/virtualNetworks@2021-02-01' = {
-//   name: '${prefix}-network-aks'
-//   location: location
-//   properties: {
-//     addressSpace: {
-//       addressPrefixes: [
-//         '10.14.0.0/15'
-//       ]
-//     }
-//     enableDdosProtection: false
-//     subnets: [
-//       {
-//         name: 'aks-subnet'
-//         properties: {
-//           addressPrefix: '10.14.0.0/16'
-//         }
-//       }
-//       {
-//         name: 'poolsubnet'
-//         properties: {
-//           addressPrefix: '10.15.0.0/16'
-//         }
-//       }
-//     ]
-//   }
-// }
-
-
 resource apcAks 'Microsoft.ContainerService/managedClusters@2022-01-01' = {
   name: '${prefix}-aks'
   location: location

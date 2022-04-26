@@ -33,3 +33,23 @@ module ssset 'modules/scaleset.bicep' = {
     ssSubnet: network.outputs.ssetSubnet
   }
 }
+
+module netAp 'modules/ap.bicep' = {
+  name: '${prefix}-netap-deploy'
+  params: {
+    location: location
+    vmSubnet: network.outputs.vmSubnet
+    prefix: prefix
+    vmIp: network.outputs.vmIp
+  }
+}
+
+module dns 'modules/dnsAdd.bicep' = {
+  name: 'dnsUpdate'
+  scope: resourceGroup('apc-dns')
+  params: {
+    ipAddress: netAp.outputs.netApIp
+    resourceName: 'apc.l33t.party'
+    subDomain: 'netap'
+  }
+}
