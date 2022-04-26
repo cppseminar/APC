@@ -17,7 +17,7 @@ resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2021-06-01' = {
     administratorLogin: 'azureuser'
     administratorLoginPassword: password
     storage:  {
-      storageSizeGB: 16
+      storageSizeGB: 32
     }
     backup: {
       backupRetentionDays: 7
