@@ -5,6 +5,28 @@ param location string = 'germanywestcentral'
 @maxLength(5)
 param prefix string
 
+@secure()
+param dbPassword string
+
+
+module network 'modules/mainnet.bicep' = {
+  name: '${prefix}-vnet-deploy'
+  params: {
+    location: location
+    prefix: prefix
+  }
+}
+
+module apcPostgres 'modules/postgres.bicep' = {
+  name: '${prefix}-postgres-deploy'
+  params: {
+    vnetId: network.outputs.vnetId
+    location: location
+    prefix: prefix
+    subnet: network.outputs.dbSubnet
+    password: dbPassword
+  }
+}
 
 module apcCompute 'modules/aks.bicep' = {
   name: '${prefix}-apc-deploy'
@@ -12,14 +34,6 @@ module apcCompute 'modules/aks.bicep' = {
     location: location
     prefix: prefix
     aksSubnet: network.outputs.aksSubnet
-  }
-}
-
-module network 'modules/mainnet.bicep' = {
-  name: '${prefix}-vnet-deploy'
-  params: {
-    location: location
-    prefix: prefix
   }
 }
 

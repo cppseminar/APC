@@ -36,9 +36,17 @@ resource apcVnet 'Microsoft.Network/virtualNetworks@2021-02-01' = {
         }
       }
       {
-        name: 'reserved1'
+        name: 'dbSubnet'
         properties: {
           addressPrefix: '10.12.128.0/17'
+          delegations: [
+            {
+              name: '${prefix}-subnet-postgres'
+              properties: {
+                serviceName: 'Microsoft.DBforPostgreSQL/flexibleServers'
+              }
+            }
+          ]
         }
       }
       {
@@ -58,3 +66,4 @@ output aksSubnet string = apcVnet.properties.subnets[0].id
 output ssetSubnet string = apcVnet.properties.subnets[1].id
 output lbSubnet string = apcVnet.properties.subnets[2].id
 output vmSubnet string = apcVnet.properties.subnets[3].id
+output dbSubnet string = apcVnet.properties.subnets[4].id
