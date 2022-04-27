@@ -18,7 +18,7 @@ resource vmNetApInterfaceSecurityGroup 'Microsoft.Network/networkSecurityGroups@
           access: 'Allow'
           protocol: 'Tcp'
           direction: 'Inbound'
-          destinationPortRange: '80'
+          destinationPortRange: '22'
           destinationAddressPrefix: '0.0.0.0/0'
           sourceAddressPrefix: '0.0.0.0/0'
           sourcePortRange: '*'
@@ -109,7 +109,7 @@ resource vmNetAp 'Microsoft.Compute/virtualMachines@2021-11-01' = {
       ]
     }
     osProfile: {
-      computerName: '${prefix}Logger'
+      computerName: '${prefix}netap'
       adminUsername: admin
       allowExtensionOperations: true
       linuxConfiguration: {

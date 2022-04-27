@@ -14,10 +14,26 @@ var secuirtyRules = [
       description: 'Allow HTTPS traffic to cockpit server'
 
       sourcePortRange: '*'
-      sourceAddressPrefix: '0.0.0.0'
+      sourceAddressPrefix: '0.0.0.0/0'
 
       destinationPortRange: '443'
-      destinationAddressPrefix: '0.0.0.0'
+      destinationAddressPrefix: '0.0.0.0/0'
+    }
+  }
+  {
+    name: 'Allow http'
+    properties: {
+      access: 'Allow'
+      direction: 'Inbound'
+      protocol: 'Tcp'
+      priority: 1050
+      description: 'Allow HTTP traffic to cockpit server'
+
+      sourcePortRange: '*'
+      sourceAddressPrefix: '0.0.0.0/0'
+
+      destinationPortRange: '80'
+      destinationAddressPrefix: '0.0.0.0/0'
     }
   }
 ]
@@ -33,10 +49,10 @@ var extendedSecurityRules = [
       description: 'Allow SSH to logging VM'
 
       sourcePortRange: '*'
-      sourceAddressPrefix: '0.0.0.0'
+      sourceAddressPrefix: '0.0.0.0/0'
 
       destinationPortRange: '22'
-      destinationAddressPrefix: '0.0.0.0'
+      destinationAddressPrefix: '0.0.0.0/0'
     }
   }
 ]
@@ -59,14 +75,20 @@ resource vnetLogging 'Microsoft.Network/virtualNetworks@2021-02-01' = {
   properties: {
     addressSpace: {
       addressPrefixes: [
-        '10.1.192.0/20'
+        '10.4.0.0/14'
       ]
     }
     subnets: [
       {
-        name: 'subnet1'
+        name: 'loggerSubnet'
         properties: {
-          addressPrefix: '10.1.192.0/20'
+          addressPrefix: '10.6.0.0/15'
+        }
+      }
+      {
+        name: 'reservedSubnet'
+        properties: {
+          addressPrefix: '10.4.0.0/15'
         }
       }
     ]
@@ -86,7 +108,7 @@ resource vmLoggingInterface 'Microsoft.Network/networkInterfaces@2021-05-01' = {
         name: 'ipconfig'
         properties: {
           primary: true
-          privateIPAddress: '10.1.192.10'
+          privateIPAddress: '10.6.0.10'
           privateIPAllocationMethod: 'Static'
           privateIPAddressVersion: 'IPv4'
           subnet: {
@@ -127,7 +149,7 @@ resource vmLogging 'Microsoft.Compute/virtualMachines@2021-11-01' = {
       }
     }
     hardwareProfile: {
-      vmSize: 'Standard_B1s'
+      vmSize: 'Standard_B2s'
     }
     storageProfile: {
       imageReference: {
@@ -155,10 +177,10 @@ resource vmLogging 'Microsoft.Compute/virtualMachines@2021-11-01' = {
     osProfile: {
       computerName: '${prefix}Logger'
       adminUsername: admin
-      allowExtensionOperations: true
+      allowExtensionOperations: false
       linuxConfiguration: {
         disablePasswordAuthentication: true
-        provisionVMAgent: true
+        provisionVMAgent: false
         patchSettings: {
           assessmentMode: 'ImageDefault'
           patchMode: 'ImageDefault'
