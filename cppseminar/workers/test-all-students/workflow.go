@@ -10,27 +10,28 @@ import (
 
 // return user if test cannot be run, otherwise empty string
 // at this point Counted, CreatedBy, TaskId and TestCaseId from request is filled in
-func RunNewestSubmissionForUser(ctx workflow.Context, request TestRequest, user string, taskId string) error {
+func RunNewestSubmissionForUser(ctx workflow.Context, request TestRequest, user string) error {
 	options := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Second * 10,
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
 	var submissionId string
-	err := workflow.ExecuteActivity(ctx, GetNewestSubmissionIdForTask, user, taskId).Get(ctx, &submissionId)
+	err := workflow.ExecuteActivity(ctx, GetNewestSubmissionIdForTask, user, request.TaskId).Get(ctx, &submissionId)
 	if err != nil {
 		log.Println("Cannot get newest submission id", err)
 		return err
 	}
 	request.SubmissionId = submissionId
 
-	var contentUrl string
-	err = workflow.ExecuteActivity(ctx, GetSubmissionContentUrl, user, submissionId).Get(ctx, &contentUrl)
+	var submission Submission
+	err = workflow.ExecuteActivity(ctx, GetSubmission, user, submissionId).Get(ctx, &submission)
 	if err != nil {
 		log.Println("Cannot get content of submission", err)
 		return err
 	}
-	request.ContentUrl = contentUrl
+	request.ContentUrl = submission.Content
+	request.TaskName = submission.TaskName
 
 	err = workflow.ExecuteActivity(ctx, RunTest, request).Get(ctx, nil)
 	if err != nil {
@@ -49,15 +50,16 @@ func TestAllStudentsWorkflow(ctx workflow.Context, request TestRequest) ([]strin
 	}
 	ctx = workflow.WithActivityOptions(ctx, options)
 
-	taskIdFut := workflow.ExecuteActivity(ctx, GetTaskId, request.TestCaseId)
+	testCaseFut := workflow.ExecuteActivity(ctx, GetTestCase, request.TestCaseId)
 
 	studentsFut := workflow.ExecuteActivity(ctx, GetAllUsers)
 
-	var taskId string
-	if err := taskIdFut.Get(ctx, &taskId); err != nil {
+	var testCase TestCase
+	if err := testCaseFut.Get(ctx, &testCase); err != nil {
 		return nil, err
 	}
-	request.TaskId = taskId
+	request.TaskId = testCase.TaskId
+	request.TestCaseName = testCase.Name
 
 	var students []string
 	if err := studentsFut.Get(ctx, &students); err != nil {

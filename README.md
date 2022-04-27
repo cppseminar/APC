@@ -26,7 +26,7 @@ After you create new Linux machine.
 
 1. Copy cosmos db certificate from `./cppseminar/cosmosdb-emul/emulator.pem` to both `./cppseminar/submissions` and `./cppseminar/testservice`.
 2. Go to `./cppseminar` and run `docker compose up` you need to have few environment variables present (e.g. create `.env` file there or just set them)
-   * COSMOS_CONN_STR=AccountEndpoint=https://172.19.0.100:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw== (this is set to local cosmos db emulator, it is present, because sometimes the emulator just won't run in that case you can replace it to actual cosmos instance)
+   * `COSMOS_CONN_STR=AccountEndpoint=https://172.19.0.100:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==` (this is set to local cosmos db emulator, it is present, because sometimes the emulator just won't run in that case you can replace it to actual cosmos instance)
    * `GOOGLE_CLIENT_ID` google client id
    * `GOOGLE_CLIENT_SECRET` google client secret
    * `VM_TEST_ADDR_PORT` address of VM where tester will run with port (be default it is `10009`), for example `172.23.193.24:10009`

@@ -29,7 +29,7 @@ namespace presentation.Services
             _logger.LogTrace("POSTing new task model");
             try
             {
-                HttpResponseMessage response = await _client.PostAsJsonAsync("tasks/v1/", taskModel, new JsonSerializerOptions
+                HttpResponseMessage response = await _client.PostAsJsonAsync("tasks/", taskModel, new JsonSerializerOptions
                 {
                     IgnoreNullValues = true
                 });
@@ -59,7 +59,7 @@ namespace presentation.Services
             _logger.LogTrace("Requesting tasks GET");
             try
             {
-                HttpResponseMessage response = await _client.GetAsync("/tasks/v1/");
+                HttpResponseMessage response = await _client.GetAsync("/tasks/");
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("All tasks GET failed {code}", response.StatusCode);
@@ -81,7 +81,7 @@ namespace presentation.Services
             _logger.LogTrace("GET single task {id}", id);
             try
             {
-                HttpResponseMessage response = await _client.GetAsync($"/tasks/v1/{HttpUtility.UrlEncode(id)}");
+                HttpResponseMessage response = await _client.GetAsync($"/tasks/{HttpUtility.UrlEncode(id)}");
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("GET task {id} failed with {code}", id, response.StatusCode);

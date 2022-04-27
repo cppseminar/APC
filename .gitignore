@@ -121,3 +121,6 @@ yarn-error.log*
 
 # VS user files
 *.csproj.user
+
+# Go bin files 
+__debug_bin

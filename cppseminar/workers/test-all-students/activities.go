@@ -13,8 +13,15 @@ import (
 )
 
 type Submission struct {
-	Id      string
-	Content string
+	Id       string
+	Content  string
+	TaskName string
+}
+
+type TestCase struct {
+	Id     string
+	TaskId string
+	Name   string
 }
 
 func GetAllUsers() ([]string, error) {
@@ -79,67 +86,66 @@ func GetNewestSubmissionIdForTask(user string, taskId string) (string, error) {
 	return submissions[0].Id, nil
 }
 
-func GetSubmissionContentUrl(user string, submissionId string) (string, error) {
+func GetSubmission(user string, submissionId string) (Submission, error) {
 	service, err := url.Parse(os.Getenv("SUBMISSIONS_SERVICE"))
 	if err != nil {
 		log.Println("Unable to parse SUBMISSIONS_SERVICE env", err)
-		return "", err
+		return Submission{}, err
 	}
-	service.Path = path.Join(service.Path, fmt.Sprintf("submission/%s/%s?contentFormat=url", user, submissionId))
+	service.Path = path.Join(service.Path, fmt.Sprintf("submission/%s/%s", user, submissionId))
+	query := service.Query()
+	query.Add("contentFormat", "url")
+	service.RawQuery = query.Encode()
 
+	log.Println(service.String())
 	resp, err := http.Get(service.String())
 	if err != nil {
 		log.Println("Unable to get submission", err)
-		return "", err
+		return Submission{}, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Unable to get body from http response", err)
-		return "", err
+		return Submission{}, err
 	}
 
 	var submission Submission
 	if err := json.Unmarshal(body, &submission); err != nil {
 		log.Println("Unable to parse json", err)
-		return "", err
+		return Submission{}, err
 	}
 
-	return submission.Content, nil
+	return submission, nil
 }
 
-func GetTaskId(testCaseId string) (string, error) {
+func GetTestCase(testCaseId string) (TestCase, error) {
 	service, err := url.Parse(os.Getenv("TEST_SERVICE"))
 	if err != nil {
 		log.Println("Unable to parse TEST_SERVICE env", err)
-		return "", err
+		return TestCase{}, err
 	}
 	service.Path = path.Join(service.Path, fmt.Sprintf("cases/%s", testCaseId))
 
 	resp, err := http.Get(service.String())
 	if err != nil {
 		log.Println("Unable to get test case", err)
-		return "", err
+		return TestCase{}, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Unable to get body from http response", err)
-		return "", err
-	}
-
-	type TestCase struct {
-		Id     string
-		TaskId string
+		return TestCase{}, err
 	}
 
 	var testCase TestCase
 	if err := json.Unmarshal(body, &testCase); err != nil {
 		log.Println("Unable to parse json", err)
-		return "", err
+		return TestCase{}, err
 	}
 
-	return testCase.TaskId, nil
+	return testCase, nil
 }
 
 func RunTest(request TestRequest) error {
@@ -164,16 +170,17 @@ func RunTest(request TestRequest) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		log.Println("Non-OK HTTP status:", resp.StatusCode)
-		// You may read / inspect response body
-		return fmt.Errorf("HTTP request failed with status %d", resp.StatusCode)
-	}
-
-	_, err = ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Unable to get body from http response", err)
 		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Println("Non-OK HTTP status:", resp.StatusCode)
+		log.Println("Body", string(body))
+		// You may read / inspect response body
+		return fmt.Errorf("HTTP request failed with status %d", resp.StatusCode)
 	}
 
 	return nil

@@ -29,9 +29,9 @@ func main() {
 
 	w.RegisterActivity(app.GetAllUsers)
 	w.RegisterActivity(app.GetNewestSubmissionIdForTask)
-	w.RegisterActivity(app.GetTaskId)
+	w.RegisterActivity(app.GetTestCase)
 	w.RegisterActivity(app.RunTest)
-	w.RegisterActivity(app.GetSubmissionContentUrl)
+	w.RegisterActivity(app.GetSubmission)
 	// Start listening to the Task Queue
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

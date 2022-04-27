@@ -11,7 +11,7 @@ services:
             - ./submissions/Services:/src/Services
             - ./submissions/Startup.cs:/src/Startup.cs
         ports:
-            - 8081:5004
+            - 8081:80
         networks:
             - sharednet
         depends_on:
@@ -194,7 +194,7 @@ services:
             sharednet:
                 ipv4_address: 172.19.0.100
         volumes:
-            - cosmosdb_data:/tmp/cosmos # weird, this may change in the future
+            #- cosmosdb_data:/tmp/cosmos # weird, this may change in the future
             - ./cosmosdb-emul/cosmosdb-emulator.pfx:/usr/local/share/ca-certificates/cosmosdb-emulator.pfx
         healthcheck:
             test: ["CMD-SHELL", "curl -f -k https://localhost:8081/_explorer/emulator.pem"]
@@ -241,6 +241,17 @@ services:
             - temporal-network
         ports:
             - 8088:8088
+
+    gateway:
+        image: envoyproxy/envoy:v1.22-latest
+        ports:
+            - 5000:5000
+            - 9901:9901
+        volumes:
+            - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml
+        networks:
+            - sharednet
+
 
 networks:
     sharednet:

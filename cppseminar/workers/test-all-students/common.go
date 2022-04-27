@@ -7,8 +7,8 @@ type TestRequest struct {
 	SubmissionId string
 	TestCaseId   string
 	CreatedBy    string
-	//TaskName     string
-	//TestCaseName string
-	ContentUrl string
-	Counted    bool
+	TaskName     string
+	TestCaseName string
+	ContentUrl   string
+	Counted      bool
 }
