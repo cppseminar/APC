@@ -4,7 +4,7 @@
   - name: Install cockpit
     ansible.builtin.apt:
       default_release: focal-backports
-      name: cockpit=260-1~bpo20.04.1
+      name: cockpit
       state: present
 
   - name: Create folder for cockpit
@@ -41,34 +41,3 @@
     ansible.builtin.systemd:
       state: restarted
       name: cockpit.service
-
-  # - name: Download cockpit release 260
-  #   ansible.builtin.get_url:
-  #     dest: ~/cockpit-260.tar.xz
-  #     force: no
-  #     url: https://github.com/cockpit-project/cockpit/releases/download/260/cockpit-260.tar.xz
-  #     checksum: sha1:fb630c81745b08db09c1fd41f86d6b5f754bc4fc
-  # - name: Create folder for cockpit build
-  #   ansible.builtin.file:
-  #     state: directory
-  #     path: ~/cockpit-unpacked
-
-  # - name: Unpack cockpit
-  #   ansible.builtin.unarchive:
-  #     remote_src: true
-  #     dest: ~/cockpit-unpacked
-  #     mode: u+rwx
-  #     src: ~/cockpit-260.tar.xz
-  # - name: install compiler
-  #   ansible.builtin.apt:
-  #     default_release: focal-backports
-  #     name: cockpit=260-1~bpo20.04.1
-  #     state: present
-  #         # - gcc
-  #         # - pkg-config
-  #         # - libglib2.0-dev
-  #         # - libsystemd-dev
-  #         #   ibjson-glib-dev 
-  #         #   json-glib-tools # Might not be necessary
-  #         #   gnutls-bin
-  #         #   libgnutls28-dev

@@ -1,7 +1,6 @@
 ---
 - name: Setup logstash&cockpit server
-  hosts: server
-  gather_facts: false
+  hosts: logger
   become: yes
   remote_user: root
   tasks:
@@ -12,4 +11,3 @@
     - name: Deploy cockpit
       ansible.builtin.include_role:
         name: cockpit
-

@@ -14,7 +14,7 @@
 
   - name: Install logstash
     ansible.builtin.apt:
-      deb: ~/logstash-ansible.deb
+      deb: "{{ logstash_deb_path}}"
 
   - name: Copy logstash exe config
     ansible.builtin.template:
