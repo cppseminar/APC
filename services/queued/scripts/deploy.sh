@@ -19,7 +19,7 @@ apt-get update
 
 apt-get -y install subversion
 
-svn checkout https://github.com/cppseminar/APC/trunk/services ./queued
+svn checkout https://github.com/cppseminar/APC/trunk/services/queued ./queued
 
 config=`realpath "$1"`
 
