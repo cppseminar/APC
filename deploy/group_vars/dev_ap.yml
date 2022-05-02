@@ -1,8 +1,0 @@
----
-address: "10.5.0.1"
-private_key: "{{ dev_ap_wg_private_key }}"
-route_list: []
-id: 0
-peers: { }
-persist_systemd: true
-

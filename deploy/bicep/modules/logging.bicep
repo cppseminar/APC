@@ -36,6 +36,22 @@ var secuirtyRules = [
       destinationAddressPrefix: '0.0.0.0/0'
     }
   }
+  {
+    name: 'Allow wireguard'
+    properties: {
+      access: 'Allow'
+      direction: 'Inbound'
+      protocol: 'Udp'
+      priority: 1060
+      description: 'Allow wireguard from compute resources'
+
+      sourcePortRange: '*'
+      sourceAddressPrefix: '0.0.0.0/0'
+
+      destinationPortRange: '51321'
+      destinationAddressPrefix: '0.0.0.0/0'
+    }
+  }
 ]
 
 var extendedSecurityRules = [

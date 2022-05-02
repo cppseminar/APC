@@ -3,6 +3,7 @@ id: 0
 address: "192.168.0.1/32"
 private_key: override me
 persist_systemd: false
+wg_port: 50123
 route_list:
   - "192.168.22.0/24"
 peers:

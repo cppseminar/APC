@@ -1,0 +1,9 @@
+---
+address: "10.1.0.8"
+private_key: "{{ dev_ap_wg_private_key }}"
+route_list: []
+id: 0
+peers:
+  - endpoint: management.apc.l33t.party:51321
+    public_key: "{{ management_wg_public_key }}"
+persist_systemd: true

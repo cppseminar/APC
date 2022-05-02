@@ -11,3 +11,26 @@
     - name: Deploy cockpit
       ansible.builtin.include_role:
         name: cockpit
+
+    - name: Setup wireguard
+      ansible.builtin.include_role:
+        name: wireguard
+      vars:
+        persist_systemd: true
+        address: 10.1.0.12
+        private_key: "{{ management_wg_private_key }}"
+        wg_port: 51321
+        route_list:
+          - "10.12.0.0/14"
+          - "10.8.0.0/14"
+        peers:
+          - public_key: "{{ dev_ap_wg_public_key }}"
+
+    - name: Setup iptables
+      ansible.builtin.include_role:
+        name: iptables-persist
+
+    - name: Copy iptables config
+      ansible.builtin.copy:
+        dest: /etc/iptables-nft4/10-all
+        content: "{{ iptabs }}"

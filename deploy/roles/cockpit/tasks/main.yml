@@ -4,6 +4,10 @@
   become_user: root
   block:
 
+  - name: Update apt
+    ansible.builtin.apt:
+      update_cache: true
+
   - name: Include nginx
     import_tasks: nginx.yml
     tags: nginx
@@ -11,5 +15,3 @@
   - name: Include Cockpit
     import_tasks: cockpit.yml
     tags: cockpit
-
-
