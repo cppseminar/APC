@@ -17,7 +17,7 @@ Keep the client id and secret you will need them.
 
 After you create new Linux machine.
 
-1. Copy file `./services/scripts/deploy.sh`.
+1. Copy file `./services/queued/scripts/deploy.sh`.
 2. Create new configuration file (for example `config.json`) where you put two values `dockerUsername` and `dockerPassword`. Those shoud be username and password of docker repository where are the images to run tests. This is probably the only part where you need some kind of external service. Also make sure the repository is reachable.
 3. Run `./deploy.sh config.json`.
 4. If everything runs ok, you should see that the `queued` service is running.
