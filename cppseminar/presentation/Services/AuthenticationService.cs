@@ -19,7 +19,7 @@ namespace presentation.Services
         private HttpClient _client = new HttpClient();
         public AuthenticationService(IConfiguration config)
         {
-            string userServiceHost = config["USER_SERVICE"];
+            string userServiceHost = config["API_GATEWAY"];
 
             _client.BaseAddress = new Uri(userServiceHost);
             _client.DefaultRequestHeaders.Accept.Clear();

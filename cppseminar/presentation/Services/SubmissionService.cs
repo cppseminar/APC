@@ -16,7 +16,7 @@ namespace presentation.Services
     {
         public SubmissionService(ILogger<SubmissionService> logger, IConfiguration config)
         {
-            _client.BaseAddress = new Uri(config["SUBMISSION_SERVICE"]);
+            _client.BaseAddress = new Uri(config["API_GATEWAY"]);
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));

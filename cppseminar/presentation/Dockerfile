@@ -18,7 +18,7 @@ RUN dotnet restore "presentation.csproj"
 COPY ["Model", "Model"]
 COPY  "Pages" "Pages"
 COPY "Services" "Services"
-COPY ["Program.cs", "Startup.cs", "appsettings.json", "."]
+COPY ["Program.cs", "Startup.cs", "."]
 
 FROM build as dev
 EXPOSE 8080

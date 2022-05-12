@@ -18,7 +18,7 @@ namespace presentation.Services
         public TaskService(ILogger<TaskService> logger, IConfiguration config)
         {
             _logger = logger;
-            _client.BaseAddress = new Uri(config["SUBMISSION_SERVICE"]);
+            _client.BaseAddress = new Uri(config["API_GATEWAY"]);
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));

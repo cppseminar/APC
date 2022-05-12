@@ -20,7 +20,7 @@ namespace presentation.Services
         public TestService(ILogger<TestCaseService> logger, IConfiguration config)
         {
             _logger = logger;
-            _client.BaseAddress = new Uri(config["TEST_SERVICE"]);
+            _client.BaseAddress = new Uri(config["API_GATEWAY"]);
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
