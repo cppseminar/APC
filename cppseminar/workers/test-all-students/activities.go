@@ -25,7 +25,7 @@ type TestCase struct {
 }
 
 func GetAllUsers() ([]string, error) {
-	service, err := url.Parse(os.Getenv("USER_SERVICE"))
+	service, err := url.Parse(os.Getenv("API_GATEWAY"))
 	if err != nil {
 		log.Println("Unable to parse USER_SERVICE env", err)
 		return nil, err
@@ -54,7 +54,7 @@ func GetAllUsers() ([]string, error) {
 }
 
 func GetNewestSubmissionIdForTask(user string, taskId string) (string, error) {
-	service, err := url.Parse(os.Getenv("SUBMISSIONS_SERVICE"))
+	service, err := url.Parse(os.Getenv("API_GATEWAY"))
 	if err != nil {
 		log.Println("Unable to parse SUBMISSIONS_SERVICE env", err)
 		return "", err
@@ -87,7 +87,7 @@ func GetNewestSubmissionIdForTask(user string, taskId string) (string, error) {
 }
 
 func GetSubmission(user string, submissionId string) (Submission, error) {
-	service, err := url.Parse(os.Getenv("SUBMISSIONS_SERVICE"))
+	service, err := url.Parse(os.Getenv("API_GATEWAY"))
 	if err != nil {
 		log.Println("Unable to parse SUBMISSIONS_SERVICE env", err)
 		return Submission{}, err
@@ -120,7 +120,7 @@ func GetSubmission(user string, submissionId string) (Submission, error) {
 }
 
 func GetTestCase(testCaseId string) (TestCase, error) {
-	service, err := url.Parse(os.Getenv("TEST_SERVICE"))
+	service, err := url.Parse(os.Getenv("API_GATEWAY"))
 	if err != nil {
 		log.Println("Unable to parse TEST_SERVICE env", err)
 		return TestCase{}, err
@@ -149,7 +149,7 @@ func GetTestCase(testCaseId string) (TestCase, error) {
 }
 
 func RunTest(request TestRequest) error {
-	service, err := url.Parse(os.Getenv("TEST_SERVICE"))
+	service, err := url.Parse(os.Getenv("API_GATEWAY"))
 	if err != nil {
 		log.Println("Unable to parse TEST_SERVICE env", err)
 		return err
