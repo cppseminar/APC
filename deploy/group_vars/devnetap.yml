@@ -6,4 +6,7 @@ id: 0
 peers:
   - endpoint: management.apc.l33t.party:51321
     public_key: "{{ management_wg_public_key }}"
+    keep_alive: true
 persist_systemd: true
+route_list:
+  - 10.1.0.0/24

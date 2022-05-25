@@ -21,8 +21,7 @@
         private_key: "{{ management_wg_private_key }}"
         wg_port: 51321
         route_list:
-          - "10.12.0.0/14"
-          - "10.8.0.0/14"
+          - 10.1.0.0/24
         peers:
           - public_key: "{{ dev_ap_wg_public_key }}"
 
