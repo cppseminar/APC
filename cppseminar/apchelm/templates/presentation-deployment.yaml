@@ -20,6 +20,8 @@ spec:
         app: presentation
         category: frontend
     spec:
+      imagePullSecrets:
+        - name: container-registry
       containers:
         - name: presentation-pod
           image:

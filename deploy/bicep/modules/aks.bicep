@@ -15,7 +15,7 @@ resource apcAks 'Microsoft.ContainerService/managedClusters@2022-01-01' = {
       {
         name: '${prefix}akspool'
         count: 3
-        vmSize: 'Standard_B2s'
+        vmSize: 'Standard_B2ms'
         osDiskSizeGB: 32
         osDiskType: 'Managed'
         type: 'VirtualMachineScaleSets'

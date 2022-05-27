@@ -11,7 +11,7 @@ spec:
     matchLabels:
       app: testservice
   revisionHistoryLimit: 2
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
   template:
@@ -20,6 +20,8 @@ spec:
         app: testservice
         category: backend
     spec:
+      imagePullSecrets:
+        - name: container-registry
       containers:
         - name: testservice-pod
           image:

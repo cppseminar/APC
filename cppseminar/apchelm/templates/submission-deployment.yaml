@@ -11,7 +11,7 @@ spec:
     matchLabels:
       app: submissionsservice
   revisionHistoryLimit: 2
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -22,6 +22,8 @@ spec:
         app: submissionsservice
         category: backend
     spec:
+      imagePullSecrets:
+        - name: container-registry
       containers:
         - name: submissionsservice-pod
           image:
