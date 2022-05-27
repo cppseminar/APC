@@ -11,7 +11,7 @@ spec:
     matchLabels:
       app: presentation
   revisionHistoryLimit: 2
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
   template:
@@ -49,12 +49,8 @@ spec:
                 secretKeyRef:
                   key: googleSecret
                   name: general-secrets
-            - name: USER_SERVICE
-              value: http://userservice-service.apc
-            - name: SUBMISSION_SERVICE
-              value: http://submissionsservice-service.apc
-            - name: TEST_SERVICE
-              value: http://testservice-service.apc
+            - name: API_GATEWAY
+              value: http://gateway-service.apc
             - name: STORAGE_CONNECTION_STRING
               valueFrom:
                 secretKeyRef:

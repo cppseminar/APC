@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apc-gateway
+  namespace: apc
+  labels:
+    app: gateway
+    category: backend
+spec:
+  selector:
+    matchLabels:
+      app: gateway
+      category: backend
+  revisionHistoryLimit: 2
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: gateway
+        category: backend
+    spec:
+      imagePullSecrets:
+        - name: container-registry
+      volumes:
+        - name: config
+          configMap:
+            name: envoy-config
+            items:
+              - key: config-file
+                path: envoy.yaml
+      containers:
+        - name: gateway-pod
+          image: envoyproxy/envoy:v1.22-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          resources:
+            requests:
+              memory: 128M
+              cpu: 100m
+            limits:
+              memory: 0.5G
+              cpu: 300m
+          volumeMounts:
+            - name: config
+              mountPath: /etc/envoy/
+              readOnly: true

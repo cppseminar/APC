@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 projectName: APC
-releaseLabel: 519842deb7cd56beda694099c101257c790d83de
+releaseLabel: 469e7e9ce2799e2a84e34139867a3dc4f08c1391
 dockerRepository: apcdevregistry.azurecr.io
 websiteHost: apc.l33t.party
 testRequestQueue: testInput1
