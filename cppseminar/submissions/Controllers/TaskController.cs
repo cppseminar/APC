@@ -9,7 +9,7 @@ using submissions.Models;
 
 namespace submissions.Controllers
 {
-    [Route("tasks/v1")]
+    [Route("tasks")]
     [ApiController]
     public class TaskController : ControllerBase
     {
