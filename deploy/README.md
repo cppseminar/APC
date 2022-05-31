@@ -10,6 +10,9 @@ Our architecture currently only runs in Azure, but we are slowly making transiti
    - Azure cosmos db
    - Azure container registry
    - Azure storage account
+   - Managed identity with network contributor role for entire subscription
+     - This account must be created in r.g. apc-data
+     - Name of this manged identity must be apc-aks-user
 2. Use ansible to set up logging and ~~management~~ servers
 3. Build and deploy containers (source code is outside this folder) to kubernetes
 4. Create custom os image for scale set (testers)

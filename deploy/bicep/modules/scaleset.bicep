@@ -38,7 +38,7 @@ resource loadBalancer 'Microsoft.Network/loadBalancers@2021-05-01' = {
         name: '${prefix}-lb-rule1'
         properties: {
           frontendPort: 80
-          backendPort: 80
+          backendPort: 10009
           probe: {
             id: '${resourceId( 'Microsoft.Network/loadBalancers', '${prefix}-scaleset-load-balancer')}/probes/${prefix}-lb-probe'
           }
@@ -150,6 +150,7 @@ resource scaleSet 'Microsoft.Compute/virtualMachineScaleSets@2021-11-01' = {
           sku: '18.04-LTS'
           version: 'latest'
           offer: 'UbuntuServer'
+          //id: '/subscriptions/xxx/resourceGroups/xxx/providers/Microsoft.Compute/images/xxx'
         }
       }
     }
