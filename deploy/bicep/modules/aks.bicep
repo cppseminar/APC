@@ -1,12 +1,16 @@
 param prefix string
 param location string
 param aksSubnet string
+param userId string
 
 resource apcAks 'Microsoft.ContainerService/managedClusters@2022-01-01' = {
   name: '${prefix}-aks'
   location: location
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${userId}' : {}
+    }
   }
   properties: {
     kubernetesVersion: '1.23.5'
@@ -15,7 +19,7 @@ resource apcAks 'Microsoft.ContainerService/managedClusters@2022-01-01' = {
       {
         name: '${prefix}akspool'
         count: 3
-        vmSize: 'Standard_B2ms'
+        vmSize: 'Standard_B2s'
         osDiskSizeGB: 32
         osDiskType: 'Managed'
         type: 'VirtualMachineScaleSets'

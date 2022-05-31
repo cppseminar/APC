@@ -34,6 +34,7 @@ module apcCompute 'modules/aks.bicep' = {
     location: location
     prefix: prefix
     aksSubnet: network.outputs.aksSubnet
+    userId: aksIdentity.id
   }
 }
 
@@ -66,4 +67,9 @@ module dns 'modules/dnsAdd.bicep' = {
     resourceName: 'apc.l33t.party'
     subDomain: 'netap'
   }
+}
+
+resource aksIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
+  scope: resourceGroup('apc-data')
+  name: 'apc-aks-user'
 }

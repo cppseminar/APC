@@ -67,7 +67,7 @@ resource loadBalancer 'Microsoft.Network/loadBalancers@2021-05-01' = {
 }
 
 resource scaleSet 'Microsoft.Compute/virtualMachineScaleSets@2021-11-01' = {
-  name: '${prefix}-scale-set'
+  name: '${prefix}-scaleset'
   location: location
   sku: {
     capacity: 1

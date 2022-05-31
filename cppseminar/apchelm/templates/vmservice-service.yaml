@@ -5,7 +5,7 @@ metadata:
   namespace: apc
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
-    service.beta.kubernetes.io/azure-load-balancer-internal-subnet: "VmSubnet"
+    #service.beta.kubernetes.io/azure-load-balancer-internal-subnet: "aks-subnet"
 spec:
   type: LoadBalancer
   loadBalancerIP:  {{ required "No lb ip specified" .Values.LBinternal }}
