@@ -1,16 +1,66 @@
 @page
 @model presentation.Pages.Admin.Users.IndexModel
 
+
 <th:div asp-validation-summary="All"></th:div>
 
-<table class="table">
-    @foreach (var user in Model.AllUsers)
-    {
+@if (Model.AllUsers.Count<string>() != 0)
+{
+    <div align="right">
+        <a href="/admin/users/?handler=Update">Update student list</a>
+    </div>
+    <div>&nbsp;</div>
+    <table class="table">
+        @foreach (var user in Model.AllUsers)
+        {
+            <tr>
+                <td><th:a asp-page="/Admin/Users/Index" asp-page-handler="Detail" asp-route-email="@user"> @user</th:a></td>            
+            </tr>
+        }
+        <tr></tr>
         <tr>
-            <td><th:a asp-page="/Admin/Users/Index" asp-page-handler="Detail" asp-route-email="@user"> @user</th:a></td>
+            <td align="right">
+                <div>
+                    <a href="/admin/users/?handler=Update">Update student list</a>
+                </div>
+            </td>
         </tr>
-    }
-</table>
+    </table>
+}
+
+@if ((Model.AllUsers.Count<string>() == 0) && (Model.Claims == null))
+{
+<div class="container">
+  <h3>Update student list</h3>
+  <form class="form-horizontal" method="post">
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="studentlist">List of students:</label>
+      <div class="col-sm-5">
+        <textarea class="form-control" id="studentlist" rows="5" placeholder="Enter new students. One email address per line." name="studentlist">@Model.studentlist</textarea>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="claimname">Claim name:</label>
+      <div class="col-sm-5">
+        <input type="text" class="form-control" id="claimname" placeholder="Enter claim name" name="claimname" value="@Model.claimname">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="claim value">Claim value:</label>
+      <div class="col-sm-5">          
+        <input type="text" class="form-control" id="claimvalue" placeholder="Enter claim value" name="claimvalue"  value="@Model.claimvalue">
+      </div>
+    </div>
+    <div class="form-group">        
+      <div class="col-sm-offset-2 col-sm-10">
+        <button type="submit" class="btn btn-primary">Update student list</button>
+      </div>
+    </div>
+    @Html.AntiForgeryToken()
+  </form>
+</div>
+
+}
 
 @if (Model.Claims != null)
 {

@@ -7,6 +7,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Configuration;
 using presentation.Model;
+using System.Text;
+using System.Text.Json;
 
 namespace presentation.Services
 {
@@ -17,6 +19,7 @@ namespace presentation.Services
     public class AuthenticationService
     {
         private HttpClient _client = new HttpClient();
+
         public AuthenticationService(IConfiguration config)
         {
             string userServiceHost = config["API_GATEWAY"];
@@ -70,7 +73,21 @@ namespace presentation.Services
             {
                 context.Identity.AddClaim(new Claim(claimKV.Key, claimKV.Value));
             }
-
         }
+
+        public async Task OnUpdateStudentListAsync(List<UserRest> studentList)
+        {
+            string studentListAsJson = JsonSerializer.Serialize(studentList);
+
+            var stringContent = new StringContent(studentListAsJson, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _client.PostAsync("/user/", stringContent);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new OperationFailedException($"Error with updating list of students {response.StatusCode}");
+            }
+        }
+
     }
 }
