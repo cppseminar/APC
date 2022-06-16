@@ -21,6 +21,15 @@ namespace presentation.Pages.Admin.Users
         public IEnumerable<string> AllUsers = Enumerable.Empty<string>();
         public IDictionary<string, string> Claims { get; set; }
 
+        [BindProperty]
+        public string studentlist { get; set; }
+        [BindProperty]
+        public string claimname { get; set; }
+
+        [BindProperty]
+        public string claimvalue { get; set; }
+
+
         public IndexModel(ILogger<IndexModel> logger, AuthenticationService authService)
         {
             _logger = logger;
