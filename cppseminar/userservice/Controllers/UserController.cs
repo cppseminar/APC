@@ -35,5 +35,21 @@ namespace userservice.Controllers
         {
             return await _service.GetUserAync(email);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateListOfStudents([FromBody] List<UserModel> listOfStudents)
+        {
+            try
+            {
+                await _service.UpdateListOfStudents(listOfStudents);
+
+                return StatusCode(201);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Problem in [UploadListOfUsers] action: {ex.Message}");
+                return StatusCode(500, "Upload failed. Please see the log.");
+            }
+        }
     }
 }
