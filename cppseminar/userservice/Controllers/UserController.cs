@@ -37,11 +37,11 @@ namespace userservice.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateListOfStudents([FromBody] List<UserModel> listOfStudents)
+        public async Task<IActionResult> UpdateListOfUsers([FromBody] List<UserModel> listOfUsers)
         {
             try
             {
-                await _service.UpdateListOfStudents(listOfStudents);
+                await _service.UpdateListOfUsers(listOfUsers);
 
                 return StatusCode(201);
             }

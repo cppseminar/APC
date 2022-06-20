@@ -43,7 +43,7 @@ namespace presentation.Pages.Admin.Submissions
 
                 TestCaseList = await _testCaseService.GetByTask(CurrentSubmission.TaskId);
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 ModelState.AddModelError(string.Empty, "Operation failed");
             }

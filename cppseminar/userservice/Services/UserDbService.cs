@@ -64,26 +64,26 @@ namespace userservice.Services
             };
         }
 
-        public async Task UpdateListOfStudents(List<UserModel> listOfStudents)
+        public async Task UpdateListOfUsers(List<UserModel> listOfUsers)
         {
             try
             {
-                for (int i = 0; i < listOfStudents.Count; i++)
+                foreach (var usr in listOfUsers)
                 {
-                    var student = new UserRow();
+                    var actUser = new UserRow();
 
-                    student.PartitionKey = listOfStudents[i].UserEmail;
-                    student.RowKey = (listOfStudents[i].Claims.ToArray())[0].Key;
-                    student.ClaimValue = (listOfStudents[i].Claims.ToArray())[0].Value;
+                    actUser.PartitionKey = usr.UserEmail;
+                    actUser.RowKey = (usr.Claims.ToArray())[0].Key;
+                    actUser.ClaimValue = (usr.Claims.ToArray())[0].Value;
 
-                    await _table.ExecuteAsync(TableOperation.InsertOrReplace(student));
+                    await _table.ExecuteAsync(TableOperation.InsertOrReplace(actUser));
                 }
 
-                _logger.LogInformation("List of students was successfully updated.");
+                _logger.LogInformation("List of users was successfully updated.");
             }
             catch (Exception e)
             {
-                _logger.LogError("List of students update failed. {e}", e);
+                _logger.LogError("List of users update failed. {e}", e);
             }
         }
     }

@@ -33,23 +33,16 @@ namespace presentation.Model
 
                     return match.Groups[1].Value + domainName;
                 }
-            }
-            catch (RegexMatchTimeoutException e)
-            {
-                return false;
-            }
-            catch (ArgumentException e)
-            {
-                return false;
-            }
 
-            try
-            {
                 return Regex.IsMatch(email,
-                    @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
-                    RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+                                     @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+                                     RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
             }
             catch (RegexMatchTimeoutException)
+            {
+                return false;
+            }
+            catch (ArgumentException)
             {
                 return false;
             }

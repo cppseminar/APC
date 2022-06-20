@@ -1,0 +1,47 @@
+@page
+@model presentation.Pages.Admin.Users.CreateModel
+@{
+}
+
+<h3>Update user list</h3>
+@if (!ModelState.IsValid)
+{
+    <h4>Error</h4>
+    <p>Please fix following errors and resubmit</p>
+    <th:div asp-validation-summary="All"></th:div>
+}
+<th:form method="post">
+    
+    <table class="table">
+        <tr>
+            <td>
+                <th:label asp-for="newUserList.UserList"></th:label>
+            </td>
+            <td>
+                <th:textarea class="form-control" asp-for="newUserList.UserList"></th:textarea>
+                <th:span asp-validation-for="newUserList.UserList"></th:span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <th:label asp-for="newUserList.ClaimName"></th:label>
+            </td>
+            <td>
+                <th:input asp-for="newUserList.ClaimName" />
+                <th:span asp-validation-for="newUserList.ClaimName"></th:span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <th:label asp-for="newUserList.ClaimValue"></th:label>
+            </td>
+            <td>
+                <th:input asp-for="newUserList.ClaimValue" />
+                <th:span asp-validation-for="newUserList.ClaimValue"></th:span>
+            </td>
+        </tr>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Update student list</button>
+
+</th:form>
