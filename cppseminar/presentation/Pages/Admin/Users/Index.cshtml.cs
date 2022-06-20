@@ -22,7 +22,8 @@ namespace presentation.Pages.Admin.Users
         public IDictionary<string, string> Claims { get; set; }
 
         [BindProperty]
-        public string studentlist { get; set; }
+        public string userlist { get; set; }
+
         [BindProperty]
         public string claimname { get; set; }
 
