@@ -16,8 +16,6 @@ COPY ["Program.cs", "Startup.cs", "appsettings.json", "."]
 RUN dotnet build "testservice.csproj" -c Release -o /app/build
 
 FROM build as dev
-COPY "emulator.pem" "/usr/local/share/ca-certificates/cosmosdb-emulator.crt"
-RUN update-ca-certificates
 CMD dotnet watch run --urls=http://0.0.0.0:80
 
 FROM build AS publish

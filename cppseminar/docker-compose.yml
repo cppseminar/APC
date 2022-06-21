@@ -14,9 +14,6 @@ services:
             - 8081:80
         networks:
             - sharednet
-#        depends_on:
-#            cosmosdb.local:
-#                condition: service_healthy
         environment:
             DOTNET_USE_POLLING_FILE_WATCHER: 1
             DOTNET_WATCH_SUPPRESS_MSBUILD_INCREMENTALISM: 1
@@ -93,8 +90,6 @@ services:
                 condition: service_healthy
             azurite.local:
                 condition: service_started
-#            cosmosdb.local:
-#                condition: service_healthy
         environment:
             TEST_REQUESTS_QUEUE: test-input
             TEST_RESULTS_QUEUE: test-output
@@ -171,32 +166,6 @@ services:
         healthcheck:
             test: rabbitmq-diagnostics -q ping
 
-#     cosmosdb.local:
-#         build:
-#             context: ./cosmosdb-emul
-#         mem_limit: 3GB
-#         cpu_count: 2
-#         hostname: cosmosdb
-#         ports:
-#             - 8100:8081
-#             - 10251:10251
-#             - 10252:10252
-#             - 10253:10253
-#             - 10254:10254
-#         environment:
-#             AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE: 'true'
-#             AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE: 172.19.0.100
-#             AZURE_COSMOS_EMULATOR_CERTIFICATE: /usr/local/share/ca-certificates/cosmosdb-emulator.pfx
-# #AccountEndpoint=https://172.19.0.100:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
-#         networks:
-#             sharednet:
-#                 ipv4_address: 172.19.0.100
-#         volumes:
-#             #- cosmosdb_data:/tmp/cosmos # weird, this may change in the future
-#             - ./cosmosdb-emul/cosmosdb-emulator.pfx:/usr/local/share/ca-certificates/cosmosdb-emulator.pfx
-#         healthcheck:
-#             test: ["CMD-SHELL", "curl -f -k https://localhost:8081/_explorer/emulator.pem"]
-
     postgresql.local:
         container_name: temporal-postgresql
         environment:
@@ -253,11 +222,6 @@ services:
 
 networks:
     sharednet:
-        external: false
-        ipam:
-            driver: default
-            config:
-                - subnet: 172.19.0.0/24
     temporal-network:
 
 volumes:
