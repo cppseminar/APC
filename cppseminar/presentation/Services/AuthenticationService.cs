@@ -7,8 +7,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Configuration;
 using presentation.Model;
-using System.Text;
-using System.Text.Json;
 
 namespace presentation.Services
 {
