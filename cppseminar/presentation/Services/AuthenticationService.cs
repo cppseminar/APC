@@ -17,6 +17,7 @@ namespace presentation.Services
     public class AuthenticationService
     {
         private HttpClient _client = new HttpClient();
+
         public AuthenticationService(IConfiguration config)
         {
             string userServiceHost = config["API_GATEWAY"];
@@ -70,7 +71,6 @@ namespace presentation.Services
             {
                 context.Identity.AddClaim(new Claim(claimKV.Key, claimKV.Value));
             }
-
         }
     }
 }

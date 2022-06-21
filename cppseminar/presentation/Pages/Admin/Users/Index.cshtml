@@ -1,16 +1,28 @@
 @page
 @model presentation.Pages.Admin.Users.IndexModel
 
+
 <th:div asp-validation-summary="All"></th:div>
 
-<table class="table">
-    @foreach (var user in Model.AllUsers)
-    {
-        <tr>
-            <td><th:a asp-page="/Admin/Users/Index" asp-page-handler="Detail" asp-route-email="@user"> @user</th:a></td>
-        </tr>
-    }
-</table>
+@if (Model.AllUsers.Count<string>() != 0)
+{
+    <div align="right">
+        <p><th:a asp-page="/Admin/Users/Update">Update user list</th:a></p>
+    </div>
+
+    <table class="table">
+        @foreach (var user in Model.AllUsers)
+        {
+            <tr>
+                <td><th:a asp-page="/Admin/Users/Index" asp-page-handler="Detail" asp-route-email="@user"> @user</th:a></td>            
+            </tr>
+        }
+    </table>
+
+    <div align="right">
+        <p><th:a asp-page="/Admin/Users/Update">Update user list</th:a></p>
+    </div>
+}
 
 @if (Model.Claims != null)
 {

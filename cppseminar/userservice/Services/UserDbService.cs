@@ -64,9 +64,29 @@ namespace userservice.Services
             };
         }
 
-        public async Task CreateUserAsync(UserModel user)
+        public async Task UpdateListOfUsers(List<UserModel> listOfUsers)
         {
+            try
+            {
+                foreach (var usr in listOfUsers)
+                {
+                    var actUser = new UserRow();
 
+                    actUser.PartitionKey = usr.UserEmail;
+                    actUser.RowKey = (usr.Claims.ToArray())[0].Key;
+                    actUser.ClaimValue = (usr.Claims.ToArray())[0].Value;
+
+                    await _table.ExecuteAsync(TableOperation.InsertOrReplace(actUser));
+                }
+
+                _logger.LogInformation("List of users was successfully updated.");
+            }
+            catch (Exception e)
+            {
+                string errmsg = e.Message + " | " + e.InnerException.Message;
+                _logger.LogError("List of users update failed. {errmsg}", errmsg);
+                throw;
+            }
         }
     }
 }

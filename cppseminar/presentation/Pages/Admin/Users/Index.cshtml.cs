@@ -17,6 +17,7 @@ namespace presentation.Pages.Admin.Users
     {
         private ILogger<IndexModel> _logger;
         private AuthenticationService _authService;
+
         public IEnumerable<string> AllUsers = Enumerable.Empty<string>();
         public IDictionary<string, string> Claims { get; set; }
 
@@ -25,6 +26,7 @@ namespace presentation.Pages.Admin.Users
             _logger = logger;
             _authService = authService;
         }
+
         public async Task OnGetAsync()
         {
             try
@@ -60,6 +62,5 @@ namespace presentation.Pages.Admin.Users
                 _logger.LogWarning("Get user details failed {e}", e);
             }
         }
-
     }
 }

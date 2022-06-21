@@ -43,6 +43,7 @@ namespace presentation
             });
             services.AddSingleton<SubmissionService>();
             services.AddSingleton<TaskService>();
+            services.AddSingleton<UserService>();
             services.AddSingleton<AuthenticationService>();
             services.AddSingleton<TestCaseService>();
             services.AddSingleton<TestService>();

@@ -26,7 +26,7 @@ namespace presentation.Pages.Admin.Test
             {
                 TestResult = await _testService.GetOneTest(userEmail, testId);
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 ModelState.AddModelError(string.Empty, "Operation failed");
             }
