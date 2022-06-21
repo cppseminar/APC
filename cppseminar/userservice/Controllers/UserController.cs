@@ -45,10 +45,10 @@ namespace userservice.Controllers
 
                 return StatusCode(201);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                _logger.LogError($"Problem in [UploadListOfUsers] action: {ex.Message}");
-                return StatusCode(500, "Upload failed. Please see the log.");
+                _logger.LogError("Problem in [UploadListOfUsers] action: {e.Message}", e.Message);
+                return StatusCode(500, "Update failed.");
             }
         }
     }

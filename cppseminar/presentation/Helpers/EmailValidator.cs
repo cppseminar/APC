@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace presentation.Model
+namespace presentation.Helpers
 {
     public class EmailValidator
     {
@@ -38,11 +38,7 @@ namespace presentation.Model
                                      @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
                                      RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
             }
-            catch (RegexMatchTimeoutException)
-            {
-                return false;
-            }
-            catch (ArgumentException)
+            catch (Exception)
             {
                 return false;
             }

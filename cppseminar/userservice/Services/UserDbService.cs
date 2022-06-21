@@ -83,7 +83,9 @@ namespace userservice.Services
             }
             catch (Exception e)
             {
-                _logger.LogError("List of users update failed. {e}", e);
+                string errmsg = e.Message + " | " + e.InnerException.Message;
+                _logger.LogError("List of users update failed. {errmsg}", errmsg);
+                throw;
             }
         }
     }

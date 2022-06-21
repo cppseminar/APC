@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using presentation.Helpers;
 using presentation.Model;
 using presentation.Services;
 using System;
@@ -10,10 +10,9 @@ using System.Threading.Tasks;
 
 namespace presentation.Pages.Admin.Users
 {
-    [Authorize(Policy = "Administrator")]
-    public class CreateModel : PageModel
+    public class UpdateModel : PageModel
     {
-        public CreateModel(ILogger<CreateModel> logger, UserService userService)
+        public UpdateModel(ILogger<UpdateModel> logger, UserService userService)
         {
             _logger = logger;
             _userService = userService;
@@ -84,6 +83,6 @@ namespace presentation.Pages.Admin.Users
         public UserListChange newUserList { get; set; }
 
         private UserService _userService = null;
-        private ILogger<CreateModel> _logger = null;
+        private ILogger<UpdateModel> _logger = null;
     }
 }
