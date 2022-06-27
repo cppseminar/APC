@@ -1,26 +1,15 @@
-#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
 FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
-ENV TINI_VERSION v0.19.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
-ENTRYPOINT ["/tini", "--"]
 WORKDIR /app
 EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
-WORKDIR "/src"
-COPY "submissions.csproj" "submissions.csproj"
+WORKDIR /src
+COPY ["submissions.csproj", "./submissions.csproj"]
 RUN dotnet restore "submissions.csproj"
-
-COPY "Controllers" "Controllers"
-COPY "Data" "Data"
-COPY "Models" "Models"
-COPY "Services" "Services"
-COPY ["Program.cs", "Startup.cs", "appsettings.json", "."]
+COPY . .
 RUN dotnet build "submissions.csproj" -c Release -o /app/build
 
-FROM build AS dev
+FROM build as dev
 CMD dotnet watch run --urls=http://0.0.0.0:80
 
 FROM build AS publish
