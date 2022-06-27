@@ -57,7 +57,7 @@ resource loadBalancer 'Microsoft.Network/loadBalancers@2021-05-01' = {
         name: '${prefix}-lb-probe'
         properties: {
           protocol: 'Tcp'
-          port: 80
+          port: 10009
           intervalInSeconds: 10
           numberOfProbes: 2
         }
@@ -71,7 +71,7 @@ resource scaleSet 'Microsoft.Compute/virtualMachineScaleSets@2021-11-01' = {
   location: location
   sku: {
     capacity: 1
-    name: 'Standard_B1ls'
+    name: 'Standard_F2s_v2'
     tier: 'Standard'
   }
   properties: {
