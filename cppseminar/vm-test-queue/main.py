@@ -31,13 +31,13 @@ class JsonFormatter(logging.Formatter):
             message['@m'] += ' STACK_INFO: ' + self.formatStack(record.stack_info)
 
         if record.levelname in ['CRITICAL', 'ERROR']:
-            message['level'] = 'Error'
+            message['@l'] = 'Error'
         elif record.levelname in ['WARN', 'NOTSET']: # not sure if NOTSET can happen
-            message['level'] = 'Warning'
+            message['@l'] = 'Warning'
         elif record.levelname in ['INFO']:
             pass # keep empty
         else:
-            message['level'] = 'Verbose'
+            message['@l'] = 'Verbose'
 
         return json.dumps(message)
 
