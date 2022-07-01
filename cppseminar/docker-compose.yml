@@ -131,9 +131,10 @@ services:
         networks:
             - sharednet
         depends_on:
-            testservice.local:
-                condition: service_healthy
+            - rabbitmq.local
+            - testservice.local
         environment:
+            LOG_PRETTY: 1
             SUBMISSION_QUEUE_NAME: test-input
             VM_TEST_SERVER: vmtestserver.local:80
             RABBIT_MQ: rabbitmq.local
@@ -147,6 +148,7 @@ services:
         ports:
             - 8084:80
         environment:
+            LOG_PRETTY: 1
             RESULTS_BLOB_CONN_STR: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
             RESULTS_QUEUE_NAME: test-output
             VM_TEST_RETURN_ADDR: ${VM_TEST_RETURN_ADDR}:8084
