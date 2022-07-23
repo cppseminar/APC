@@ -122,5 +122,8 @@ yarn-error.log*
 # VS user files
 *.csproj.user
 
+# VS local setting for app run
+Properties/ 
+
 # Go bin files 
 __debug_bin
