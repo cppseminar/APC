@@ -21,7 +21,7 @@ import (
 	"services/internal/queue/docker"
 
 	"github.com/xeipuuv/gojsonschema"
-	"golang.org/x/sys/unix"
+	//"golang.org/x/sys/unix"
 )
 
 type requestMessage struct {
@@ -35,7 +35,15 @@ type requestMessage struct {
 
 var schema *gojsonschema.Schema
 
-var queue = make(chan requestMessage, 100)
+//var queue = make(chan requestMessage, 100)
+
+var tr = &http.Transport{
+	ResponseHeaderTimeout:  10 * time.Second,
+	IdleConnTimeout:        30 * time.Second,
+	MaxResponseHeaderBytes: 1024,
+}
+
+var httpClient = &http.Client{Transport: tr}
 
 const schemaStr = `
 {
@@ -228,14 +236,62 @@ func zipOutputToBase64(output_path string) (string, error) {
 	return base64.StdEncoding.EncodeToString(data), nil
 }
 
-func processMessages(wg *sync.WaitGroup) {
+func ProcessMessages(wg *sync.WaitGroup) {
 	defer wg.Done() // let main know we are done cleaning up
 
 	for {
-		msg, more := <-queue
-		if !more {
-			log.Println("<6>Message queue empty and closed.")
-			return
+		log.Println("<6>Get message via http request")
+
+		value, ok := os.LookupEnv("MQ_READ_SVC_ADDR")
+		if !ok {
+			log.Fatal("MqReadService address is not known")
+		}
+
+		resp, err := http.Get(strings.TrimSpace(value))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Println("Status code returned from HTTP GET ", resp.StatusCode)
+
+		if resp.StatusCode == 500 {
+			log.Println("Error on server side. No messages returned.")
+			continue
+		}
+
+		if resp.StatusCode == 404 {
+			log.Println("Empty response. No messages in input queue.")
+			continue
+		}
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		resp.Body.Close()
+
+		// check payload against json scheme to validate it
+		jsonDocument := gojsonschema.NewBytesLoader(body)
+
+		result, err := schema.Validate(jsonDocument)
+		if err != nil {
+			log.Println("<3>Cannot validate json against schema", err)
+
+		}
+
+		if !result.Valid() {
+			log.Println("<3>Json schema validation failed", result.Errors())
+		}
+
+		// so here the request is validated, we are good to go and create new message
+		msg := requestMessage{
+			MaxRunTime: 500, // 300 for test and 200 for build
+			Memory:     2048,
+		}
+
+		if err := json.Unmarshal(body, &msg); err != nil {
+			log.Println("<3>Cannot parse json", err)
 		}
 
 		log.Println("<6>Start processing of message.")
@@ -266,8 +322,10 @@ func processMessages(wg *sync.WaitGroup) {
 					DockerImage: msg.DockerImage,
 					Timeout:     uint16(msg.MaxRunTime),
 					Memory:      int64(msg.Memory * 1024 * 1024),
-					Username:    arguments.DockerUsername,
-					Password:    arguments.DockerPassword,
+					// Username:    args.DockerUsername,
+					// Password:    args.DockerPassword,
+					Username: "apcdevregistry",
+					Password: "6vObm1RqMBJ01fvQxZDH8Df3K/BQoTC4",
 				}
 
 				docker.PullImage(ctx, config)
@@ -390,95 +448,21 @@ func processMessages(wg *sync.WaitGroup) {
 	}
 }
 
-var tr = &http.Transport{
-	ResponseHeaderTimeout:  10 * time.Second,
-	IdleConnTimeout:        30 * time.Second,
-	MaxResponseHeaderBytes: 1024,
-}
-
-var httpClient = &http.Client{Transport: tr}
-
-func processTestRequestInternal(r *http.Request) int {
-	req, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return http.StatusInternalServerError
-	}
-
-	// check payload against json scheme to validate it
-	jsonDocument := gojsonschema.NewBytesLoader(req)
-
-	result, err := schema.Validate(jsonDocument)
-	if err != nil {
-		log.Println("<3>Cannot validate json against schema", err)
-		return http.StatusBadRequest
-	}
-
-	if !result.Valid() {
-		log.Println("<3>Json schema validation failed", result.Errors())
-		return http.StatusBadRequest
-	}
-
-	// so here the request is validated, we are good to go and create new message
-	msg := requestMessage{
-		MaxRunTime: 500, // 300 for test and 200 for build
-		Memory:     2048,
-	}
-	if err := json.Unmarshal(req, &msg); err != nil {
-		log.Println("<3>Cannot parse json", err)
-		return http.StatusBadRequest
-	}
-
-	select {
-	case queue <- msg: // normally just add it
-	default: // we are full
-		log.Println("<3>Queue is full")
-		return http.StatusTooManyRequests
-	}
-
-	return http.StatusOK
-}
-
-func serverHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/test" && r.Method == "POST" {
-		w.WriteHeader(processTestRequestInternal(r))
-	} else {
-		log.Printf("<3>Unsupported request %v %v ip %v\n", r.Method, r.URL.Path, r.RemoteAddr)
-		w.WriteHeader(http.StatusNotFound)
-	}
-}
-
-func startHttpServer(wg *sync.WaitGroup, serverURL string) *http.Server {
-	srv := &http.Server{
-		Addr:         serverURL,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
-		Handler:      http.HandlerFunc(serverHandler),
-	}
-
-	go func() {
-		defer wg.Done() // let main know we are done cleaning up
-
-		// always returns error. ErrServerClosed on graceful close
-		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-			log.Fatalf("<3>Listen and serve failed with: %v\n", err)
-		} else {
-			log.Println("<6>Server stopped gracefully...")
-		}
-	}()
-
-	return srv
-}
-
 func Run(ctx context.Context, out io.Writer) int {
 	log.SetOutput(out)
 	log.SetFlags(0)
 
 	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt, unix.SIGTERM)
+	signal.Notify(signalChan, os.Interrupt /* , unix.SIGTERM */)
 	defer signal.Stop(signalChan)
 
 	log.Println("<6>Queued is starting.")
+
+	go func() {
+		<-signalChan
+		fmt.Printf("You pressed ctrl + C. User interrupted infinite loop.")
+		os.Exit(0)
+	}()
 
 	defer func() {
 		r := recover()
@@ -487,39 +471,18 @@ func Run(ctx context.Context, out io.Writer) int {
 		}
 	}()
 
-	args := GetArguments()
-
 	schema = getSchema()
 
-	serverURL := fmt.Sprintf("%v:%v", args.ServerHost, args.ServerPort)
-
 	exitDone := &sync.WaitGroup{}
-	exitDone.Add(2) // we are waiting for http server and our process message queue
+	exitDone.Add(2)
 
 	// start process messages queue
-	go processMessages(exitDone)
-
-	log.Println("<6>Starting http server on", serverURL, "...")
-
-	srv := startHttpServer(exitDone, serverURL)
+	ProcessMessages(exitDone)
 
 	<-signalChan // wait for signal
 	log.Printf("<6>Got SIGINT/SIGTERM, exiting...\n")
 
-	// using 10 as timeout so http server has some time to quit
-	func() {
-		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-		defer cancel()
-
-		if err := srv.Shutdown(ctx); err != nil {
-			log.Println("<4>Cannot shutdown server", err)
-			os.Exit(1)
-		}
-	}()
-
-	close(queue) // exit the main loop
-
-	// wait for goroutine started in startHttpServer() to stop
+	// wait for goroutine to stop
 	exitDone.Wait()
 
 	log.Println("<6>Queued has ended.")
