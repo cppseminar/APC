@@ -1,21 +1,21 @@
 import contextlib
-import urllib.request
+# import urllib.request
 import os
 import datetime
 
-from urllib.parse import urlparse
+# from urllib.parse import urlparse
 from azure.storage.blob import BlobServiceClient, generate_blob_sas
 from azure.core.exceptions import ResourceExistsError
 
 class AzureFileError(RuntimeError):
     pass
 
-def download_file(url):
-    with urllib.request.urlopen(url) as response:
-        if response.status >= 200 and response.status < 300:
-            return response.read().decode('utf-8')
-
-        raise AzureFileError('Cannot download file {}, ended with status {}.'.format(url, response.status))
+# def download_file(url):
+#     with urllib.request.urlopen(url) as response:
+#         if response.status >= 200 and response.status < 300:
+#             return response.read().decode('utf-8')
+#
+#         raise AzureFileError('Cannot download file {}, ended with status {}.'.format(url, response.status))
 
 
 def upload_file_and_get_token(filepath, container, conn_str):
