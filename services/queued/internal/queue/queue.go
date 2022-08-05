@@ -20,6 +20,8 @@ import (
 	"services/internal/queue/docker"
 
 	"github.com/xeipuuv/gojsonschema"
+
+	"golang.org/x/sys/unix"
 )
 
 type requestMessage struct {
@@ -454,7 +456,7 @@ func Run(ctx context.Context, out io.Writer) int {
 	log.SetFlags(0)
 
 	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt /*unix.SIGTERM*/)
+	signal.Notify(signalChan, os.Interrupt, unix.SIGTERM)
 	defer signal.Stop(signalChan)
 
 	log.Println("<6>Queued is starting.")
