@@ -45,8 +45,7 @@ def process_results(data):
             pika.ConnectionParameters(host=os.getenv('RABBIT_MQ')))) as connection:
             channel = connection.channel()
 
-            # No queue declare here, we expect that queue will be declared by
-            # tester service.
+            # No queue declare here, we expect that queue will be declared by tester service.
             channel.basic_publish(exchange='', routing_key=os.getenv('RESULTS_QUEUE_NAME'), body=json.dumps(req))
 
     except Exception as e:
@@ -58,61 +57,3 @@ def process_results(data):
             os.remove(students_file_path)
             os.remove(teachers_file_path)
 
-# def send_request_to_vm(data):
-#     vm_addr = os.getenv('VM_TEST_ADDR')
-
-#     try:
-#         connection = http.client.HTTPConnection(vm_addr, timeout=60)
-#         connection.request('POST', '/test', data)
-#         response = connection.getresponse()
-#         if response.status < 200 or response.status >= 300:
-#             logger.warning('Http request POST /test on %s failed with %d %s', vm_addr, response.status, response.reason)
-
-#         return response.status
-#     except ConnectionRefusedError:
-#         logger.info('Test VM (%s) seems to be not online.', vm_addr)
-#         return HTTPStatus.SERVICE_UNAVAILABLE
-#     except Exception as e:
-#         logger.exception('Exception occurred request POST /test on %s.', vm_addr, exc_info=e)
-#         return HTTPStatus.INTERNAL_SERVER_ERROR
-#     finally:
-#         connection.close()
-
-# def process_test(data):
-#     try:
-#         req = json.loads(data)
-
-#         meta_data = req.get('metaData', {})
-
-#         # docker container url will go here
-#         docker_image = req['dockerImage']
-
-#         # timeout and memory for the test run
-#         max_run_time = req.get('maxRunTime', None)
-#         memory = req.get('memory', None)
-
-#         # path to submitted file, we should load this from blob storage
-#         submitted_file = download_file(req['contentUrl'])
-
-#         vm_request = {
-#             'returnUrl': os.getenv('VM_TEST_RETURN_ADDR'),
-#             'metaData': meta_data,
-#             'dockerImage': docker_image,
-#             'files': {
-#                 'main.cpp': submitted_file,
-#             },
-#         }
-
-#         if max_run_time:
-#             vm_request['maxRunTime'] = max_run_time
-#         if memory:
-#             vm_request['memory'] =  memory
-            
-#         logger.info(json.dumps(vm_request))
-
-#         return send_request_to_vm(json.dumps(vm_request))
-#     except AzureFileError as e:
-#         logger.warn(e)
-#     except Exception as e:
-#         logger.warn("Encountered exception on message %s", data, exc_info=e)
-#         return HTTPStatus.INTERNAL_SERVER_ERROR

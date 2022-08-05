@@ -10,14 +10,6 @@ from azure.core.exceptions import ResourceExistsError
 class AzureFileError(RuntimeError):
     pass
 
-# def download_file(url):
-#     with urllib.request.urlopen(url) as response:
-#         if response.status >= 200 and response.status < 300:
-#             return response.read().decode('utf-8')
-#
-#         raise AzureFileError('Cannot download file {}, ended with status {}.'.format(url, response.status))
-
-
 def upload_file_and_get_token(filepath, container, conn_str):
     service = BlobServiceClient.from_connection_string(conn_str)
 
