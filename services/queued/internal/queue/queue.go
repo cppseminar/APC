@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -21,7 +20,6 @@ import (
 	"services/internal/queue/docker"
 
 	"github.com/xeipuuv/gojsonschema"
-	//"golang.org/x/sys/unix"
 )
 
 type requestMessage struct {
@@ -247,26 +245,28 @@ func ProcessMessages(wg *sync.WaitGroup) {
 			log.Fatal("MqReadService address is not known")
 		}
 
-		resp, err := http.Get(strings.TrimSpace(value))
+		resp, err := http.Get(value)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			continue
 		}
 
 		log.Println("Status code returned from HTTP GET ", resp.StatusCode)
-
-		if resp.StatusCode == 500 {
-			log.Println("Error on server side. No messages returned.")
-			continue
-		}
 
 		if resp.StatusCode == 404 {
 			log.Println("Empty response. No messages in input queue.")
 			continue
 		}
 
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			log.Println("Error mqreadservice. No messages returned.")
+			continue
+		}
+
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			continue
 		}
 
 		resp.Body.Close()
@@ -277,11 +277,13 @@ func ProcessMessages(wg *sync.WaitGroup) {
 		result, err := schema.Validate(jsonDocument)
 		if err != nil {
 			log.Println("<3>Cannot validate json against schema", err)
+			continue
 
 		}
 
 		if !result.Valid() {
 			log.Println("<3>Json schema validation failed", result.Errors())
+			continue
 		}
 
 		// so here the request is validated, we are good to go and create new message
@@ -292,6 +294,7 @@ func ProcessMessages(wg *sync.WaitGroup) {
 
 		if err := json.Unmarshal(body, &msg); err != nil {
 			log.Println("<3>Cannot parse json", err)
+			continue
 		}
 
 		log.Println("<6>Start processing of message.")
@@ -322,10 +325,8 @@ func ProcessMessages(wg *sync.WaitGroup) {
 					DockerImage: msg.DockerImage,
 					Timeout:     uint16(msg.MaxRunTime),
 					Memory:      int64(msg.Memory * 1024 * 1024),
-					// Username:    args.DockerUsername,
-					// Password:    args.DockerPassword,
-					Username: "apcdevregistry",
-					Password: "6vObm1RqMBJ01fvQxZDH8Df3K/BQoTC4",
+					Username:    arguments.DockerUsername,
+					Password:    arguments.DockerPassword,
 				}
 
 				docker.PullImage(ctx, config)
@@ -453,34 +454,36 @@ func Run(ctx context.Context, out io.Writer) int {
 	log.SetFlags(0)
 
 	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt /* , unix.SIGTERM */)
+	signal.Notify(signalChan, os.Interrupt /*unix.SIGTERM*/)
 	defer signal.Stop(signalChan)
 
 	log.Println("<6>Queued is starting.")
 
-	go func() {
-		<-signalChan
-		fmt.Printf("You pressed ctrl + C. User interrupted infinite loop.")
-		os.Exit(0)
-	}()
-
 	defer func() {
 		r := recover()
 		if r != nil {
-			log.Panicln("<3>Panicing", r)
+			log.Panicln("<3>Panicing ", r)
 		}
 	}()
 
 	schema = getSchema()
 
 	exitDone := &sync.WaitGroup{}
-	exitDone.Add(2)
+	exitDone.Add(1)
 
 	// start process messages queue
-	ProcessMessages(exitDone)
+	go func() {
+		ProcessMessages(exitDone)
+	}()
 
 	<-signalChan // wait for signal
 	log.Printf("<6>Got SIGINT/SIGTERM, exiting...\n")
+
+	// using 10 sec as timeout so everything has some time to quit
+	func() {
+		_, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
+	}()
 
 	// wait for goroutine to stop
 	exitDone.Wait()
