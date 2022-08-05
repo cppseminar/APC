@@ -20,60 +20,54 @@ namespace mqreadservice.Controllers
         [HttpGet()]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Get()
         {
-            var mqConfig = _configuration.GetSection("RabbitMq").Get<RabbitMqConfig>();
+            var mqHostName = _configuration["MQ_URI"];
+            var mqQueueName = _configuration["TEST_INPUT_QUEUE"];
             var returnUrl = _configuration["VM_TEST_RETURN_ADDR"];
 
             TestRun tr;
 
             try
             {
-                var msg = RabbitMq.Receive(mqConfig.MqHostName, mqConfig.QueueName);
+                var msg = RabbitMq.Receive(mqHostName, mqQueueName);
 
-                if (msg == "[<empty>]")
+                if (string.IsNullOrWhiteSpace(msg))
                 {
                     _logger.LogInformation("No message found. Input RabbitMq message queue is empty.");
                     return NotFound();
                 }
 
-                if (msg != null)
+                MqTestRun? mqtr = JsonSerializer.Deserialize<MqTestRun>(msg);
+
+                if (mqtr != null)
                 {
-                    MqTestRun? mqtr = JsonSerializer.Deserialize<MqTestRun>(msg);
+                    var sourceFile = BlobStorage.DownloadBlob(mqtr.contentUrl);
 
-                    if (mqtr != null)
+                    if (sourceFile != null)
                     {
-                        var sourceFile = BlobStorage.DownloadBlob(mqtr.contentUrl);
+                        tr = new TestRun();
+                        tr.returnUrl = returnUrl;
+                        tr.metaData = mqtr.metaData;
+                        tr.dockerImage = mqtr.dockerImage;
 
-                        if (sourceFile != null)
-                        {
-                            tr = new TestRun();
-                            tr.returnUrl = returnUrl;
-                            tr.metaData = mqtr.metaData;
-                            tr.dockerImage = mqtr.dockerImage;
+                        tr.files = new Files();
+                        tr.files.maincpp = sourceFile;
 
-                            tr.files = new Files();
-                            tr.files.maincpp = sourceFile;
+                        _logger.LogDebug("Successfully got TestRun data");
 
-                            _logger.LogDebug("Successfully got TestRun data");
-
-                        }
-                        else
-                        {
-                            _logger.LogError(String.Format("Unable to get source file for a TestRun (blobName: [{0}])",
-                                    mqtr.metaData));
-                            return StatusCode(StatusCodes.Status500InternalServerError);
-                        }
                     }
                     else
                     {
-                        _logger.LogError("Unable to deserialize TestRun JSON data from RabbitMq");
+                        _logger.LogError("Unable to get source file for a TestRun (blobName: [{blobName}])",
+                                mqtr.metaData);
                         return StatusCode(StatusCodes.Status500InternalServerError);
                     }
                 }
                 else
                 {
-                    _logger.LogError("Unable to get TestRun data from RabbitMq");
+                    _logger.LogError("Unable to deserialize TestRun JSON data received from RabbitMq");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
             }
@@ -85,7 +79,7 @@ namespace mqreadservice.Controllers
             }
 
             var jsonPayload = JsonSerializer.Serialize<TestRun>(tr);
-            _logger.LogInformation("Message {message} sent in response.", jsonPayload);
+            _logger.LogInformation("Message {jsonPayload} sent in response.", jsonPayload);
 
             return Ok(tr);
         }
