@@ -236,222 +236,245 @@ func zipOutputToBase64(output_path string) (string, error) {
 	return base64.StdEncoding.EncodeToString(data), nil
 }
 
-func ProcessMessages(wg *sync.WaitGroup) {
+func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
+
 	defer wg.Done() // let main know we are done cleaning up
 
 	for {
-		log.Println("<6>Get message via http request")
+		select {
 
-		value, ok := os.LookupEnv("MQ_READ_SVC_ADDR")
-		if !ok {
-			log.Fatal("MqReadService address is not known")
-		}
+		case <-ctx.Done(): // if cancel() execute
+			log.Println("Gracefully canceling ProcessMessages loop...")
+			return
 
-		resp, err := http.Get(value)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
+		default:
 
-		log.Println("Status code returned from HTTP GET ", resp.StatusCode)
+			log.Println("<6>Get message via http request")
 
-		if resp.StatusCode == 404 {
-			log.Println("Empty response. No messages in input queue.")
-			continue
-		}
+			value, ok := os.LookupEnv("MQ_READ_SVC_ADDR")
+			if !ok {
+				log.Fatal("MqReadService address is not known")
+			}
 
-		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			log.Println("Error mqreadservice. No messages returned.")
-			continue
-		}
+			resp, err := http.Get(value)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
 
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
+			msg := requestMessage{
+				MaxRunTime: 500, // 300 for test and 200 for build
+				Memory:     2048,
+			}
 
-		resp.Body.Close()
+			var isOk = true
 
-		// check payload against json scheme to validate it
-		jsonDocument := gojsonschema.NewBytesLoader(body)
+			func() {
+				defer func() {
+					resp.Body.Close()
+				}()
 
-		result, err := schema.Validate(jsonDocument)
-		if err != nil {
-			log.Println("<3>Cannot validate json against schema", err)
-			continue
+				log.Println("Status code returned from HTTP GET ", resp.StatusCode)
 
-		}
+				if resp.StatusCode == 404 {
+					log.Println("Empty response. No messages in input queue.")
+					isOk = false
+				}
 
-		if !result.Valid() {
-			log.Println("<3>Json schema validation failed", result.Errors())
-			continue
-		}
+				if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+					log.Println("Error mqreadservice. No messages returned.")
+					isOk = false
+				}
 
-		// so here the request is validated, we are good to go and create new message
-		msg := requestMessage{
-			MaxRunTime: 500, // 300 for test and 200 for build
-			Memory:     2048,
-		}
+				body, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					log.Println(err)
+					isOk = false
+				}
 
-		if err := json.Unmarshal(body, &msg); err != nil {
-			log.Println("<3>Cannot parse json", err)
-			continue
-		}
+				// check payload against json scheme to validate it
+				jsonDocument := gojsonschema.NewBytesLoader(body)
 
-		log.Println("<6>Start processing of message.")
+				result, err := schema.Validate(jsonDocument)
+				if err != nil {
+					log.Println("<3>Cannot validate json against schema", err)
+					isOk = false
+				}
 
-		func() {
-			// This is to always log last request, in case something went terribly bad
-			defer func() {
-				r := recover()
-				if r != nil {
-					log.Panicf("<3>Panicing on message %v", msg.MetaData) // just fail quickly
-				} else {
-					log.Println("<6>Finished processing of message.")
+				if !result.Valid() {
+					log.Println("<3>Json schema validation failed", result.Errors())
+					isOk = false
+				}
+
+				if err := json.Unmarshal(body, &msg); err != nil {
+					log.Println("<3>Cannot parse json", err)
+					isOk = false
 				}
 			}()
 
-			var outputVolume docker.DockerVolume
-			// we do not want to delte the tmp files, it may be useful,
-			// also the line below will not do the trick, since args
-			// are bound when defer is called, not when the function is
-			// called, so it will call Cleanup on empty path :(
-			//defer outputVolume.Cleanup()
+			// if there was a problem with getting a TestRun case, then we cannot process it
+			// and we go for next iteration of loop trying to get another TestRun case
+			if !isOk {
+				continue
+			}
 
-			result := func() string {
-				ctx := context.Background()
+			func() {
+				// This is to always log last request, in case something went terribly bad
+				defer func() {
+					r := recover()
+					if r != nil {
+						log.Panicf("<3>Panicing on message %v", msg.MetaData) // just fail quickly
+					} else {
+						log.Println("<6>Finished processing of message.")
+					}
+				}()
 
-				config := docker.DockerConfig{
-					Volumes:     []docker.DockerVolume{},
-					DockerImage: msg.DockerImage,
-					Timeout:     uint16(msg.MaxRunTime),
-					Memory:      int64(msg.Memory * 1024 * 1024),
-					Username:    arguments.DockerUsername,
-					Password:    arguments.DockerPassword,
-				}
+				log.Println("<6>Start processing of message.")
 
-				docker.PullImage(ctx, config)
+				var outputVolume docker.DockerVolume
+				// we do not want to delte the tmp files, it may be useful,
+				// also the line below will not do the trick, since args
+				// are bound when defer is called, not when the function is
+				// called, so it will call Cleanup on empty path :(
+				//defer outputVolume.Cleanup()
 
-				env, err := docker.GetDockerEnv(ctx, msg.DockerImage)
-				if err != nil {
-					return err.Error()
-				}
+				result := func() string {
+					ctx := context.Background()
 
-				outputVolume = getVolume(strings.TrimSpace(env["OUTPUT_PATH"]), false)
+					config := docker.DockerConfig{
+						Volumes:     []docker.DockerVolume{},
+						DockerImage: msg.DockerImage,
+						Timeout:     uint16(msg.MaxRunTime),
+						Memory:      int64(msg.Memory * 1024 * 1024),
+						Username:    arguments.DockerUsername,
+						Password:    arguments.DockerPassword,
+					}
 
-				submissionVolume := getVolume(strings.TrimSpace(env["SUBMISSION_PATH"]), true)
-				defer submissionVolume.Cleanup()
+					docker.PullImage(ctx, config)
 
-				for file, content := range msg.Files {
-					path := filepath.Join(submissionVolume.HostPath, file)
-
-					err := ioutil.WriteFile(path, []byte(content), 0644)
+					env, err := docker.GetDockerEnv(ctx, msg.DockerImage)
 					if err != nil {
-						log.Println("<3>Cannot write submission file", err)
 						return err.Error()
 					}
-				}
 
-				config.Volumes = append(config.Volumes, outputVolume, submissionVolume)
+					outputVolume = getVolume(strings.TrimSpace(env["OUTPUT_PATH"]), false)
 
-				result, err := docker.DockerExec(ctx, config)
+					submissionVolume := getVolume(strings.TrimSpace(env["SUBMISSION_PATH"]), true)
+					defer submissionVolume.Cleanup()
 
-				if err != nil {
-					// There will be some logs already, so just log request json
-					msgJson, errJson := json.Marshal(msg)
-					if errJson != nil {
-						// we are deeply screwed...
-						log.Panicln("<3>Cannot format message as json!", errJson)
+					for file, content := range msg.Files {
+						path := filepath.Join(submissionVolume.HostPath, file)
+
+						err := ioutil.WriteFile(path, []byte(content), 0644)
+						if err != nil {
+							log.Println("<3>Cannot write submission file", err)
+							return err.Error()
+						}
 					}
 
-					log.Println("<3>Error while running docker image on message", string(msgJson))
-					return err.Error()
+					config.Volumes = append(config.Volumes, outputVolume, submissionVolume)
+
+					result, err := docker.DockerExec(ctx, config)
+
+					if err != nil {
+						// There will be some logs already, so just log request json
+						msgJson, errJson := json.Marshal(msg)
+						if errJson != nil {
+							// we are deeply screwed...
+							log.Panicln("<3>Cannot format message as json!", errJson)
+						}
+
+						log.Println("<3>Error while running docker image on message", string(msgJson))
+						return err.Error()
+					}
+
+					return result
+				}()
+
+				// this is path for output from our container (very not standard, but whatever)
+				outputPath := outputVolume.HostPath
+
+				// save whole message there so it will be available in the zip file
+				msgJson, err := json.MarshalIndent(msg, "", " ")
+				if err != nil {
+					log.Println("<4>Cannot save msg to json", err)
+					msgJson = []byte(err.Error())
 				}
 
-				return result
+				tmp, err := ioutil.TempFile(outputPath, "__msg__*.json")
+				if err == nil {
+					_, err = tmp.Write(msgJson)
+					tmp.Close()
+					defer os.Remove(tmp.Name())
+				}
+
+				if err != nil {
+					log.Println("<4>Cannot write json", err)
+				}
+
+				output := map[string]interface{}{"result": result}
+
+				if outputPath != "" {
+					data, err := readJsonData(filepath.Join(outputPath, "students.json"))
+					if err != nil {
+						output["students"] = err.Error()
+					} else {
+						output["students"] = data
+					}
+
+					data, err = readJsonData(filepath.Join(outputPath, "teachers.json"))
+					if err != nil {
+						output["teachers"] = err.Error()
+					} else {
+						output["teachers"] = data
+					}
+				}
+
+				zipdata, err := zipOutputToBase64(outputPath)
+				if err != nil {
+					output["data"] = err
+				} else {
+					output["data"] = zipdata
+				}
+
+				// copy meta from input
+				output["metaData"] = msg.MetaData
+
+				body, err := json.Marshal(output)
+				if err != nil {
+					log.Println("<3>Cannot create json", err)
+					return
+				}
+
+				req, err := http.NewRequest("POST", "http://"+strings.TrimRight(msg.ReturnURL, "/")+"/results", bytes.NewBuffer(body))
+				if err != nil {
+					log.Println("<3>Cannot create request", err)
+					return
+				}
+
+				req.Header.Set("Content-type", "application/json")
+
+				resp, err := httpClient.Do(req)
+				if err != nil {
+					log.Println("<3>Cannot forward request", err)
+					return
+				}
+
+				resp.Body.Close() // no need to defer this
+
+				if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+					log.Println("<3>Forward request failed", resp)
+					return
+				}
 			}()
-
-			// this is path for output from our container (very not standard, but whatever)
-			outputPath := outputVolume.HostPath
-
-			// save whole message there so it will be available in the zip file
-			msgJson, err := json.MarshalIndent(msg, "", " ")
-			if err != nil {
-				log.Println("<4>Cannot save msg to json", err)
-				msgJson = []byte(err.Error())
-			}
-
-			tmp, err := ioutil.TempFile(outputPath, "__msg__*.json")
-			if err == nil {
-				_, err = tmp.Write(msgJson)
-				tmp.Close()
-				defer os.Remove(tmp.Name())
-			}
-
-			if err != nil {
-				log.Println("<4>Cannot write json", err)
-			}
-
-			output := map[string]interface{}{"result": result}
-
-			if outputPath != "" {
-				data, err := readJsonData(filepath.Join(outputPath, "students.json"))
-				if err != nil {
-					output["students"] = err.Error()
-				} else {
-					output["students"] = data
-				}
-
-				data, err = readJsonData(filepath.Join(outputPath, "teachers.json"))
-				if err != nil {
-					output["teachers"] = err.Error()
-				} else {
-					output["teachers"] = data
-				}
-			}
-
-			zipdata, err := zipOutputToBase64(outputPath)
-			if err != nil {
-				output["data"] = err
-			} else {
-				output["data"] = zipdata
-			}
-
-			// copy meta from input
-			output["metaData"] = msg.MetaData
-
-			body, err := json.Marshal(output)
-			if err != nil {
-				log.Println("<3>Cannot create json", err)
-				return
-			}
-
-			req, err := http.NewRequest("POST", "http://"+strings.TrimRight(msg.ReturnURL, "/")+"/results", bytes.NewBuffer(body))
-			if err != nil {
-				log.Println("<3>Cannot create request", err)
-				return
-			}
-
-			req.Header.Set("Content-type", "application/json")
-
-			resp, err := httpClient.Do(req)
-			if err != nil {
-				log.Println("<3>Cannot forward request", err)
-				return
-			}
-
-			resp.Body.Close() // no need to defer this
-
-			if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-				log.Println("<3>Forward request failed", resp)
-				return
-			}
-		}()
+		}
 	}
 }
 
 func Run(ctx context.Context, out io.Writer) int {
+
+	pmCtx, pmCancel := context.WithCancel(ctx)
+
 	log.SetOutput(out)
 	log.SetFlags(0)
 
@@ -475,17 +498,12 @@ func Run(ctx context.Context, out io.Writer) int {
 
 	// start process messages queue
 	go func() {
-		ProcessMessages(exitDone)
+		ProcessMessages(exitDone, pmCtx)
 	}()
 
 	<-signalChan // wait for signal
 	log.Printf("<6>Got SIGINT/SIGTERM, exiting...\n")
-
-	// using 10 sec as timeout so everything has some time to quit
-	func() {
-		_, cancel := context.WithTimeout(ctx, 10*time.Second)
-		defer cancel()
-	}()
+	pmCancel()
 
 	// wait for goroutine to stop
 	exitDone.Wait()
