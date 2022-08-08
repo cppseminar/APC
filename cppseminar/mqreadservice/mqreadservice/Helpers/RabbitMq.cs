@@ -7,8 +7,8 @@ namespace mqreadservice
     {
         public static string? Receive(string mqHostName, string queueName)
         {
-            _ = string.IsNullOrWhiteSpace(mqHostName) ? mqHostName : throw new ArgumentException(nameof(mqHostName));
-            _ = string.IsNullOrWhiteSpace(queueName) ? queueName : throw new ArgumentException(nameof(queueName));
+            _ = !string.IsNullOrWhiteSpace(mqHostName) ? mqHostName : throw new ArgumentException(nameof(mqHostName));
+            _ = !string.IsNullOrWhiteSpace(queueName) ? queueName : throw new ArgumentException(nameof(queueName));
 
             string? message = null;
 
