@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strings"
@@ -20,8 +21,7 @@ import (
 	"services/internal/queue/docker"
 
 	"github.com/xeipuuv/gojsonschema"
-
-	"golang.org/x/sys/unix"
+	// "golang.org/x/sys/unix"   /* here */
 )
 
 type requestMessage struct {
@@ -34,8 +34,6 @@ type requestMessage struct {
 }
 
 var schema *gojsonschema.Schema
-
-//var queue = make(chan requestMessage, 100)
 
 var tr = &http.Transport{
 	ResponseHeaderTimeout:  10 * time.Second,
@@ -240,7 +238,12 @@ func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 
 	defer wg.Done() // let main know we are done cleaning up
 
+	var lastGoodRead = time.Now()
+
+	args := GetArguments()
+
 	for {
+
 		select {
 
 		case <-ctx.Done(): // if cancel() execute
@@ -249,14 +252,9 @@ func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 
 		default:
 
-			log.Println("<6>Get message via http request")
+			log.Println("Get message via http request")
 
-			value, ok := os.LookupEnv("MQ_READ_SVC_ADDR")
-			if !ok {
-				log.Fatal("MqReadService address is not known")
-			}
-
-			resp, err := http.Get(value)
+			resp, err := http.Get(args.MqReadServiceAddr)
 			if err != nil {
 				log.Println(err)
 				continue
@@ -279,9 +277,25 @@ func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 				if resp.StatusCode == 404 {
 					log.Println("Empty response. No messages in input queue.")
 					isOk = false
+
+					// check for idle time
+					diff := time.Since(lastGoodRead).Seconds()
+					log.Println("Idle time: ", diff, " s.")
+
+					if diff > arguments.MaxIdleTime {
+
+						log.Println("max idle time (", args.MaxIdleTime, ") was exceeded.")
+						log.Println("We proceed to shutdown...")
+
+						if err := exec.Command("cmd", "/C", "shutdown", "/s").Run(); err != nil {
+							log.Fatal("Failed to initiate shutdown:", err)
+						}
+
+						return
+					}
 				}
 
-				if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+				if (resp.StatusCode < 200 || resp.StatusCode >= 300) && resp.StatusCode != 404 {
 					log.Println("Error mqreadservice. No messages returned.")
 					isOk = false
 				}
@@ -309,6 +323,10 @@ func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 				if err := json.Unmarshal(body, &msg); err != nil {
 					log.Println("<3>Cannot parse json", err)
 					isOk = false
+				}
+
+				if isOk {
+					lastGoodRead = time.Now()
 				}
 			}()
 
@@ -339,6 +357,7 @@ func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 				//defer outputVolume.Cleanup()
 
 				result := func() string {
+
 					ctx := context.Background()
 
 					config := docker.DockerConfig{
@@ -346,8 +365,11 @@ func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 						DockerImage: msg.DockerImage,
 						Timeout:     uint16(msg.MaxRunTime),
 						Memory:      int64(msg.Memory * 1024 * 1024),
-						Username:    arguments.DockerUsername,
-						Password:    arguments.DockerPassword,
+						//Username:    "apcdevregistry",
+						//Password:    "s+my0XLeylOObOxs67gwO6h7Z8koQJ5=",
+						/* here */
+						Username: args.DockerUsername,
+						Password: args.DockerPassword,
 					}
 
 					docker.PullImage(ctx, config)
@@ -479,7 +501,7 @@ func Run(ctx context.Context, out io.Writer) int {
 	log.SetFlags(0)
 
 	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt, unix.SIGTERM)
+	signal.Notify(signalChan, os.Interrupt /*, unix.SIGTERM */) /* here */
 	defer signal.Stop(signalChan)
 
 	log.Println("<6>Queued is starting.")
