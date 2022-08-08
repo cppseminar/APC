@@ -11,11 +11,11 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"services/internal/queue/docker"
@@ -234,6 +234,21 @@ func zipOutputToBase64(output_path string) (string, error) {
 	return base64.StdEncoding.EncodeToString(data), nil
 }
 
+// Exit causes the virtual machine to exit. Exit never returns to the caller.
+func Exit() {
+	var err error
+	err = syscall.Reboot(syscall.LINUX_REBOOT_CMD_POWER_OFF)
+	if err != nil {
+		log.Printf("power off failed: %v", err)
+	}
+	err = syscall.Reboot(syscall.LINUX_REBOOT_CMD_HALT)
+	if err != nil {
+		log.Printf("halt failed: %v", err)
+	}
+	os.Exit(1)
+	select {}
+}
+
 func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 
 	defer wg.Done() // let main know we are done cleaning up
@@ -287,9 +302,7 @@ func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 						log.Println("max idle time (", args.MaxIdleTime, ") was exceeded.")
 						log.Println("We proceed to shutdown...")
 
-						if err := exec.Command("cmd", "/C", "shutdown", "/s").Run(); err != nil {
-							log.Fatal("Failed to initiate shutdown:", err)
-						}
+						Exit()
 
 						return
 					}
