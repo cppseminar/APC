@@ -21,7 +21,7 @@ import (
 	"services/internal/queue/docker"
 
 	"github.com/xeipuuv/gojsonschema"
-	// "golang.org/x/sys/unix"   /* here */
+	"golang.org/x/sys/unix"
 )
 
 type requestMessage struct {
@@ -365,11 +365,8 @@ func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 						DockerImage: msg.DockerImage,
 						Timeout:     uint16(msg.MaxRunTime),
 						Memory:      int64(msg.Memory * 1024 * 1024),
-						//Username:    "apcdevregistry",
-						//Password:    "s+my0XLeylOObOxs67gwO6h7Z8koQJ5=",
-						/* here */
-						Username: args.DockerUsername,
-						Password: args.DockerPassword,
+						Username:    args.DockerUsername,
+						Password:    args.DockerPassword,
 					}
 
 					docker.PullImage(ctx, config)
@@ -501,7 +498,7 @@ func Run(ctx context.Context, out io.Writer) int {
 	log.SetFlags(0)
 
 	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt /*, unix.SIGTERM */) /* here */
+	signal.Notify(signalChan, os.Interrupt, unix.SIGTERM)
 	defer signal.Stop(signalChan)
 
 	log.Println("<6>Queued is starting.")
