@@ -277,8 +277,6 @@ func processMessages(ctx context.Context, wg *sync.WaitGroup) {
 				Memory:     2048,
 			}
 
-			//var isOk = true
-
 			readOk := func() (isOk bool) {
 				defer resp.Body.Close()
 
