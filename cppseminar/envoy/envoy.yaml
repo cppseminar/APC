@@ -26,9 +26,13 @@ static_resources:
                         - '*'
                       routes:
                         - match:
+                            path_separated_prefix: /mqread
+                          route:
+                            cluster: mqread-service
+                        - match:
                             path_separated_prefix: /user
                           route:
-                            cluster: user-service
+                            cluster: user-service                            
                         - match:
                             path_separated_prefix: /submission
                           route:
@@ -56,6 +60,17 @@ static_resources:
                       path: /dev/stdout
 
   clusters:
+    - name: mqread-service
+      type: strict_dns
+      load_assignment:
+        cluster_name: mqread-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: mqreadservice.local
+                      port_value: 80        
     - name: user-service
       type: strict_dns
       load_assignment:
@@ -66,7 +81,7 @@ static_resources:
                   address:
                     socket_address:
                       address: userservice.local
-                      port_value: 80
+                      port_value: 80                                    
     - name: test-service
       type: strict_dns
       load_assignment:
