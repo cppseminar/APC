@@ -103,6 +103,26 @@ services:
           test: ['CMD', 'curl', '-f', 'http://localhost/healthcheck']
           timeout: 10s
 
+    mqreadservice.local:
+        build:
+            context: ./mqreadservice
+            target: dev
+        networks:
+            - sharednet
+        volumes:
+            - ./mqreadservice/Program.cs:/src/Program.cs
+            - ./mqreadservice/Controllers:/src/Controllers
+            - ./mqreadservice/Models:/src/Models
+            - ./mqreadservice/Helpers:/src/Helpers
+        ports:
+            - 8085:80
+        environment:
+            LOG_PRETTY: 1
+            TEST_INPUT_QUEUE: test-input
+            MQ_URI: amqp://rabbitmq.local/
+            VM_TEST_RETURN_ADDR: ${VM_TEST_RETURN_ADDR}:8084
+        restart: always
+
     azurite.local:
         image: mcr.microsoft.com/azure-storage/azurite:3.14.0
         volumes:
@@ -124,21 +144,6 @@ services:
             AZURITE_ACCOUNTS: azuriteuser:UGFzc3dvcmQxMjMhfg==
 # Connection string:
 # DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://localhost:10000/azuriteuser;
-
-    vmtestqueue.local:
-        build:
-            context: ./vm-test-queue
-        networks:
-            - sharednet
-        depends_on:
-            - rabbitmq.local
-            - testservice.local
-        environment:
-            LOG_PRETTY: 1
-            SUBMISSION_QUEUE_NAME: test-input
-            VM_TEST_SERVER: vmtestserver.local:80
-            RABBIT_MQ: rabbitmq.local
-        restart: always
 
     vmtestserver.local:
         build:
@@ -229,6 +234,3 @@ networks:
 volumes:
     azurite_data:
     cosmosdb_data:
-
-
-
