@@ -235,21 +235,18 @@ func zipOutputToBase64(output_path string) (string, error) {
 }
 
 // Exit causes the virtual machine to exit. Exit never returns to the caller.
-func Exit() {
+func exit() {
 	var err error
 	err = syscall.Reboot(syscall.LINUX_REBOOT_CMD_POWER_OFF)
 	if err != nil {
-		log.Printf("power off failed: %v", err)
+		log.Printf("<3>power off failed: %v", err)
 	}
-	err = syscall.Reboot(syscall.LINUX_REBOOT_CMD_HALT)
-	if err != nil {
-		log.Printf("halt failed: %v", err)
-	}
+
 	os.Exit(1)
 	select {}
 }
 
-func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
+func processMessages(ctx context.Context, wg *sync.WaitGroup) {
 
 	defer wg.Done() // let main know we are done cleaning up
 
@@ -262,12 +259,12 @@ func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 		select {
 
 		case <-ctx.Done(): // if cancel() execute
-			log.Println("Gracefully canceling ProcessMessages loop...")
+			log.Println("<6>Gracefully canceling ProcessMessages loop...")
 			return
 
 		default:
 
-			log.Println("Get message via http request")
+			log.Println("<6>Get message via http request")
 
 			resp, err := http.Get(args.MqReadServiceAddr)
 			if err != nil {
@@ -280,43 +277,40 @@ func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 				Memory:     2048,
 			}
 
-			var isOk = true
+			//var isOk = true
 
-			func() {
-				defer func() {
-					resp.Body.Close()
-				}()
+			readOk := func() (isOk bool) {
+				defer resp.Body.Close()
 
-				log.Println("Status code returned from HTTP GET ", resp.StatusCode)
+				log.Println("<6>Status code returned from HTTP GET ", resp.StatusCode)
 
 				if resp.StatusCode == 404 {
-					log.Println("Empty response. No messages in input queue.")
-					isOk = false
+					log.Println("<6>Empty response. No messages in input queue.")
 
 					// check for idle time
 					diff := time.Since(lastGoodRead).Seconds()
-					log.Println("Idle time: ", diff, " s.")
+					log.Println("<6>Idle time: ", diff, " s.")
 
 					if diff > arguments.MaxIdleTime {
 
-						log.Println("max idle time (", args.MaxIdleTime, ") was exceeded.")
-						log.Println("We proceed to shutdown...")
+						log.Println("<6>max idle time (", args.MaxIdleTime, ") was exceeded.")
+						log.Println("<6>We proceed to shutdown...")
 
-						Exit()
-
-						return
+						exit()
 					}
+
+					return false
 				}
 
 				if (resp.StatusCode < 200 || resp.StatusCode >= 300) && resp.StatusCode != 404 {
-					log.Println("Error mqreadservice. No messages returned.")
-					isOk = false
+					log.Println("<4>Error mqreadservice. No messages returned.")
+					return false
 				}
 
 				body, err := ioutil.ReadAll(resp.Body)
 				if err != nil {
 					log.Println(err)
-					isOk = false
+					return false
 				}
 
 				// check payload against json scheme to validate it
@@ -324,28 +318,28 @@ func ProcessMessages(wg *sync.WaitGroup, ctx context.Context) {
 
 				result, err := schema.Validate(jsonDocument)
 				if err != nil {
-					log.Println("<3>Cannot validate json against schema", err)
-					isOk = false
+					log.Println("<4>Cannot validate json against schema", err)
+					return false
 				}
 
 				if !result.Valid() {
-					log.Println("<3>Json schema validation failed", result.Errors())
-					isOk = false
+					log.Println("<4>Json schema validation failed", result.Errors())
+					return false
 				}
 
 				if err := json.Unmarshal(body, &msg); err != nil {
-					log.Println("<3>Cannot parse json", err)
-					isOk = false
+					log.Println("<4>Cannot parse json", err)
+					return false
 				}
 
-				if isOk {
-					lastGoodRead = time.Now()
-				}
+				lastGoodRead = time.Now()
+
+				return true
 			}()
 
 			// if there was a problem with getting a TestRun case, then we cannot process it
 			// and we go for next iteration of loop trying to get another TestRun case
-			if !isOk {
+			if !readOk {
 				continue
 			}
 
@@ -530,7 +524,7 @@ func Run(ctx context.Context, out io.Writer) int {
 
 	// start process messages queue
 	go func() {
-		ProcessMessages(exitDone, pmCtx)
+		processMessages(pmCtx, exitDone)
 	}()
 
 	<-signalChan // wait for signal

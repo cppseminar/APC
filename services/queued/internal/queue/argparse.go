@@ -24,14 +24,19 @@ func parseArgs() Arguments {
 
 	var result Arguments
 
+	if *configFile == "" {
+		log.Println("<3>Cannot find config file")
+		os.Exit(1)
+	}
+
 	if *configFile != "" {
 		content, err := ioutil.ReadFile(*configFile)
 		if err != nil {
-			log.Println("<3>Cannot read file, error:", err)
+			log.Println("<3>Cannot read config file, error:", err)
 			os.Exit(1)
 		}
 		if err := json.Unmarshal(content, &result); err != nil {
-			log.Println("<3>Cannot parse json, error:", err)
+			log.Println("<3>Cannot parse config file, error:", err)
 			os.Exit(1)
 		}
 	}
