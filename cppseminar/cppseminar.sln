@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31424.327
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "presentation", "presentation\presentation.csproj", "{1284B0D6-CCFE-4881-924D-65E0595D8190}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "userservice", "userservice\userservice.csproj", "{3D56A18E-6EA3-4866-8116-CE18579BBB32}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "testservice", "testservice\testservice.csproj", "{C0376F36-7F71-4B7C-8369-9EA3FCDB363B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mqreadservice", "mqreadservice\mqreadservice.csproj", "{5690AD8C-3EC1-477A-B65E-3AA5089C2B59}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{C0376F36-7F71-4B7C-8369-9EA3FCDB363B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0376F36-7F71-4B7C-8369-9EA3FCDB363B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C0376F36-7F71-4B7C-8369-9EA3FCDB363B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5690AD8C-3EC1-477A-B65E-3AA5089C2B59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5690AD8C-3EC1-477A-B65E-3AA5089C2B59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5690AD8C-3EC1-477A-B65E-3AA5089C2B59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5690AD8C-3EC1-477A-B65E-3AA5089C2B59}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
