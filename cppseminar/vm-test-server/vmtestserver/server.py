@@ -1,6 +1,6 @@
 from flask import Flask, request
 
-from .requests import process_test, process_results
+from .requests import process_results
 
 app = Flask(__name__)
 

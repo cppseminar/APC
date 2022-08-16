@@ -9,7 +9,7 @@ import uuid
 import contextlib
 import pika
 
-from .blob import download_file, upload_file_and_get_token, AzureFileError
+from .blob import upload_file_and_get_token, AzureFileError
 
 TEMP_DIR = tempfile.mkdtemp(prefix='upload')
 
