@@ -15,7 +15,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"services/internal/queue/docker"
@@ -235,22 +234,22 @@ func zipOutputToBase64(output_path string) (string, error) {
 }
 
 // Exit causes the virtual machine to exit. Exit never returns to the caller.
-func exit() {
-	var err error
-	err = syscall.Reboot(syscall.LINUX_REBOOT_CMD_POWER_OFF)
-	if err != nil {
-		log.Printf("<3>power off failed: %v", err)
-	}
+// func exit() {
+// 	var err error
+// 	err = syscall.Reboot(syscall.LINUX_REBOOT_CMD_POWER_OFF)
+// 	if err != nil {
+// 		log.Printf("<3>power off failed: %v", err)
+// 	}
 
-	os.Exit(1)
-	select {}
-}
+// 	os.Exit(1)
+// 	select {}
+// }
 
 func processMessages(ctx context.Context, wg *sync.WaitGroup) {
 
 	defer wg.Done() // let main know we are done cleaning up
 
-	var lastGoodRead = time.Now()
+	//var lastGoodRead = time.Now()
 
 	args := GetArguments()
 
@@ -286,16 +285,16 @@ func processMessages(ctx context.Context, wg *sync.WaitGroup) {
 					log.Println("<6>Empty response. No messages in input queue.")
 
 					// check for idle time
-					diff := time.Since(lastGoodRead).Seconds()
-					log.Println("<6>Idle time: ", diff, " s.")
+					// diff := time.Since(lastGoodRead).Seconds()
+					// log.Println("<6>Idle time: ", diff, " s.")
 
-					if diff > arguments.MaxIdleTime {
+					// if diff > arguments.MaxIdleTime {
 
-						log.Println("<6>max idle time (", args.MaxIdleTime, ") was exceeded.")
-						log.Println("<6>We proceed to shutdown...")
+					// 	log.Println("<6>max idle time (", args.MaxIdleTime, ") was exceeded.")
+					// 	log.Println("<6>We proceed to shutdown...")
 
-						exit()
-					}
+					// 	exit()
+					// }
 
 					return false
 				}
@@ -330,7 +329,7 @@ func processMessages(ctx context.Context, wg *sync.WaitGroup) {
 					return false
 				}
 
-				lastGoodRead = time.Now()
+				//lastGoodRead = time.Now()
 
 				return true
 			}()
