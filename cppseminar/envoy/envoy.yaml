@@ -32,7 +32,7 @@ static_resources:
                         - match:
                             path_separated_prefix: /user
                           route:
-                            cluster: user-service                            
+                            cluster: user-service
                         - match:
                             path_separated_prefix: /submission
                           route:
@@ -70,7 +70,7 @@ static_resources:
                   address:
                     socket_address:
                       address: mqreadservice.local
-                      port_value: 80        
+                      port_value: 80
     - name: user-service
       type: strict_dns
       load_assignment:
@@ -81,7 +81,7 @@ static_resources:
                   address:
                     socket_address:
                       address: userservice.local
-                      port_value: 80                                    
+                      port_value: 80
     - name: test-service
       type: strict_dns
       load_assignment:
