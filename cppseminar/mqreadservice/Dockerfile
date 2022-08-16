@@ -1,17 +1,16 @@
-#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
 EXPOSE 80
-EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["mqreadservice/mqreadservice.csproj", "mqreadservice/"]
-RUN dotnet restore "mqreadservice/mqreadservice.csproj"
+COPY ["mqreadservice.csproj", "./mqreadservice.csproj"]
+RUN dotnet restore "mqreadservice.csproj"
 COPY . .
-WORKDIR "/src/mqreadservice"
 RUN dotnet build "mqreadservice.csproj" -c Release -o /app/build
+
+FROM build as dev
+CMD dotnet watch run --urls=http://0.0.0.0:80
 
 FROM build AS publish
 RUN dotnet publish "mqreadservice.csproj" -c Release -o /app/publish
