@@ -276,7 +276,7 @@ func processMessages(ctx context.Context, wg *sync.WaitGroup) {
 				Memory:     2048,
 			}
 
-			readOk := func() (isOk bool) {
+			readOk := func() bool {
 				defer resp.Body.Close()
 
 				log.Println("<6>Status code returned from HTTP GET ", resp.StatusCode)
@@ -299,7 +299,7 @@ func processMessages(ctx context.Context, wg *sync.WaitGroup) {
 					return false
 				}
 
-				if (resp.StatusCode < 200 || resp.StatusCode >= 300) && resp.StatusCode != 404 {
+				if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 					log.Println("<4>Error mqreadservice. No messages returned.")
 					return false
 				}

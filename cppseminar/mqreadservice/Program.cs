@@ -15,8 +15,6 @@ namespace mqreadservice
 
             var app = builder.Build();
 
-            app.UseHttpsRedirection();
-
             app.MapControllers();
 
             if (app.Environment.IsDevelopment())
