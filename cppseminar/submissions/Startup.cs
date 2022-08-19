@@ -1,6 +1,4 @@
 using System;
-using System.Net.Http;
-using System.Net.Security;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,8 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
-using Microsoft.Azure.Cosmos;
 using submissions.Data;
 using submissions.Services;
 
@@ -30,10 +26,6 @@ namespace submissions
         {
 
             services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "submissions", Version = "v1" });
-            });
             services.AddDbContext<CosmosContext>(
                 options =>
                 {
@@ -50,8 +42,6 @@ namespace submissions
                     section.Bind(cosmosSettings);
                     Validator.ValidateObject(cosmosSettings, new ValidationContext(cosmosSettings), true);
                     options.UseCosmos(cosmosSettings.ConnectionString, cosmosSettings.DatabaseName);
-                    // TODO: Delete
-                    //options.LogTo(Console.WriteLine);
                 });
             services.AddSingleton<StorageService>();
 
@@ -64,12 +54,6 @@ namespace submissions
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(options =>
-                {
-                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-                    options.RoutePrefix = string.Empty;
-                });
             }
 
             app.UseRouting();
