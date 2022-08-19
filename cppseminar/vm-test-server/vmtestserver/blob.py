@@ -2,7 +2,7 @@ import contextlib
 import os
 import datetime
 
-# from urllib.parse import urlparse
+from urllib.parse import urlparse
 from azure.storage.blob import BlobServiceClient, generate_blob_sas
 from azure.core.exceptions import ResourceExistsError
 

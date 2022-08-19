@@ -233,23 +233,9 @@ func zipOutputToBase64(output_path string) (string, error) {
 	return base64.StdEncoding.EncodeToString(data), nil
 }
 
-// Exit causes the virtual machine to exit. Exit never returns to the caller.
-// func exit() {
-// 	var err error
-// 	err = syscall.Reboot(syscall.LINUX_REBOOT_CMD_POWER_OFF)
-// 	if err != nil {
-// 		log.Printf("<3>power off failed: %v", err)
-// 	}
-
-// 	os.Exit(1)
-// 	select {}
-// }
-
 func processMessages(ctx context.Context, wg *sync.WaitGroup) {
 
 	defer wg.Done() // let main know we are done cleaning up
-
-	//var lastGoodRead = time.Now()
 
 	args := GetArguments()
 
@@ -283,19 +269,6 @@ func processMessages(ctx context.Context, wg *sync.WaitGroup) {
 
 				if resp.StatusCode == 404 {
 					log.Println("<6>Empty response. No messages in input queue.")
-
-					// check for idle time
-					// diff := time.Since(lastGoodRead).Seconds()
-					// log.Println("<6>Idle time: ", diff, " s.")
-
-					// if diff > arguments.MaxIdleTime {
-
-					// 	log.Println("<6>max idle time (", args.MaxIdleTime, ") was exceeded.")
-					// 	log.Println("<6>We proceed to shutdown...")
-
-					// 	exit()
-					// }
-
 					return false
 				}
 
@@ -328,8 +301,6 @@ func processMessages(ctx context.Context, wg *sync.WaitGroup) {
 					log.Println("<4>Cannot parse json", err)
 					return false
 				}
-
-				//lastGoodRead = time.Now()
 
 				return true
 			}()
