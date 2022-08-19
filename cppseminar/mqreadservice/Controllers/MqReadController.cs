@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using mqreadservice.Models;
+using Serilog;
 using System.Text.Json;
 
 namespace mqreadservice.Controllers
@@ -8,13 +9,12 @@ namespace mqreadservice.Controllers
     [Route("[controller]")]
     public class MqReadController : ControllerBase
     {
-        private readonly ILogger<MqReadController> _logger;
         private readonly IConfiguration _configuration;
-
-        public MqReadController(ILogger<MqReadController> logger, IConfiguration configuration)
+        private readonly ILogger<MqReadController> _logger;
+        public MqReadController(IConfiguration configuration, ILogger<MqReadController> logger)
         {
-            _logger = logger;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpGet()]
@@ -56,12 +56,12 @@ namespace mqreadservice.Controllers
                         tr.files.maincpp = sourceFile;
 
                         _logger.LogDebug("Successfully got TestRun data");
-
                     }
                     else
                     {
                         _logger.LogError("Unable to get source file for a TestRun (blobName: [{blobName}])",
                                 mqtr.metaData);
+
                         return StatusCode(StatusCodes.Status500InternalServerError);
                     }
                 }
@@ -79,6 +79,7 @@ namespace mqreadservice.Controllers
             }
 
             var jsonPayload = JsonSerializer.Serialize<TestRun>(tr);
+
             _logger.LogInformation("Message {jsonPayload} sent in response.", jsonPayload);
 
             return Ok(tr);

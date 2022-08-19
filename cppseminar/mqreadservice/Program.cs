@@ -1,4 +1,7 @@
-using Microsoft.AspNetCore.Builder;
+
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
 
 namespace mqreadservice
 {
@@ -10,7 +13,22 @@ namespace mqreadservice
 
             builder.Services.AddControllers();
 
-            builder.Services.AddEndpointsApiExplorer();
+            if (Environment.GetEnvironmentVariable("LOG_PRETTY") == "1")
+            {
+                builder.Host.UseSerilog((ctx, lc) => lc
+                .MinimumLevel.Verbose()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
+                .Enrich.FromLogContext()
+                .WriteTo.Console());
+            }
+            else
+            {
+                builder.Host.UseSerilog((ctx, lc) => lc
+                .MinimumLevel.Verbose()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
+                .Enrich.FromLogContext()
+                .WriteTo.Console(new RenderedCompactJsonFormatter()));
+            }
 
             var app = builder.Build();
 
