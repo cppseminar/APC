@@ -56,22 +56,3 @@ spec:
             limits:
               memory: 500Mi
               cpu: 500m
-        - name: vm-test-queue
-          image:
-            {{- required "Docker repo required" .Values.dockerRepository | indent 1 -}}
-             /services/vm-test-queue:
-            {{- .Values.releaseLabel }}
-          env:
-            - name: RABBIT_MQ
-              value: rabbitmq-cluster.apc
-            - name: VM_TEST_SERVER
-              value: localhost:80
-            - name: SUBMISSION_QUEUE_NAME
-              value: {{ required "Request queue not defined" .Values.testRequestQueue }}
-          resources:
-            requests:
-              memory: 100Mi
-              cpu: 100m
-            limits:
-              memory: 200Mi
-              cpu: 200m

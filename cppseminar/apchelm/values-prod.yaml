@@ -8,5 +8,6 @@ dockerRepository: apcprodregistry.azurecr.io
 websiteHost: www.cppseminar.net
 testRequestQueue: testInput1
 testResultsQueue: testOutput1
+testInputQueue: testInput1
 LBinternal: 10.1.0.25
 environment: prod

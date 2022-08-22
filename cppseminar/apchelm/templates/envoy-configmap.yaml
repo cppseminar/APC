@@ -46,6 +46,10 @@ data:
                                     path_separated_prefix: /test
                                   route:
                                     cluster: test-service
+                                - match:
+                                    path_separated_prefix: /mqread
+                                  route:
+                                    cluster: mqread-service                                    
                         http_filters:
                           - name: envoy.filters.http.router
                             typed_config:
@@ -89,4 +93,15 @@ data:
                           address:
                             socket_address:
                               address: submissionsservice-service.apc
+                              port_value: 80
+            - name: mqread-service
+              type: strict_dns
+              load_assignment:
+                cluster_name: mqread-service
+                endpoints:
+                  - lb_endpoints:
+                      - endpoint:
+                          address:
+                            socket_address:
+                              address: mqread-service.apc
                               port_value: 80

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apc-mqreadservice
+  namespace: apc
+  labels:
+    app: mqreadservice
+    category: backend
+spec:
+  selector:
+    matchLabels:
+      app: mqreadservice
+  revisionHistoryLimit: 2
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: mqreadservice
+        category: backend
+    spec:
+      imagePullSecrets:
+        - name: container-registry
+      containers:
+        - name: mqreadservice-pod
+          image:
+            {{- required "Docker repo required" .Values.dockerRepository | indent 1 -}}
+             /services/mqreadservice:
+            {{- .Values.releaseLabel }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            requests:
+              memory: 256M
+              cpu: 100m
+            limits:
+              memory: 1G
+              cpu: 200m
+          env:
+            - name: VM_TEST_RETURN_ADDR
+              value: {{ required "No lb ip specified" .Values.LBinternal }}:80          
+            - name: MQ_URI
+              value: amqp://rabbitmq-cluster.apc/
+            - name: TEST_INPUT_QUEUE
+              value:  {{ required "Request queue not defined" .Values.testInputQueue }}

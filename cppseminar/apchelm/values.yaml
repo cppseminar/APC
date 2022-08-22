@@ -8,5 +8,6 @@ dockerRepository: apcdevregistry.azurecr.io
 websiteHost: apc.l33t.party
 testRequestQueue: testInput1
 testResultsQueue: testOutput1
+testInputQueue: testInput1
 LBinternal: 10.14.254.254
 environment: dev

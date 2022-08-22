@@ -107,12 +107,12 @@ jobs:
           push: true
           tags: ${{ env.DOCKER_URL }}/services/vm-test-server:${{ github.sha }}
 
-      - name: Build docker image vm-test-queue
+      - name: Build docker image mqreadservice
         uses: docker/build-push-action@v2
         with:
-          context: ./cppseminar/vm-test-queue
+          context: ./cppseminar/mqreadservice
           push: true
-          tags: ${{ env.DOCKER_URL }}/services/vm-test-queue:${{ github.sha }}
+          tags: ${{ env.DOCKER_URL }}/services/mqreadservice:${{ github.sha }}
 
   upgradeHelm:
     name: Send new version to Kubernetes
