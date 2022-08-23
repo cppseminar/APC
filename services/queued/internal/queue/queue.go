@@ -120,7 +120,7 @@ func getSchema() *gojsonschema.Schema {
 }
 
 func getVolume(guestPath string, readOnly bool) docker.DockerVolume {
-	path, err := ioutil.TempDir("", "dockerVolume")
+	path, err := os.MkdirTemp(os.Getenv("SHARED_DATA_DIR"), "dockerVolume")
 	if err != nil {
 		log.Panicln("<3>Cannot create tmp folder", err)
 	}
