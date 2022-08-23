@@ -15,8 +15,8 @@ namespace presentation.Pages.Admin.Users
     [Authorize("Administrator")]
     public class IndexModel : PageModel
     {
-        private ILogger<IndexModel> _logger;
-        private AuthenticationService _authService;
+        private readonly ILogger<IndexModel> _logger;
+        private readonly AuthenticationService _authService;
 
         public IEnumerable<string> AllUsers = Enumerable.Empty<string>();
         public IDictionary<string, string> Claims { get; set; }

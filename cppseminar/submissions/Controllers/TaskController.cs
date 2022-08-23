@@ -1,11 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using submissions.Data;
-using submissions.Models;
+using Microsoft.Extensions.Logging;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using submissions.Models;
+using submissions.Services;
 
 namespace submissions.Controllers
 {
@@ -13,38 +14,57 @@ namespace submissions.Controllers
     [ApiController]
     public class TaskController : ControllerBase
     {
-        public TaskController(CosmosContext context)
+        public TaskController(TasksService tasks, ILogger<SubmissionController> logger)
         {
-            _context = context;
+            _tasks = tasks;
+            _logger = logger;
         }
 
         [HttpGet]
-        public IAsyncEnumerable<WorkTask> Get()
+        public async Task<ActionResult<List<WorkTask>>> Get()
         {
-            return _context.Tasks.AsAsyncEnumerable();
+            try
+            {
+                return await _tasks.GetAsync(30);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error during retrieval of data. {e}", e);
+                return StatusCode(500);
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<WorkTask>> Get(string id)
         {
-            var result = await _context.Tasks.FirstOrDefaultAsync(task => task.Id == id);
-            if (result == null)
+            try
             {
+                return await _tasks.GetAsync(id);
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning("Cannot find task with id {id}. {e}", id, e);
                 return NotFound();
             }
-            return result;
         }
 
         [HttpPost]
         public async Task<ActionResult> PostAsync([FromBody] WorkTask task)
         {
-            WorkTask fullTask = task.ToDbForm();
-            _context.Tasks.Add(fullTask);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction("Get", fullTask);
+            try
+            {
+                await _tasks.CreateAsync(task);
 
+                return CreatedAtAction("Get", task);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error during creating of task {task}. {e}", JsonSerializer.Serialize(task), e);
+                return StatusCode(500);
+            }
         }
 
-        private CosmosContext _context = null;
+        private readonly TasksService _tasks = null;
+        private readonly ILogger<SubmissionController> _logger = null;
     }
 }

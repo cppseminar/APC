@@ -25,7 +25,7 @@
                 }
                 else
                 {
-                    <td><th:a asp-page="/Tests/Detail" asp-route-guid="@testRun.Id">@testRun.TestCaseName</th:a></td>
+                    <td><th:a asp-page="/Tests/Detail" asp-route-id="@testRun.Id">@testRun.TestCaseName</th:a></td>
                 }
                 <td>@testRun.TaskName</td>
                 <td>@testRun.CreatedAt</td>

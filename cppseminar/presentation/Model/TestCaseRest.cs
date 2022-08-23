@@ -14,7 +14,7 @@ namespace presentation.Model
         [BindNever]
         public string CreatedBy { get; set; }
         [BindNever]
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]
         public string Name { get; set; }

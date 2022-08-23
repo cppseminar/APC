@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace presentation.Model
 {
@@ -10,6 +11,8 @@ namespace presentation.Model
         public string Name { get; set; }
         public string TaskId { get; set; }
         public string TaskName { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public DateTime? SubmittedOn { get; set; }
 
         public static Submission GenerateSubmission(

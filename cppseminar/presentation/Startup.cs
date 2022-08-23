@@ -10,8 +10,9 @@ using Microsoft.Azure.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using presentation.Services;
 using System;
+
+using presentation.Services;
 
 namespace presentation
 {
@@ -60,12 +61,11 @@ namespace presentation
                 IConfigurationSection googleAuthNSection = Configuration.GetSection("GoogleOid");
                 options.ClientId = googleAuthNSection["ClientId"];
                 options.ClientSecret = googleAuthNSection["ClientSecret"];
-                AuthenticationService authInstance = new AuthenticationService(Configuration);
+                AuthenticationService authInstance = new(Configuration);
                 options.Events.OnCreatingTicket = context => AuthenticationService.OnCreateTicketAsync(authInstance, context);
             });
 
-            CloudStorageAccount keyStorageAccount;
-            if (CloudStorageAccount.TryParse(Configuration["STORAGE_CONNECTION_STRING"], out keyStorageAccount))
+            if (CloudStorageAccount.TryParse(Configuration["STORAGE_CONNECTION_STRING"], out CloudStorageAccount keyStorageAccount))
             {
                 CloudBlobClient blobClient = keyStorageAccount.CreateCloudBlobClient();
                 CloudBlobContainer blobContainer = blobClient.GetContainerReference("cookiekeys");
@@ -83,7 +83,6 @@ namespace presentation
                                                                          .Build();
                 options.AddPolicy("Administrator", policy => policy.RequireClaim("isAdmin", "true"));
             });
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

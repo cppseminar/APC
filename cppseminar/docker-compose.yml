@@ -10,6 +10,7 @@ services:
             - ./submissions/Models:/src/Models
             - ./submissions/Services:/src/Services
             - ./submissions/Startup.cs:/src/Startup.cs
+            - ./submissions/Program.cs:/src/Program.cs
         ports:
             - 8081:80
         networks:
@@ -19,11 +20,13 @@ services:
             DOTNET_WATCH_SUPPRESS_MSBUILD_INCREMENTALISM: 1
             DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
             DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
-            CosmosSettings__DatabaseName: apctest
-            CosmosSettings__ConnectionString: ${COSMOS_CONN_STR}
+            MongoDB__DatabaseName: submissionsDb
+            MongoDB__ConnectionString: mongodb://admin:password@mongo.local:27017/
             StorageConnectionString: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
             LOG_PRETTY: 1
         restart: always
+        depends_on:
+            - mongo.local
 
     presentation.local:
         build:
@@ -68,7 +71,8 @@ services:
             - 8082:80
         environment:
             LOG_PRETTY: 1
-            TABLE_STORAGE: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;TableEndpoint=http://azurite.local:10002/azuriteuser;
+            MongoDB__DatabaseName: usersDb
+            MongoDB__ConnectionString: mongodb://admin:password@mongo.local:27017/
         restart: always
 
     testservice.local:
@@ -86,17 +90,19 @@ services:
         ports:
             - 8083:80
         depends_on:
-            rabbitmq.local:
+            rabbitmq.local: 
                 condition: service_healthy
-            azurite.local:
+            azurite.local: 
+                condition: service_started
+            mongo.local: 
                 condition: service_started
         environment:
             TEST_REQUESTS_QUEUE: test-input
             TEST_RESULTS_QUEUE: test-output
             MQ_URI: amqp://rabbitmq.local/
             BLOB_STORAGE_CONNECTION: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
-            COSMOS_CONNECTION_STRING: ${COSMOS_CONN_STR}
-            COSMOS_DB_NAME: apctest
+            MongoDB__DatabaseName: testsDb
+            MongoDB__ConnectionString: mongodb://admin:password@mongo.local:27017/
             LOG_PRETTY: 1
         restart: always
         healthcheck:
@@ -109,12 +115,9 @@ services:
             - azurite_data:/data
         ports:
             - 10000:10000 # blob storage
-            - 10002:10002 # tables
         command:
             - azurite
             - --blobHost
-            - 0.0.0.0
-            - --tableHost
             - 0.0.0.0
             - --location
             - /data
@@ -168,6 +171,7 @@ services:
         healthcheck:
             test: rabbitmq-diagnostics -q ping
 
+
     # docker in docker is needed for test-worker.local
     # it seems like they decided to drop not tls connections 
     # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/27300
@@ -184,6 +188,52 @@ services:
             DOCKER_TLS_CERTDIR: ""
         volumes:
             - worker_shared:/data
+
+    mongo.local:
+        image: mongo:4.0.8
+        restart: always
+        ports:
+            - 27017:27017
+        networks:
+            - sharednet
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: admin
+            MONGO_INITDB_ROOT_PASSWORD: password
+        volumes:
+            - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+            - ./mongo/admins.txt:/data/init/admins.txt:ro
+            - mongo_data:/data/db
+# MongoDB connection string mongodb://admin:password@mongo.local:27017/
+
+    mongo-express.local:
+        image: mongo-express
+        environment:
+            - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+            - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+            - ME_CONFIG_MONGODB_URL=mongodb://admin:password@mongo.local:27017/
+            - ME_CONFIG_BASICAUTH_USERNAME=mexpress
+            - ME_CONFIG_BASICAUTH_PASSWORD=mexpress
+        restart: unless-stopped
+        ports:
+            - 9090:8081
+        networks:
+            - sharednet
+
+    mongo-backup.local:
+        build:
+            context: ../services/mongo-simple-backup
+            target: dev
+        environment:
+            - MONGO_CONN_STR=mongodb://admin:password@mongo.local:27017/
+            - RCLONE_CONFIG_MONGO_BACKUPS_TYPE=azureblob
+            - RCLONE_CONFIG_MONGO_BACKUPS_ACCOUNT=${STORAGE_AZUREBLOB_ACCOUNT}
+            - RCLONE_CONFIG_MONGO_BACKUPS_KEY=${STORAGE_AZUREBLOB_KEY}
+            - RCLONE_CONFIG_MONGO_BACKUPS_ENDPOINT=
+        restart: unless-stopped
+        networks:
+            - sharednet
+        depends_on:
+            - mongo.local
 
     test-worker.local:
         build:
@@ -217,7 +267,4 @@ networks:
 volumes:
     azurite_data:
     worker_shared:
-
-
-
-
+    mongo_data:

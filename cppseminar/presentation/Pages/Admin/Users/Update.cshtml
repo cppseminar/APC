@@ -15,29 +15,29 @@
     <table class="table">
         <tr>
             <td>
-                <th:label asp-for="newUserList.UserList"></th:label>
+                <th:label asp-for="NewUserList.UserList"></th:label>
             </td>
             <td>
-                <th:textarea class="form-control" asp-for="newUserList.UserList"></th:textarea>
-                <th:span asp-validation-for="newUserList.UserList"></th:span>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <th:label asp-for="newUserList.ClaimName"></th:label>
-            </td>
-            <td>
-                <th:input asp-for="newUserList.ClaimName" />
-                <th:span asp-validation-for="newUserList.ClaimName"></th:span>
+                <th:textarea class="form-control" asp-for="NewUserList.UserList"></th:textarea>
+                <th:span asp-validation-for="NewUserList.UserList"></th:span>
             </td>
         </tr>
         <tr>
             <td>
-                <th:label asp-for="newUserList.ClaimValue"></th:label>
+                <th:label asp-for="NewUserList.ClaimName"></th:label>
             </td>
             <td>
-                <th:input asp-for="newUserList.ClaimValue" />
-                <th:span asp-validation-for="newUserList.ClaimValue"></th:span>
+                <th:input asp-for="NewUserList.ClaimName" />
+                <th:span asp-validation-for="NewUserList.ClaimName"></th:span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <th:label asp-for="NewUserList.ClaimValue"></th:label>
+            </td>
+            <td>
+                <th:input asp-for="NewUserList.ClaimValue" />
+                <th:span asp-validation-for="NewUserList.ClaimValue"></th:span>
             </td>
         </tr>
     </table>

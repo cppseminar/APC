@@ -4,11 +4,13 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+
 using presentation.Model;
 
 namespace presentation.Services
@@ -31,7 +33,7 @@ namespace presentation.Services
             {
                 HttpResponseMessage response = await _client.PostAsJsonAsync("tasks/", taskModel, new JsonSerializerOptions
                 {
-                    IgnoreNullValues = true
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 });
                 if (!response.IsSuccessStatusCode)
                 {
@@ -97,7 +99,7 @@ namespace presentation.Services
             }
         }
 
-        private ILogger<TaskService> _logger = null;
-        private HttpClient _client = new HttpClient();
+        private readonly ILogger<TaskService> _logger = null;
+        private readonly HttpClient _client = new();
     }
 }

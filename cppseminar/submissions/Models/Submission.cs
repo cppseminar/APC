@@ -1,61 +1,39 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 
-namespace submissions.Models
+namespace submissions.Models;
+
+public class Submission
 {
-    public class Submission
-    {
-        public string Id { get; set; }
-        [Required]
-        public string TaskId { get; set; }
-        [Required]
-        public string UserEmail { get; set; }
-        // Name is combination of task name and submission date
-        public string Name { get; set; }
-        public string TaskName { get; set; }
-        public System.DateTime SubmittedOn { get; set; }
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; }
+
+    [Required]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string TaskId { get; set; }
+
+    [Required]
+    public string UserEmail { get; set; }
+
+    [Required]
+    public string TaskName { get; set; }
+
+    // Name is combination of task name and submission date
+    public string Name {
+        get => _name ?? $"{TaskName} on {SubmittedOn}";
+        set => _name = value;
     }
 
-    public class SubmissionRest
-    {
-        public SubmissionRest() { }
-        public SubmissionRest(Submission dbSubmission, string content)
-        {
-            TaskId = dbSubmission.TaskId;
-            TaskName = dbSubmission.TaskName;
-            UserEmail = dbSubmission.UserEmail;
-            Content = content;
-            SubmittedOn = dbSubmission.SubmittedOn;
-            Id = dbSubmission.Id;
-        }
-        [Required]
-        public string TaskId { get; set; }
-        [Required]
-        public string TaskName { get; set; }
-        [Required]
-        public string UserEmail { get; set; }
-        [Required]
-        public string Content { get; set; }
-        // Readonly properties:
-        public System.DateTime SubmittedOn { get; }
-        public string Id { get; }
+    public System.DateTime SubmittedOn { get; set; } = DateTime.UtcNow;
 
-        // Shared for submission in db and file storage
-        private Guid _GeneratedId = Guid.NewGuid();
+    [BsonIgnore]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string Content { get; set; }
 
-        public Submission GenerateSubmission()
-        {
-            var timeNow = DateTime.UtcNow;
-            return new Submission()
-            {
-                Id = this._GeneratedId.ToString(),
-                TaskId = this.TaskId,
-                UserEmail = this.UserEmail,
-                SubmittedOn = timeNow,
-                Name = $"{TaskName} on {timeNow}",
-                TaskName = this.TaskName
-            };
-        }
-    }
+    private string _name = null;
 }

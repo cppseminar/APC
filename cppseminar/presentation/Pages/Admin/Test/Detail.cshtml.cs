@@ -20,7 +20,7 @@ namespace presentation.Pages.Admin.Test
         {
             _testService = testService;
         }
-        public async Task OnGetAsync(string userEmail, [Required]Guid testId)
+        public async Task OnGetAsync(string userEmail, [Required]string testId)
         {
             try
             {

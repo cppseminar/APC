@@ -114,6 +114,13 @@ jobs:
           push: true
           tags: ${{ env.DOCKER_URL }}/services/vm-test-queue:${{ github.sha }}
 
+      - name: Build docker image mongo-backup
+        uses: docker/build-push-action@v2
+        with:
+          context: ./services/mongo-simple-backup
+          push: true
+          tags: ${{ env.DOCKER_URL }}/services/mongo-backup:${{ github.sha }}
+
   upgradeHelm:
     name: Send new version to Kubernetes
     runs-on: ubuntu-latest

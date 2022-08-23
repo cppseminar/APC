@@ -1,4 +1,4 @@
-@page "{user}/{submissionId:guid}"
+@page "{user}/{submissionId}"
 @model presentation.Pages.Admin.Submissions.DetailModel
 @using presentation.Services;
 
@@ -59,13 +59,13 @@ else
     <div>
         @await Component.InvokeAsync(
             "TestList",
-            new { userEmail = @Model.CurrentSubmission.UserEmail, taskId = "", submissionId = Model.CurrentSubmission.Id, isAdmin = true })
+            new { userEmail = @Model.CurrentSubmission.UserEmail, submissionId = Model.CurrentSubmission.Id, isAdmin = true })
     </div>
 
     <h3>Your tests</h3>
     <div>
         @await Component.InvokeAsync(
             "TestList",
-            new { userEmail = User.GetEmail(), taskId = "", submissionId = Model.CurrentSubmission.Id, isAdmin = true })
+            new { userEmail = User.GetEmail(), submissionId = Model.CurrentSubmission.Id, isAdmin = true })
     </div>
 }

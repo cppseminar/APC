@@ -42,8 +42,11 @@ spec:
               memory: 1G
               cpu: 200m
           env:
-            - name: TABLE_STORAGE
+            - name: MongoDB__ConnectionString
               valueFrom:
                 secretKeyRef:
-                  key: usersTableConnectionString
-                  name: general-secrets
+                  name: mongo-secrets
+                  key: connectionString
+                  optional: false
+            - name: MongoDB__DatabaseName
+              value: usersDb

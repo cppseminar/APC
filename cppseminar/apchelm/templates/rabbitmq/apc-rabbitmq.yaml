@@ -16,3 +16,6 @@ spec:
     additionalConfig: |
       default_user=guest
       default_pass=guest
+  persistence:
+    storageClassName: standard
+    storage: 2Gi

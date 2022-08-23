@@ -47,10 +47,11 @@ spec:
                 secretKeyRef:
                   key: blobConnectionString
                   name: general-secrets
-            - name: CosmosSettings__DatabaseName
+            - name: MongoDB__DatabaseName
               value: submissionsDb
-            - name: CosmosSettings__ConnectionString
+            - name: MongoDB__ConnectionString
               valueFrom:
                 secretKeyRef:
-                  key: cosmosConnectionString
-                  name: general-secrets
+                  name: mongo-secrets
+                  key: connectionString
+                  optional: false

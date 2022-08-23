@@ -51,16 +51,15 @@ namespace presentation.Services
             }
         }
 
-        public async Task<List<TestRun>> GetTestsAsync(string userEmail, string taskId, string submissionId)
+        public async Task<List<TestRun>> GetTestsAsync(string userEmail, string submissionId)
         {
             userEmail = !string.IsNullOrEmpty(userEmail) ? userEmail : null;
-            taskId = !string.IsNullOrEmpty(taskId) ? taskId : null;
             submissionId = !string.IsNullOrEmpty(submissionId) ? submissionId : null;
 
-            return await RetrieveTestsAsync(userName: userEmail, submissionId: submissionId, taskId: taskId);
+            return await RetrieveTestsAsync(userName: userEmail, submissionId: submissionId);
         }
 
-        public async Task<TestRun> GetOneTest(string userEmail, Guid testId)
+        public async Task<TestRun> GetOneTest(string userEmail, string testId)
         {
             _logger.LogTrace("Retrieving test run {user} {id}", userEmail, testId);
             string uri = $"test/{HttpUtility.UrlEncode(userEmail)}/{testId}";
@@ -78,16 +77,12 @@ namespace presentation.Services
         }
 
         public async Task<List<TestRun>> RetrieveTestsAsync(
-            string userName = null, string taskId = null, string submissionId = null)
+            string userName = null, string submissionId = null)
         {
             var query = "?";
             if (submissionId != null)
             {
                 query += $"submissionId={HttpUtility.UrlEncode(submissionId)}&";
-            }
-            if (taskId != null)
-            {
-                query += $"taskId={HttpUtility.UrlEncode(taskId)}&";
             }
 
             var response = await _client.GetAsync(

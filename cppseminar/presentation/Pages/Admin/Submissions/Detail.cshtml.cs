@@ -12,12 +12,12 @@ namespace presentation.Pages.Admin.Submissions
 {
     public class DetailModel : PageModel
     {
-        private SubmissionService _submissionService;
-        private TestCaseService _testCaseService;
-        private TestService _testService;
+        private readonly SubmissionService _submissionService;
+        private readonly TestCaseService _testCaseService;
+        private readonly TestService _testService;
 
         [BindProperty]
-        public Guid TestGuid { get; set; }
+        public string TestGuid { get; set; }
 
         public Submission CurrentSubmission { get; set; }
         public List<TestCaseRest> TestCaseList { get; set; }
@@ -34,7 +34,7 @@ namespace presentation.Pages.Admin.Submissions
 
         public async Task OnGetAsync(
             [FromRoute][Required]string user,
-            [FromRoute][Required]Guid submissionId)
+            [FromRoute][Required]string submissionId)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace presentation.Pages.Admin.Submissions
 
         public async Task<ActionResult> OnPostAsync(
             [FromRoute][Required] string user,
-            [FromRoute][Required] Guid submissionId)
+            [FromRoute][Required] string submissionId)
         {
             if (!ModelState.IsValid)
             {

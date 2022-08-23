@@ -17,11 +17,10 @@ namespace presentation.Pages.Shared.Components.TestList
         }
         public async Task<IViewComponentResult> InvokeAsync(
             string userEmail,
-            string taskId,
             string submissionId,
             bool isAdmin = false)
         {
-            var items = await _testService.GetTestsAsync(userEmail, taskId, submissionId);
+            var items = await _testService.GetTestsAsync(userEmail, submissionId);
             ViewData["IsAdmin"] = isAdmin;
             return View(items);
         }

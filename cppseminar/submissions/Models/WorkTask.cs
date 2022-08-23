@@ -1,43 +1,35 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using Newtonsoft.Json;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
-namespace submissions.Models
+namespace submissions.Models;
+
+public class WorkTask
 {
-    public class WorkTask
-    {
-        public WorkTask ToDbForm() => new WorkTask()
-        {
-            Id = Guid.NewGuid().ToString(),
-            Name = this.Name,
-            ClaimName = this.ClaimName ?? "",
-            ClaimValue = this.ClaimValue ?? "",
-            Description = this.Description,
-            Ends = this.Ends,
-            CreatedBy = this.CreatedBy,
-            CreatedOn = DateTime.UtcNow
-        };
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; }
 
-        public string Id { get; set; }
-        [Required]
-        public string Name { get; set; }
-        public string ClaimName { get; set; }
-        public string ClaimValue { get; set; }
-        [Required]
-        public string Description { get; set; }
-        [Required]
-        public string CreatedBy { get; set; }
-        public DateTime CreatedOn { get; set; }
-        public DateTime Ends
-        {
-            get
-            {
-                DateTime result = ends
-                                  ?? new DateTime(DateTime.Now.Year + 1, 1, 1);
-                return result;
-            }
-            set => ends = value;
-        }
-        private DateTime? ends = null;
+    [Required]
+    public string Name { get; set; }
+
+    public string ClaimName { get; set; }
+
+    public string ClaimValue { get; set; }
+
+    [Required]
+    public string Description { get; set; }
+
+    [Required]
+    public string CreatedBy { get; set; }
+
+    public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+
+    public DateTime Ends
+    {
+        get => ends ?? new DateTime(CreatedOn.Year + 1, CreatedOn.Month, CreatedOn.Day);
+        set => ends = value;
     }
+    private DateTime? ends = null;
 }

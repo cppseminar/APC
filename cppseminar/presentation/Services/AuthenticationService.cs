@@ -7,6 +7,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Configuration;
 using presentation.Model;
+using System.Net;
 
 namespace presentation.Services
 {
@@ -16,7 +17,7 @@ namespace presentation.Services
     // TODO: Use different method to obtain claims, and add logging here
     public class AuthenticationService
     {
-        private HttpClient _client = new HttpClient();
+        private readonly HttpClient _client = new();
 
         public AuthenticationService(IConfiguration config)
         {
@@ -41,6 +42,11 @@ namespace presentation.Services
         public async Task<IDictionary<string, string>> GetUserClaimsAsync(string userEmail)
         {
             HttpResponseMessage response = await _client.GetAsync($"/user/{userEmail}");
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new Dictionary<string, string>();
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 throw new OperationFailedException($"Error on claims retrieval {response.StatusCode}");

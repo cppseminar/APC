@@ -31,6 +31,8 @@ namespace presentation.Pages.Admin.Submissions
             }
             catch (OperationFailedException e)
             {
+                _logger.LogError("Cannot retrieve submissions {user}. {e}", SelectedUser, e);
+
                 ModelState.AddModelError(string.Empty, e.Message);
             }
 
@@ -44,6 +46,8 @@ namespace presentation.Pages.Admin.Submissions
             }
             catch (Exception e)
             {
+                _logger.LogError("Cannot retrieve all user set. {e}", e);
+
                 ModelState.AddModelError(string.Empty, e.Message);
             }
         }
@@ -56,8 +60,8 @@ namespace presentation.Pages.Admin.Submissions
         public List<SelectListItem> Users = null;
 
 
-        private ILogger<ListModel> _logger = null;
-        private SubmissionService _submissionService = null;
-        private AuthenticationService _authService = null;
+        private readonly ILogger<ListModel> _logger = null;
+        private readonly SubmissionService _submissionService = null;
+        private readonly AuthenticationService _authService = null;
     }
 }

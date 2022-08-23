@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mongo-db-backup
+  namespace: apc
+spec:
+  schedule: "0 3,12 * * *"
+  successfulJobsHistoryLimit: 14
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          imagePullSecrets:
+          - name: container-registry
+          containers:
+          - name: mongo-db-backup
+            image: 
+            {{- required "Docker repo required" .Values.dockerRepository | indent 1 -}}
+             /services/mongo-backup:
+            {{- .Values.releaseLabel }}
+            imagePullPolicy: Always
+            env:
+            - name: MONGO_CONN_STR
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secrets
+                  key: connectionString
+                  optional: false
+            - name: RCLONE_CONFIG_MONGO_BACKUPS_TYPE
+              value: azureblob
+            - name: RCLONE_CONFIG_MONGO_BACKUPS_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: general-secrets
+                  key: blobAccountName
+                  optional: false
+            - name: RCLONE_CONFIG_MONGO_BACKUPS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: general-secrets
+                  key: blobAccountKey
+                  optional: false
+          restartPolicy: OnFailure

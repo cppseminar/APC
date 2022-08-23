@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
@@ -25,7 +26,7 @@ namespace presentation.Services
 
         public async Task<IList<Submission>> GetUserSubmissionsAsync(string userEmail)
         {
-            userEmail = userEmail ?? "";
+            userEmail ??= "";
             userEmail = HttpUtility.UrlEncode(userEmail);
             _logger.LogTrace("Requesting submissions from service");
             try
@@ -34,12 +35,12 @@ namespace presentation.Services
                 if (message.IsSuccessStatusCode)
                 {
                     var submissions = await message.Content.ReadAsAsync<List<Submission>>();
-                    _logger.LogTrace($"Retrieved {submissions.Count} submissions");
+                    _logger.LogTrace("Retrieved {} submissions", submissions.Count);
                     return submissions;
                 }
                 else
                 {
-                    _logger.LogWarning($"Code {message.StatusCode} reason {message.ReasonPhrase}");
+                    _logger.LogWarning("Code {} reason {}", message.StatusCode, message.ReasonPhrase);
                     throw new OperationFailedException();
                 }
             }
@@ -66,7 +67,8 @@ namespace presentation.Services
             {
                 _logger.LogTrace("Posting new {submission}", submission);
                 // TODO: We should distinguish deadline errors from operation errors
-                HttpResponseMessage message = await _client.PostAsJsonAsync("/submission/", submission);
+                HttpContent content = new StringContent(JsonSerializer.Serialize(submission), Encoding.UTF8, "application/json");
+                HttpResponseMessage message = await _client.PostAsync("/submission/", content);
                 if (message.IsSuccessStatusCode)
                 {
                     _logger.LogTrace("Submission POST returned success");
@@ -80,7 +82,7 @@ namespace presentation.Services
                         PropertyNameCaseInsensitive = true
                     };
                     RestError restError = JsonSerializer.Deserialize<RestError>(stringJsonError, jsonOptions);
-                    _logger.LogWarning("Post submission returned {status}, errors: {errorList}", (int)message.StatusCode, restError.GetErrors());
+                    _logger.LogWarning("Post submission {obj} returned {status}, errors: {errorList}", JsonSerializer.Serialize(submission), (int)message.StatusCode, restError.GetErrors());
                     throw new OperationFailedException();
                 }
             }
@@ -130,9 +132,8 @@ namespace presentation.Services
             throw new OperationFailedException();
         }
 
-
-        private HttpClient _client = new HttpClient();
-        private ILogger<SubmissionService> _logger = null;
+        private readonly HttpClient _client = new();
+        private readonly ILogger<SubmissionService> _logger = null;
     }
 
 }

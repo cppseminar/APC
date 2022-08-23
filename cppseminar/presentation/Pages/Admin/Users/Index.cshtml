@@ -7,7 +7,7 @@
 @if (Model.AllUsers.Count<string>() != 0)
 {
     <div align="right">
-        <p><th:a asp-page="/Admin/Users/Update">Update user list</th:a></p>
+        <p><th:a class="btn btn-primary" asp-page="/Admin/Users/Update">Update user list</th:a></p>
     </div>
 
     <table class="table">
@@ -18,10 +18,6 @@
             </tr>
         }
     </table>
-
-    <div align="right">
-        <p><th:a asp-page="/Admin/Users/Update">Update user list</th:a></p>
-    </div>
 }
 
 @if (Model.Claims != null)

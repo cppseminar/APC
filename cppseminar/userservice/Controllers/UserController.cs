@@ -2,54 +2,93 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 using userservice.Models;
 using userservice.Services;
 
-namespace userservice.Controllers
+namespace userservice.Controllers;
+
+[Route("[controller]")]
+[ApiController]
+public class UserController : ControllerBase
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class UserController : ControllerBase
+    private readonly ILogger<UserController> _logger;
+    private readonly UsersService _service;
+
+    public UserController(ILogger<UserController> logger, UsersService service)
     {
-        private ILogger<UserController> _logger;
-        private UserDbService _service;
+        _logger = logger;
+        _service = service;
+    }
 
-        public UserController(ILogger<UserController> logger, UserDbService service)
+    [HttpGet]
+    public async Task<IEnumerable<string>> OnGetAsync()
+    {
+        var users = await _service.GetAsync();
+        return users.Select(x => x.UserEmail);
+    }
+
+    [HttpGet("{email}")]
+    public async Task<ActionResult<User>> GetUserClaims([FromRoute]string email)
+    {
+        try
         {
-            _logger = logger;
-            _service = service;
+            return await _service.GetAsync(email);
         }
-
-        [HttpGet]
-        public async Task<IEnumerable<string>> OnGetAsync()
+        catch (InvalidOperationException e)
         {
-            return await _service.GetAllUsersAsync();
+            _logger.LogWarning("User {user} not found. {e}", email, e);
+
+            return NotFound();
         }
-
-        [HttpGet("{email}")]
-        public async Task<ActionResult<UserModel>> GetUserClaims([FromRoute]string email)
+        catch (Exception e)
         {
-            return await _service.GetUserAync(email);
+            _logger.LogError("Exception occuret while retrieving user {email}. {e}", email, e);
+
+            return StatusCode(500);
         }
+    }
 
-        [HttpPost]
-        public async Task<IActionResult> UpdateListOfUsers([FromBody] List<UserModel> listOfUsers)
+    [HttpPost]
+    public async Task<IActionResult> UpdateListOfUsers([FromBody] List<User> users)
+    {
+        try
         {
-            try
+            foreach (var user in users)
             {
-                await _service.UpdateListOfUsers(listOfUsers);
+                User dbUser = new();
+                try
+                {
+                    dbUser = await _service.GetAsync(user.UserEmail);
+                }
+                catch (InvalidOperationException)
+                {
+                    _logger.LogInformation("User {email} not in database we create it.", user.UserEmail);
 
-                return StatusCode(201);
+                    dbUser.UserEmail = user.UserEmail;
+                    dbUser.Claims = new Dictionary<string, string>();
+
+                    await _service.CreateAsync(dbUser);
+                }
+
+                _logger.LogTrace("Updating claims in db entry.");
+                foreach (var item in user.Claims)
+                {
+                    dbUser.Claims[item.Key] = item.Value;
+                }
+
+                _logger.LogTrace("Saving to DB.");
+                await _service.UpdateAsync(dbUser);
             }
-            catch (Exception e)
-            {
-                _logger.LogError("Problem in [UploadListOfUsers] action: {e.Message}", e.Message);
-                return StatusCode(500, "Update failed.");
-            }
+
+            return StatusCode(201);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Problem with updating of users action: {e}", e);
+
+            return StatusCode(500, "Update failed.");
         }
     }
 }

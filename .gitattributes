@@ -1,0 +1,2 @@
+# All shell files shout use LF even on Windows.
+*.sh text eol=lf

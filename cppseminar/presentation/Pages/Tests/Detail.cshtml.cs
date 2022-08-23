@@ -12,8 +12,9 @@ namespace presentation.Pages.Tests
 {
     public class DetailModel : PageModel
     {
-        private ILogger<DetailModel> _logger;
-        private TestService _testService;
+        private readonly ILogger<DetailModel> _logger;
+        private readonly TestService _testService;
+
         public TestRun TestRunResult;
 
         public DetailModel(ILogger<DetailModel> logger, TestService testService)
@@ -21,14 +22,17 @@ namespace presentation.Pages.Tests
             _logger = logger;
             _testService = testService;
         }
-        public async Task OnGetAsync(Guid guid)
+
+        public async Task OnGetAsync(string id)
         {
             try
             {
-                TestRunResult = await _testService.GetOneTest(User.GetEmail(), guid);
+                TestRunResult = await _testService.GetOneTest(User.GetEmail(), id);
             }
-            catch(Exception)
+            catch (Exception e)
             {
+                _logger.LogError("Cannot get test details {e}", e);
+
                 ModelState.AddModelError(string.Empty, "Operation failed");
             }
         }

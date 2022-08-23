@@ -18,16 +18,16 @@ namespace presentation.Pages.Submissions
 {
     public class DetailModel : PageModel
     {
-        private ILogger<DetailModel> _logger;
-        private SubmissionService _submissionService;
-        private TestCaseService _testCaseService;
-        private IAuthorizationService _authService;
-        private TestService _testService;
+        private readonly ILogger<DetailModel> _logger;
+        private readonly SubmissionService _submissionService;
+        private readonly TestCaseService _testCaseService;
+        private readonly IAuthorizationService _authService;
+        private readonly TestService _testService;
 
         public Submission MySubmission { get; set; }
         public List<TestCaseRest> TestCaseList { get; set; }
         [BindProperty]
-        public Guid TestGuid { get; set; }
+        public string TestGuid { get; set; }
 
         public DetailModel(ILogger<DetailModel> logger,
                            SubmissionService submissionService,
@@ -42,7 +42,7 @@ namespace presentation.Pages.Submissions
             _testService = testService;
         }
 
-        public async Task OnGetAsync([Required]Guid id)
+        public async Task OnGetAsync([Required]string id)
         {
             if (!ModelState.IsValid)
             {
@@ -52,7 +52,7 @@ namespace presentation.Pages.Submissions
             try
             {
                 MySubmission =
-                    await _submissionService.GetSubmissionAsync(User.GetEmail(), id.ToString());
+                    await _submissionService.GetSubmissionAsync(User.GetEmail(), id);
                 var allCases = await _testCaseService.GetByTask(MySubmission.TaskId);
                 TestCaseList = new List<TestCaseRest>();
                 foreach (var oneCase in allCases)
@@ -64,13 +64,15 @@ namespace presentation.Pages.Submissions
                     }
                 }
             }
-            catch(Exception)
+            catch (Exception e)
             {
+                _logger.LogError("Exception occured while getting test case list {e}", e);
+
                 ModelState.AddModelError(string.Empty, "Failed loading some data");
             }
         }
 
-        public async Task<ActionResult> OnPostAsync([Required][FromRoute] Guid id)
+        public async Task<ActionResult> OnPostAsync([Required][FromRoute] string id)
         {
             if (!ModelState.IsValid)
             {
@@ -116,8 +118,10 @@ namespace presentation.Pages.Submissions
                     return RedirectToPage("/Tests/Limit");
                 }
             }
-            catch(Exception)
+            catch (Exception e)
             {
+                _logger.LogError("Exception occured while runnig new test case {}", e);
+
                 ModelState.AddModelError(string.Empty, "Operation failed");
                 return Page();
             }

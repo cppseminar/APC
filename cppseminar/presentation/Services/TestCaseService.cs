@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -14,8 +13,8 @@ namespace presentation.Services
 {
     public class TestCaseService
     {
-        private HttpClient _client = new HttpClient();
-        private ILogger<TestCaseService> _logger;
+        private readonly HttpClient _client = new();
+        private readonly ILogger<TestCaseService> _logger;
 
         public TestCaseService(ILogger<TestCaseService> logger, IConfiguration config)
         {
@@ -87,10 +86,10 @@ namespace presentation.Services
             }
         }
 
-        public async Task<TestCaseRest> GetById(Guid caseId)
+        public async Task<TestCaseRest> GetById(string caseId)
         {
             _logger.LogTrace("Retrieving test case {id}", caseId);
-            string uriPath = $"cases/{HttpUtility.UrlEncode(caseId.ToString())}";
+            string uriPath = $"cases/{HttpUtility.UrlEncode(caseId)}";
 
 
             var retryPolicy = Policy
@@ -105,7 +104,7 @@ namespace presentation.Services
             var fallbackPolicy = Policy
                 .Handle<Exception>()
                 .FallbackAsync(
-                    fallbackAction: async token => { await Task.Delay(0); },
+                    fallbackAction: async token => { await Task.Delay(0, token); },
                     onFallbackAsync: async (exception) =>
                     {
                         _logger.LogWarning("Failed {e}", exception);

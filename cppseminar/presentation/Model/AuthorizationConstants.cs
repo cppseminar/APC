@@ -8,8 +8,7 @@ namespace presentation.Model
 {
     public class AuthorizationConstants
     {
-        public static OperationAuthorizationRequirement Submit =
-            new OperationAuthorizationRequirement() { Name = "Submit" };
+        public static readonly OperationAuthorizationRequirement Submit = new() { Name = "Submit" };
 
     }
 }
