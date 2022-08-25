@@ -15,14 +15,10 @@ Go to <https://console.cloud.google.com/apis/credentials/> and create new app. S
 
 Keep the client id and secret you will need them.
 
-### Provision tester VM
+### Create config for worker
 
-After you create new Linux machine.
-
-1. Copy file `./services/queued/scripts/deploy.sh`.
-2. Create new configuration file (for example `config.json`) where you put two values `dockerUsername` and `dockerPassword`. Those shoud be username and password of docker repository where are the images to run tests. This is probably the only part where you need some kind of external service. Also make sure the repository is reachable.
-3. Run `./deploy.sh config.json`.
-4. If everything runs ok, you should see that the `queued` service is running.
+1. Go to `/services/queued/`.
+2. Create new configuration file `config.json` (it is added in `.gitignore` so don't worry about accidental secrets leak) where you put two values `dockerUsername` and `dockerPassword`. Those shoud be username and password of docker repository where are the images to run tests. This is probably the only part where you need some kind of external service. Also make sure the repository is reachable.
 
 ### Create CosmosDB account 
 
@@ -34,6 +30,4 @@ Go to azure portal and create some CosmosDB account (for me serverless is workin
    * `COSMOS_CONN_STR` connection string of Cosmos DB
    * `GOOGLE_CLIENT_ID` google client id
    * `GOOGLE_CLIENT_SECRET` google client secret
-   * `VM_TEST_ADDR_PORT` address of VM where tester will run with port (be default it is `10009`), for example `172.23.193.24:10009`
-   * `VM_TEST_RETURN_ADDR` ip address where `vmtestserver` can be reached, it is probably the ip of host of the vm in previous env, for example `172.23.193.1`
 2. After everything has started go to <http://localhost:8080/> and you are good to go.
