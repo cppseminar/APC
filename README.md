@@ -18,7 +18,7 @@ Keep the client id and secret you will need them.
 ### Create config for worker
 
 1. Go to `/services/queued/`.
-2. Create new configuration file `config.json` (it is added in `.gitignore` so don't worry about accidental secrets leak) where you put two values `dockerUsername` and `dockerPassword`. Those shoud be username and password of docker repository where are the images to run tests. This is probably the only part where you need some kind of external service. Also make sure the repository is reachable.
+2. Create a new configuration file `config.json` (it is added in `.gitignore` so don't worry about accidental secrets leak) where you put four values `dockerUsername`, `dockerPassword`, `MqReadServiceEndpoint` and `MaxIdleTime`. `dockerUsername` and `dockerPassword` should be the username and password of the docker repository where the images which run tests are. This is probably the only part where you need some kind of external service. Also make sure the repository is reachable. `MqReadServiceEndpoint`  is the endpoint for MqReadService. In this case, when we run with `docker compose` you should put here `"http://mqreadservice.local:80/mqread"`. `MaxIdleTime` is an unsigned integer value which represents the number of seconds a worker service will wait between calls to MqReadService to check if the next test is available to run. You can put any arbitrary number of seconds you wish (for example 10) or you can specify 0, which means that the worker will not wait and check if the next test is available to run right after it finishes with the previous test.
 
 ### Create CosmosDB account 
 

@@ -11,4 +11,4 @@ WORKDIR /app
 COPY --from=build /app/queued .
 COPY config.json .
 
-ENTRYPOINT ["./queued", "-config", "config.json", "-port", "10009"]
+ENTRYPOINT ["./queued", "-config", "config.json"]

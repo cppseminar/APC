@@ -125,7 +125,7 @@ func getSchema() *gojsonschema.Schema {
 }
 
 func getVolume(guestPath string, readOnly bool) docker.DockerVolume {
-        path, err := os.MkdirTemp(os.Getenv("SHARED_DATA_DIR"), "dockerVolume")
+	path, err := os.MkdirTemp(os.Getenv("SHARED_DATA_DIR"), "dockerVolume")
 	if err != nil {
 		log.Panicln("<3>Cannot create tmp folder", err)
 	}
@@ -249,9 +249,14 @@ func processMessages(ctx context.Context, wg *sync.WaitGroup) {
 
 		default:
 
+			if args.MaxIdleTime > 0 {
+				log.Printf("<6>Waiting for a %v seconds...", args.MaxIdleTime)
+				time.Sleep(time.Duration(args.MaxIdleTime) * time.Second)
+			}
+
 			log.Println("<6>Get message via http request")
 
-			resp, err := http.Get(args.MqReadServiceAddr)
+			resp, err := http.Get(args.MqReadServiceEndpoint)
 			if err != nil {
 				log.Println(err)
 				continue

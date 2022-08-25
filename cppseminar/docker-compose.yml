@@ -261,7 +261,7 @@ services:
 
 networks:
     sharednet:
-    temporal-network:
+    # temporal-network:
 
 volumes:
     azurite_data:

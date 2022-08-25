@@ -13,7 +13,7 @@ type Arguments struct {
 	DockerUsername    string
 	DockerPassword    string
 	MqReadServiceAddr string
-	MaxIdleTime       float64
+	MaxIdleTime       uint32
 }
 
 func parseArgs() Arguments {
