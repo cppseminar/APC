@@ -10,10 +10,10 @@ import (
 )
 
 type Arguments struct {
-	DockerUsername    string
-	DockerPassword    string
-	MqReadServiceAddr string
-	MaxIdleTime       uint32
+	DockerUsername    	string
+	DockerPassword   	string
+	MqReadServiceEndpoint	string
+	MaxIdleTime       	uint32
 }
 
 func parseArgs() Arguments {
