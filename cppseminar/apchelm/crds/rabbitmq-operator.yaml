@@ -11,7 +11,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.2
+    controller-gen.kubebuilder.io/version: v0.9.0
   labels:
     app.kubernetes.io/component: rabbitmq-operator
     app.kubernetes.io/name: rabbitmq-cluster-operator
@@ -22,6 +22,7 @@ spec:
   names:
     categories:
     - all
+    - rabbitmq
     kind: RabbitmqCluster
     listKind: RabbitmqClusterList
     plural: rabbitmqclusters
@@ -350,9 +351,7 @@ spec:
                                     field and the ones listed in the namespaces field.
                                     null selector and null or empty namespaces list
                                     means "this pod's namespace". An empty selector
-                                    ({}) matches all namespaces. This field is alpha-level
-                                    and is only honored when PodAffinityNamespaceSelector
-                                    feature is enabled.
+                                    ({}) matches all namespaces.
                                   properties:
                                     matchExpressions:
                                       description: matchExpressions is a list of label
@@ -407,7 +406,7 @@ spec:
                                     term is applied to the union of the namespaces
                                     listed in this field and the ones selected by
                                     namespaceSelector. null or empty namespaces list
-                                    and null namespaceSelector means "this pod's namespace"
+                                    and null namespaceSelector means "this pod's namespace".
                                   items:
                                     type: string
                                   type: array
@@ -506,8 +505,6 @@ spec:
                                 the ones listed in the namespaces field. null selector
                                 and null or empty namespaces list means "this pod's
                                 namespace". An empty selector ({}) matches all namespaces.
-                                This field is alpha-level and is only honored when
-                                PodAffinityNamespaceSelector feature is enabled.
                               properties:
                                 matchExpressions:
                                   description: matchExpressions is a list of label
@@ -558,7 +555,7 @@ spec:
                                 to the union of the namespaces listed in this field
                                 and the ones selected by namespaceSelector. null or
                                 empty namespaces list and null namespaceSelector means
-                                "this pod's namespace"
+                                "this pod's namespace".
                               items:
                                 type: string
                               type: array
@@ -659,9 +656,7 @@ spec:
                                     field and the ones listed in the namespaces field.
                                     null selector and null or empty namespaces list
                                     means "this pod's namespace". An empty selector
-                                    ({}) matches all namespaces. This field is alpha-level
-                                    and is only honored when PodAffinityNamespaceSelector
-                                    feature is enabled.
+                                    ({}) matches all namespaces.
                                   properties:
                                     matchExpressions:
                                       description: matchExpressions is a list of label
@@ -716,7 +711,7 @@ spec:
                                     term is applied to the union of the namespaces
                                     listed in this field and the ones selected by
                                     namespaceSelector. null or empty namespaces list
-                                    and null namespaceSelector means "this pod's namespace"
+                                    and null namespaceSelector means "this pod's namespace".
                                   items:
                                     type: string
                                   type: array
@@ -815,8 +810,6 @@ spec:
                                 the ones listed in the namespaces field. null selector
                                 and null or empty namespaces list means "this pod's
                                 namespace". An empty selector ({}) matches all namespaces.
-                                This field is alpha-level and is only honored when
-                                PodAffinityNamespaceSelector feature is enabled.
                               properties:
                                 matchExpressions:
                                   description: matchExpressions is a list of label
@@ -867,7 +860,7 @@ spec:
                                 to the union of the namespaces listed in this field
                                 and the ones selected by namespaceSelector. null or
                                 empty namespaces list and null namespaceSelector means
-                                "this pod's namespace"
+                                "this pod's namespace".
                               items:
                                 type: string
                               type: array
@@ -887,7 +880,6 @@ spec:
                     type: object
                 type: object
               image:
-                default: rabbitmq:3.8.21-management
                 description: Image is the name of the RabbitMQ docker image to use
                   for RabbitMQ nodes in the RabbitmqCluster. Must be provided together
                   with ImagePullSecrets in order to use an image in a private registry.
@@ -995,6 +987,7 @@ spec:
                             additionalProperties:
                               type: string
                             type: object
+                            x-kubernetes-map-type: atomic
                           sessionAffinity:
                             type: string
                           sessionAffinityConfig:
@@ -1006,10 +999,6 @@ spec:
                                     type: integer
                                 type: object
                             type: object
-                          topologyKeys:
-                            items:
-                              type: string
-                            type: array
                           type:
                             type: string
                         type: object
@@ -1648,6 +1637,16 @@ spec:
                                             failureThreshold:
                                               format: int32
                                               type: integer
+                                            grpc:
+                                              properties:
+                                                port:
+                                                  format: int32
+                                                  type: integer
+                                                service:
+                                                  type: string
+                                              required:
+                                              - port
+                                              type: object
                                             httpGet:
                                               properties:
                                                 host:
@@ -1742,6 +1741,16 @@ spec:
                                             failureThreshold:
                                               format: int32
                                               type: integer
+                                            grpc:
+                                              properties:
+                                                port:
+                                                  format: int32
+                                                  type: integer
+                                                service:
+                                                  type: string
+                                              required:
+                                              - port
+                                              type: object
                                             httpGet:
                                               properties:
                                                 host:
@@ -1872,6 +1881,8 @@ spec:
                                                   type: string
                                                 gmsaCredentialSpecName:
                                                   type: string
+                                                hostProcess:
+                                                  type: boolean
                                                 runAsUserName:
                                                   type: string
                                               type: object
@@ -1888,6 +1899,16 @@ spec:
                                             failureThreshold:
                                               format: int32
                                               type: integer
+                                            grpc:
+                                              properties:
+                                                port:
+                                                  format: int32
+                                                  type: integer
+                                                service:
+                                                  type: string
+                                              required:
+                                              - port
+                                              type: object
                                             httpGet:
                                               properties:
                                                 host:
@@ -2227,6 +2248,16 @@ spec:
                                             failureThreshold:
                                               format: int32
                                               type: integer
+                                            grpc:
+                                              properties:
+                                                port:
+                                                  format: int32
+                                                  type: integer
+                                                service:
+                                                  type: string
+                                              required:
+                                              - port
+                                              type: object
                                             httpGet:
                                               properties:
                                                 host:
@@ -2305,6 +2336,10 @@ spec:
                                             - containerPort
                                             type: object
                                           type: array
+                                          x-kubernetes-list-map-keys:
+                                          - containerPort
+                                          - protocol
+                                          x-kubernetes-list-type: map
                                         readinessProbe:
                                           properties:
                                             exec:
@@ -2317,6 +2352,16 @@ spec:
                                             failureThreshold:
                                               format: int32
                                               type: integer
+                                            grpc:
+                                              properties:
+                                                port:
+                                                  format: int32
+                                                  type: integer
+                                                service:
+                                                  type: string
+                                              required:
+                                              - port
+                                              type: object
                                             httpGet:
                                               properties:
                                                 host:
@@ -2447,6 +2492,8 @@ spec:
                                                   type: string
                                                 gmsaCredentialSpecName:
                                                   type: string
+                                                hostProcess:
+                                                  type: boolean
                                                 runAsUserName:
                                                   type: string
                                               type: object
@@ -2463,6 +2510,16 @@ spec:
                                             failureThreshold:
                                               format: int32
                                               type: integer
+                                            grpc:
+                                              properties:
+                                                port:
+                                                  format: int32
+                                                  type: integer
+                                                service:
+                                                  type: string
+                                              required:
+                                              - port
+                                              type: object
                                             httpGet:
                                               properties:
                                                 host:
@@ -2806,6 +2863,16 @@ spec:
                                             failureThreshold:
                                               format: int32
                                               type: integer
+                                            grpc:
+                                              properties:
+                                                port:
+                                                  format: int32
+                                                  type: integer
+                                                service:
+                                                  type: string
+                                              required:
+                                              - port
+                                              type: object
                                             httpGet:
                                               properties:
                                                 host:
@@ -2900,6 +2967,16 @@ spec:
                                             failureThreshold:
                                               format: int32
                                               type: integer
+                                            grpc:
+                                              properties:
+                                                port:
+                                                  format: int32
+                                                  type: integer
+                                                service:
+                                                  type: string
+                                              required:
+                                              - port
+                                              type: object
                                             httpGet:
                                               properties:
                                                 host:
@@ -3030,6 +3107,8 @@ spec:
                                                   type: string
                                                 gmsaCredentialSpecName:
                                                   type: string
+                                                hostProcess:
+                                                  type: boolean
                                                 runAsUserName:
                                                   type: string
                                               type: object
@@ -3046,6 +3125,16 @@ spec:
                                             failureThreshold:
                                               format: int32
                                               type: integer
+                                            grpc:
+                                              properties:
+                                                port:
+                                                  format: int32
+                                                  type: integer
+                                                service:
+                                                  type: string
+                                              required:
+                                              - port
+                                              type: object
                                             httpGet:
                                               properties:
                                                 host:
@@ -3156,6 +3245,14 @@ spec:
                                     additionalProperties:
                                       type: string
                                     type: object
+                                    x-kubernetes-map-type: atomic
+                                  os:
+                                    properties:
+                                      name:
+                                        type: string
+                                    required:
+                                    - name
+                                    type: object
                                   overhead:
                                     additionalProperties:
                                       anyOf:
@@ -3244,6 +3341,8 @@ spec:
                                             type: string
                                           gmsaCredentialSpecName:
                                             type: string
+                                          hostProcess:
+                                            type: boolean
                                           runAsUserName:
                                             type: string
                                         type: object
@@ -3304,6 +3403,9 @@ spec:
                                               type: object
                                           type: object
                                         maxSkew:
+                                          format: int32
+                                          type: integer
+                                        minDomains:
                                           format: int32
                                           type: integer
                                         topologyKey:
@@ -3516,6 +3618,18 @@ spec:
                                                         type: string
                                                       type: array
                                                     dataSource:
+                                                      properties:
+                                                        apiGroup:
+                                                          type: string
+                                                        kind:
+                                                          type: string
+                                                        name:
+                                                          type: string
+                                                      required:
+                                                      - kind
+                                                      - name
+                                                      type: object
+                                                    dataSourceRef:
                                                       properties:
                                                         apiGroup:
                                                           type: string
@@ -3996,6 +4110,11 @@ spec:
                             properties:
                               rollingUpdate:
                                 properties:
+                                  maxUnavailable:
+                                    anyOf:
+                                    - type: integer
+                                    - type: string
+                                    x-kubernetes-int-or-string: true
                                   partition:
                                     format: int32
                                     type: integer
@@ -4032,6 +4151,18 @@ spec:
                                         type: string
                                       type: array
                                     dataSource:
+                                      properties:
+                                        apiGroup:
+                                          type: string
+                                        kind:
+                                          type: string
+                                        name:
+                                          type: string
+                                      required:
+                                      - kind
+                                      - name
+                                      type: object
+                                    dataSourceRef:
                                       properties:
                                         apiGroup:
                                           type: string
@@ -4226,7 +4357,6 @@ spec:
                           For example "secret/data/rabbitmq/config".
                         type: string
                       defaultUserUpdaterImage:
-                        default: rabbitmqoperator/default-user-credential-updater:1.0.0
                         description: Sidecar container that updates the default user's
                           password in RabbitMQ when it changes in Vault. Additionally,
                           it updates /var/lib/rabbitmq/.rabbitmqadmin.conf (used by
@@ -4466,12 +4596,6 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -4717,7 +4841,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: rabbitmqoperator/cluster-operator:1.9.0
+        image: rabbitmqoperator/cluster-operator:1.14.0
         name: operator
         ports:
         - containerPort: 9782
