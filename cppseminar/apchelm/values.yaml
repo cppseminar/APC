@@ -10,3 +10,13 @@ testRequestQueue: testInput1
 testResultsQueue: testOutput1
 LBinternal: 10.14.254.254
 environment: dev
+
+# following section is not necessary, you can provide container
+# registry credentials with kubectl (as described in readme)
+# if the following values are set it will create 
+# dockerconfigjson secret in apc namespace see template 
+# apc-dockerconfigjson.yaml
+#imageCredentials:
+#  username: 
+#  password:
+#  email:
