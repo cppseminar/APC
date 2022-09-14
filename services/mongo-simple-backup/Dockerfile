@@ -20,7 +20,8 @@ RUN mkdir /var/dumps \
     && echo "#!/bin/sh" > ./dump.sh \
     && echo "/tools/backup.sh --url \${MONGO_CONN_STR} --output /var/dumps" >> ./dump.sh \
     && echo "rclone move /var/dumps MONGO_BACKUPS:/mongo-db-dumps --use-json-log" >> ./dump.sh \
-    && chmod 0766 ./dump.sh
+    && chmod 0766 ./dump.sh \
+    && chmod 0766 ./backup.sh
 
 FROM build AS dev
 
