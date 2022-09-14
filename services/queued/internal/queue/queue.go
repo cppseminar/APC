@@ -442,7 +442,10 @@ func serverHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/test" && r.Method == "POST" {
 		w.WriteHeader(processTestRequestInternal(r))
 	} else {
-		log.Printf("<3>Unsupported request %v %v ip %v\n", r.Method, r.URL.Path, r.RemoteAddr)
+		// sanitize path to not allow arbitrary log input
+		path := strings.ReplaceAll(strings.ReplaceAll(r.URL.Path, "\r", ""), "\n", "")
+
+		log.Printf("<3>Unsupported request %v %v ip %v\n", r.Method, path, r.RemoteAddr)
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
