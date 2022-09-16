@@ -35,11 +35,12 @@ apt-get update
 # install docker
 apt-get -y install docker-ce docker-ce-cli containerd.io
 
-# get go compiler
-apt-get -y install golang-go
-
 # build the service
-go build -o /usr/local/bin/queued ../cmd/queue
+docker build --target build -t queued-builder ..
+id=$(docker create queued-builder)
+docker cp $id:/app/queued /usr/local/bin/queued
+docker rm -v $id
+
 chmod +x /usr/local/bin/queued
 
 # copy config file

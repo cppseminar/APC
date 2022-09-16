@@ -57,4 +57,7 @@ fi
 
 DUMP_VER=`mongodump --version | head -1 | cut -d\  -f3 | cut -d- -f1`
 
+# restore can be done by running
+# mongorestore --uri $CONNECTION_STR --archive=$BACKUP_FILE
+
 mongodump --uri $CONNECTION_STR --archive=$OUTPUT_DIR/$(date +"%Y-%m-%dT%H-%M-%S")-dump-${DUMP_VER}.mongodump
