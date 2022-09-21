@@ -1,67 +1,25 @@
-apiVersion: apps/v1
-kind: Deployment
+---
+apiVersion: mongodbcommunity.mongodb.com/v1
+kind: MongoDBCommunity
 metadata:
-  name: mongodb
   namespace: apc
+  name: mongodb
 spec:
-  selector:
-    matchLabels:
-      app: database
-  strategy:
-    type: Recreate
-  template:
-    metadata:
-      labels:
-        app: database
-        selector: mongodb
-    spec:
-      containers:
-      - name: mongodb
-        image: mongo:4.0.8
-        env:
-          - name: MONGO_INITDB_ROOT_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: mongo-secrets
-                key: username
-                optional: false
-          - name: MONGO_INITDB_ROOT_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: mongo-secrets
-                key: password
-                optional: false
-        volumeMounts:
-          - name: mongodb-configmap
-            mountPath: /config
-            readOnly: true
-          - name: mongodb-scripts
-            mountPath: /docker-entrypoint-initdb.d
-            readOnly: true
-          - name: mongodb-data-init
-            mountPath: /data/init
-            readOnly: true
-          - name: mongodb-data
-            mountPath: /data/db
-      volumes:
-        - name: mongodb-configmap
-          configMap:
-            name: mongodb-configmap
-            items:
-            - key: mongo.conf
-              path: mongo.conf
-        - name: mongodb-scripts
-          configMap:
-            name: mongodb-configmap
-            items:
-            - key: init-mongo.js
-              path: init-mongo.js
-        - name: mongodb-data-init
-          configMap:
-            name: admins-config
-            items:
-            - key: admins.txt
-              path: admins.txt
-        - name: mongodb-data
-          persistentVolumeClaim:
-            claimName: mongodb-pvc
+  members: 2
+  arbiters: 1
+  type: ReplicaSet
+  version: "5.0.12"
+  security:
+    authentication:
+      modes: ["SCRAM"]
+  users:
+  - name: admin
+    db: admin
+    passwordSecretRef: 
+      name: mongo-password
+    roles:
+    - name: root
+      db: admin
+    scramCredentialsSecretName: my-scram
+  additionalMongodConfig:
+    storage.wiredTiger.engineConfig.journalCompressor: zlib

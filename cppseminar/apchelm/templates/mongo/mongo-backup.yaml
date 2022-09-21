@@ -5,7 +5,8 @@ metadata:
   namespace: apc
 spec:
   schedule: "0 3,12 * * *"
-  successfulJobsHistoryLimit: 14
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 5
   jobTemplate:
     spec:
       template:
@@ -23,8 +24,8 @@ spec:
             - name: MONGO_CONN_STR
               valueFrom:
                 secretKeyRef:
-                  name: mongo-secrets
-                  key: connectionString
+                  name: mongodb-admin-admin
+                  key: connectionString.standardSrv
                   optional: false
             - name: RCLONE_CONFIG_MONGO_BACKUPS_TYPE
               value: azureblob

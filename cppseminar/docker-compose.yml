@@ -190,7 +190,7 @@ services:
             - worker_shared:/data
 
     mongo.local:
-        image: mongo:4.0.8
+        image: mongo:6.0.1
         restart: always
         ports:
             - 27017:27017
@@ -234,6 +234,8 @@ services:
             - sharednet
         depends_on:
             - mongo.local
+        volumes:
+            - ./mongo/dump:/dump
 
     test-worker.local:
         build:

@@ -52,6 +52,6 @@ spec:
             - name: MongoDB__ConnectionString
               valueFrom:
                 secretKeyRef:
-                  name: mongo-secrets
-                  key: connectionString
+                  name: mongodb-admin-admin
+                  key: connectionString.standardSrv
                   optional: false

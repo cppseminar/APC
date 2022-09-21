@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongo-db-init
+  namespace: apc
+spec:
+  template:
+    spec:
+      containers:
+      - name: mongodb-init
+        image: mongo:6.0.1
+        command: ["/bin/sh", "-c", "mongosh ${MONGO_CONN_STR} /data/script/init-mongo.js"]
+        volumeMounts:
+        - name: mongodb-scripts
+          mountPath: /data/script
+          readOnly: true
+        - name: mongodb-data-init
+          mountPath: /data/init
+          readOnly: true
+        env:
+        - name: MONGO_CONN_STR
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-admin-admin
+              key: connectionString.standardSrv
+              optional: false
+      volumes:
+      - name: mongodb-scripts
+        configMap:
+          name: mongodb-configmap
+          items:
+          - key: init-mongo.js
+            path: init-mongo.js
+      - name: mongodb-data-init
+        configMap:
+          name: admins-config
+          items:
+          - key: admins.txt
+            path: admins.txt
+      restartPolicy: Never
+  backoffLimit: 4

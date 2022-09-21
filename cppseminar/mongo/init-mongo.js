@@ -1,40 +1,51 @@
-db = new Mongo().getDB('submissionsDb')
+const connStr = process.env.MONGO_CONN_STR
 
-db.createCollection('submissions', { capped: false })
-db.submissions.createIndex({ 'SubmittedOn': 1 })
-db.submissions.createIndex({ 'UserEmail': 1, 'SubmittedOn': 1 })
-db.submissions.createIndex({ 'UserEmail': 1, 'TaskId': 1, 'SubmittedOn': 1 })
+const conn = connStr ? new Mongo(connStr) : new Mongo()
+const dbs = conn.getDBNames()
 
-db.createCollection('tasks', { capped: false })
-db.tasks.createIndex({ 'CreatedOn': 1})
+if (dbs.indexOf('submissionsDb') == -1) {
+  const db = conn.getDB('submissionsDb')
 
-db = new Mongo().getDB('testsDb')
+  db.createCollection('submissions', { capped: false })
+  db.submissions.createIndex({ 'SubmittedOn': 1 })
+  db.submissions.createIndex({ 'UserEmail': 1, 'SubmittedOn': 1 })
+  db.submissions.createIndex({ 'UserEmail': 1, 'TaskId': 1, 'SubmittedOn': 1 })
 
-db.createCollection('testCases', { capped: false })
-db.testCases.createIndex({ 'CreatedAt': 1 })
-db.testCases.createIndex({ 'TaskId': 1, 'CreatedAt': 1 })
+  db.createCollection('tasks', { capped: false })
+  db.tasks.createIndex({ 'CreatedOn': 1})
+}
 
-db.createCollection('testRuns', { capped: false })
-db.testRuns.createIndex({ 'CreatedAt': 1 })
-db.testRuns.createIndex({ 'CreatedBy': 1, 'SubmissionId': 1, 'CreatedAt': 1 })
-db.testRuns.createIndex({ 'CreatedBy': 1, 'TestCaseId': 1 })
+if (dbs.indexOf('testsDb') == -1) {
+  const db = conn.getDB('testsDb')
 
-db = new Mongo().getDB('usersDb')
+  db.createCollection('testCases', { capped: false })
+  db.testCases.createIndex({ 'CreatedAt': 1 })
+  db.testCases.createIndex({ 'TaskId': 1, 'CreatedAt': 1 })
 
-db.createCollection('users', { capped: false })
-db.users.createIndex({ 'UserEmail': 1 }, { unique: true })
+  db.createCollection('testRuns', { capped: false })
+  db.testRuns.createIndex({ 'CreatedAt': 1 })
+  db.testRuns.createIndex({ 'CreatedBy': 1, 'SubmissionId': 1, 'CreatedAt': 1 })
+  db.testRuns.createIndex({ 'CreatedBy': 1, 'TestCaseId': 1 })
+}
 
-// add administrators
-const admins = cat('/data/init/admins.txt')
-admins
-  .trim()
-  .split('\n')
-  .forEach(user => {
-    db.users.insert({
-        UserEmail: user.trim(),
-        Claims: {
-            isAdmin: 'true',
-            isStudent: 'true',
-        }
+if (dbs.indexOf('usersDb') == -1) {
+  const db = conn.getDB('usersDb')
+
+  db.createCollection('users', { capped: false })
+  db.users.createIndex({ 'UserEmail': 1 }, { unique: true })
+
+  // add administrators
+  const admins = fs.readFileSync('/data/init/admins.txt', 'utf8')
+  admins
+    .trim()
+    .split('\n')
+    .forEach(user => {
+      db.users.insertOne({
+          UserEmail: user.trim(),
+          Claims: {
+              isAdmin: 'true',
+              isStudent: 'true',
+          }
+      })
     })
-  })
+}
