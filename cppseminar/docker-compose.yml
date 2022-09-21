@@ -234,8 +234,6 @@ services:
             - sharednet
         depends_on:
             - mongo.local
-        volumes:
-            - ./mongo/dump:/dump
 
     test-worker.local:
         build:
