@@ -73,7 +73,7 @@ class Tests:
         temp = os.path.join(temp_dir, self.CATCH_EXEC_NAME)
         shutil.copy2(self.binary, temp)
 
-        args = [temp, '--list-test-names-only', f'[{self.configuration}]']
+        args = [temp, '--list-tests', '--verbosity', 'quiet', f'[{self.configuration}]']
         catch = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=5)
 
         if catch.returncode != 0 and len(catch.stderr) != 0:

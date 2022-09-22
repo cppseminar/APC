@@ -1,4 +1,4 @@
-# do not build this file directly, use create-docker.ps1, it wiil set up
+# do not build this file directly, use create-docker.ps1, it will set up
 # all the required paths and copy whatever is needed
 
 FROM gcc:11.2-bullseye
@@ -34,7 +34,7 @@ COPY ./tests/config.ini /app/config.ini
 
 # install vckpg, catch2
 WORKDIR /app
-RUN git clone https://github.com/Microsoft/vcpkg.git \
+RUN git clone --depth 1 --branch 2022.08.15 https://github.com/Microsoft/vcpkg.git \
     && ./vcpkg/bootstrap-vcpkg.sh \
     && ./vcpkg/vcpkg install catch2
 
