@@ -48,13 +48,14 @@
     <div class="container p-3">
         @RenderBody()
     </div>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/json2html/2.1.0/json2html.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.min.js" integrity="sha512-jB1NOQkR0yLnWmEZQTUW4REqirbskxoYNltZE+8KzXqs9gHG5mrxLR5w3TwUn6AylXkhZZWTPP894xcX/X8Kbg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/theme-monokai.min.js" integrity="sha512-wZYGbdk0giM73l8BLDNfSEziApAmH8DvXey6zNLG3QUgDeDsMAPm3FIdjhLwrGOWO0vdVHkVxeUzOBR0Hc/xBA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/mode-c_cpp.min.js" integrity="sha512-dxOWVFGgO0QZsn3ZyE3DSMDO53d4dpI3dashemV1+SSdejPhTsC1PShhHjsAwOi1oyk9ErBx6efuOpOOJtbIFg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js" integrity="sha256-A/Bhn6U7642jcUJxdcb00N9bOwuKNXKjv6oWAxgpW2Y=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.1.0/marked.min.js" integrity="sha256-hrr3XpKvqYgFyeFbyZTFvPYmu5rkjcIjAP6IU7tM/4Q=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/json2html/2.2.2/json2html.min.js" integrity="sha512-LYBxdtbgyLlB9aFozpSH9IpPpP+7t+tRoBG7VhLJ2APxcstLkyMI78qCaLwoIEQwKzbdS0VdK9o3ps4q6NT1cQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.11.0/ace.min.js" integrity="sha512-6pDHCWoec69aZTg0ERg6luKv9ITHrRgy4w0WqVCgii2FoQevTDvibuCWDrTEm7W4HH0Dq9xhyZ3qw33rrnUMQw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.11.0/theme-monokai.min.js" integrity="sha512-vH1p51CJtqdqWMpL32h5B9600achcN1XeTfd31hEcrCcCb5PCljIu7NQppgdNtdsayRQTnKmyf94s6HYiGQ9BA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.11.0/mode-c_cpp.min.js" integrity="sha512-yrjaGZSXaUR0K7QsfA61DTlPtXoZpkIMN87076mYNbFfPD3FQtcuKiQqwPgj/ldy5Rk31Kh4+Omrc0SNzIHttg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
         function resolveTeachersJson(elemId) {
             const templates = {
@@ -127,6 +128,8 @@
 
             try {
                 json = $(selector).text()
+                if (!json)
+                    return
                 $(selector).json2html(JSON.parse(json), templates.parent, { method: 'replace' })
             }
             catch (e) {
@@ -195,6 +198,8 @@
 
             try {
                 json = $(selector).text()
+                if (!json)
+                    return
                 $(selector).json2html(JSON.parse(json), templates.parent, { method: 'replace' })
             }
             catch (e) {
@@ -207,6 +212,13 @@
 
         resolveStudentsJson('results-students')
         resolveTeachersJson('results-teachers')
+
+        $('.markdown').each(function(){
+            const doc = new DOMParser().parseFromString(this.innerHTML.trim(), 'text/html')
+            const text = doc.documentElement.textContent
+
+            this.innerHTML = DOMPurify.sanitize(marked.parse(text))
+        })
 
         $('.editor').each(function () {
             const editor = ace.edit(this)

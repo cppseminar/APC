@@ -18,8 +18,8 @@
         <h4>@Model.TaskDetail.Name</h4>
         <p><em>Deadline is: <strong>@Model.TaskDetail.Ends</strong></em> </p>
         <p>Current time is @DateTime.UtcNow</p>
-        <div class="p-3 my-2 border bg-light">
-            @Html.Raw(@Model.TaskDetail.Description)
+        <div class="p-3 my-2 border bg-light markdown">
+            @Model.TaskDetail.Description
         </div>
     </div>
     @if (Model.IsAdmin)
