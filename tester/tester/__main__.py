@@ -80,7 +80,7 @@ def create_success_output(binaries, tests_result):
             'binary': binary,
             'configurations': [{
                 'name': name,
-                'result': result
+                'result': dict(status='Success' if result.errno == 0 else 'Failure', **result.__dict__) # added status for compat with v1
             } for name, result in configurations.items()]
         } for binary, configurations in binaries.items()],
         'tests': [{
@@ -100,7 +100,7 @@ def create_success_output(binaries, tests_result):
             'binary': binary,
             'configurations': [{
                 'name': name,
-                'result': result.compiler_output if Config.get_visibility(name, Visibility.BUILD) else ''
+                'result': (result.compiler_output if Config.get_visibility(name, Visibility.BUILD) else 'Failed') if result.errno != 0 else ''
             } for name, result in configurations.items()]
         } for binary, configurations in binaries.items()],
         'tests': [{
