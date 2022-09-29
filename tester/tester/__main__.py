@@ -87,7 +87,7 @@ def create_success_output(binaries, tests_result):
             'configuration': configuration,
             'cases': [{
                 'name': name,
-                'result': result
+                'result': dict(status=result.get_status(), **result.__dict__)
             } for name, result in cases.items()]
         } for configuration, cases in tests_result.items()]
     }
