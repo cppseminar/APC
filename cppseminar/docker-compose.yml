@@ -48,12 +48,15 @@ services:
             DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
             DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
             ASPNETCORE_ENVIRONMENT: Development
+            LINKS_CURRENT_DOCS: https://example.com/
             API_GATEWAY: http://gateway.local:5000/
             STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
             GoogleOid__ClientId: ${GOOGLE_CLIENT_ID}
             GoogleOid__ClientSecret: ${GOOGLE_CLIENT_SECRET}
             LOG_PRETTY: 1
         restart: always
+        depends_on:
+            - rabbitmq.local
 
     userservice.local:
         build:
@@ -90,11 +93,11 @@ services:
         ports:
             - 8083:80
         depends_on:
-            rabbitmq.local: 
+            rabbitmq.local:
                 condition: service_healthy
-            azurite.local: 
+            azurite.local:
                 condition: service_started
-            mongo.local: 
+            mongo.local:
                 condition: service_started
         environment:
             TEST_REQUESTS_QUEUE: test-input
@@ -173,7 +176,7 @@ services:
 
 
     # docker in docker is needed for test-worker.local
-    # it seems like they decided to drop not tls connections 
+    # it seems like they decided to drop not tls connections
     # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/27300
     # and they even make the startup slower... stange but whatever
     # we will do anything to not be required to mess with certs ;)
