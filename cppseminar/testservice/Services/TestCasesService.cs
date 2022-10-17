@@ -22,10 +22,10 @@ public class TestCasesService
     }
 
     public async Task<List<TestCase>> GetAsync(int count) =>
-        await _testCases.Find(_ => true).SortBy(x => x.CreatedAt).Limit(count).ToListAsync();
+        await _testCases.Find(_ => true).SortByDescending(x => x.CreatedAt).Limit(count).ToListAsync();
 
     public async Task<List<TestCase>> GetForTaskAsync(string taskId, int count) =>
-        await _testCases.Find(x => x.TaskId == taskId).SortBy(x => x.CreatedAt).Limit(count).ToListAsync();
+        await _testCases.Find(x => x.TaskId == taskId).SortByDescending(x => x.CreatedAt).Limit(count).ToListAsync();
 
     public async Task<TestCase> GetAsync(string id) =>
         await _testCases.Find(x => x.Id == id).SingleAsync();

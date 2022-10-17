@@ -24,21 +24,21 @@ public class SubmissionsService
     }
 
     public async Task<List<Submission>> GetAsync(int count) =>
-        await _submissions.Find(_ => true).SortBy(x => x.SubmittedOn).Limit(count).ToListAsync();
+        await _submissions.Find(_ => true).SortByDescending(x => x.SubmittedOn).Limit(count).ToListAsync();
 
-    public async Task<List<Submission>> GetForUserAsync(string email, string taskId, int count) 
+    public async Task<List<Submission>> GetForUserAsync(string email, string taskId, int count)
     {
         var filter = Builders<Submission>.Filter.Eq(x => x.UserEmail, email);
 
         if (taskId != null)
             filter &= Builders<Submission>.Filter.Eq("TaskId", ObjectId.Parse(taskId));
 
-        return await _submissions.Find(filter).SortBy(x => x.SubmittedOn).Limit(count).ToListAsync();
+        return await _submissions.Find(filter).SortByDescending(x => x.SubmittedOn).Limit(count).ToListAsync();
     }
 
     public async Task<Submission> GetAsync(string submissionId) =>
         await _submissions.Find(x => x.Id == submissionId).SingleAsync();
-        
+
     public async Task CreateAsync(Submission newSubmission) =>
         await _submissions.InsertOneAsync(newSubmission);
 

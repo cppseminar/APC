@@ -23,7 +23,7 @@ public class TasksService
     }
 
     public async Task<List<WorkTask>> GetAsync(int count) =>
-        await _tasks.Find(_ => true).SortBy(x => x.CreatedOn).Limit(count).ToListAsync();
+        await _tasks.Find(_ => true).SortByDescending(x => x.CreatedOn).Limit(count).ToListAsync();
 
     public async Task<WorkTask> GetAsync(string id) =>
         await _tasks.Find(x => x.Id == id).SingleAsync();

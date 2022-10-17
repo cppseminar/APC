@@ -32,7 +32,7 @@ public class TestRunsService
         if (submissionId != null)
             filter &= Builders<TestRun>.Filter.Eq(x => x.SubmissionId, submissionId);
 
-        return await _testRuns.Find(filter).SortBy(x => x.CreatedAt).Limit(count).ToListAsync();
+        return await _testRuns.Find(filter).SortByDescending(x => x.CreatedAt).Limit(count).ToListAsync();
     }
 
     public async Task<TestRun> GetAsync(string id) =>
