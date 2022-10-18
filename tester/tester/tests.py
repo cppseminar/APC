@@ -38,19 +38,23 @@ class TestResult:
         if self.returncode == -2147483649:
             return TestResultStatus.TIMEOUT
 
-        if self.returncode != 0:
-            if (self.stderr.find('In function:') != -1
-                    and self.stderr.find('Error:') != -1
-                    and self.stderr.find('__debug') != -1):
-                return TestResultStatus.DBG_CONTAINERS
+        is_dbg_container = lambda x: (x.find('In function:') != -1
+            and x.find('Error:') != -1 and x.find('__debug') != -1)
 
+        if self.returncode != 0:
             if self.stderr.find('ERROR: LeakSanitizer') != -1:
                 return TestResultStatus.LEAK_SANITIZER
 
             if self.stderr.find('ERROR: AddressSanitizer') != -1:
                 return TestResultStatus.ADDR_SANITIZER
 
+            if (is_dbg_container(self.stderr)):
+                return TestResultStatus.DBG_CONTAINERS
+
             return TestResultStatus.FAILED
+
+        if (is_dbg_container(self.stderr)):
+            return TestResultStatus.DBG_CONTAINERS
 
         return TestResultStatus.SUCCESS
 
