@@ -62,7 +62,7 @@ class Tests:
     def __init__(self, binary, configuration):
         self.binary = binary
         self.configuration = configuration
-        self._options = Config.get_catch2_configuration(configuration)
+        self._options = ['--success', '--durations', 'yes', '--invisibles']
         self.test_cases = self._list_tests()
 
 

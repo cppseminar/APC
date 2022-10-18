@@ -1,56 +1,18 @@
-import configparser
 import pprint
-import argparse
 import os
-import shlex
 import enum
 
-class Visibility(enum.Enum):
-    BUILD = 'build' # Output of gcc compiler is visible to students.
-    TESTS = 'tests' # Output of unittest framework is visible to students.
 
 class SubmissionMode(enum.Enum):
     COPY = 'copy'
     BUILD = 'build'
 
-_parser = argparse.ArgumentParser()
-_parser.add_argument('conf_path', help='Path to ini file with appropriate configuration')
-_args = _parser.parse_args()
-
-def _load_config(path):
-    settings = configparser.ConfigParser()
-    settings.read(path)
-    return settings
-
 class Config:
-    _SETTINGS = _load_config(_args.conf_path)
-
     @classmethod
     def dumps(cls):
-        config = {section: dict(cls._SETTINGS[section]) for section in cls._SETTINGS.sections()}
         pp = pprint.PrettyPrinter(indent=4, compact=False)
-        s = pp.pformat(config)
-        return f'Current config: \n {s}'
-
-    @classmethod
-    def get_visibility(cls, configuration: str, visibility: Visibility):
-        data = cls._SETTINGS['visibility']
-
-        if not configuration in data:
-            return False
-
-        return data[configuration].find(visibility.value) != -1
-
-
-    @classmethod
-    def get_catch2_configuration(cls, configuration):
-        catch2 = cls._SETTINGS['tests']
-
-        result = {
-            key: shlex.split(value.strip('"')) for (key, value) in catch2.items()
-        }
-
-        return result.get(configuration, [])
+        s = pp.pformat(os.environ)
+        return f'Current env: \n {s}'
 
     @classmethod
     def output_path(cls):
@@ -61,6 +23,10 @@ class Config:
 
         return dir
 
+    @classmethod
+    def show_results_to_students(cls):
+        return os.getenv('SHOW_RESULTS_TO_STUDENTS', '0') == '1'
+        
     @classmethod
     def build_output_path(cls):
         dir = os.path.join(os.getenv('OUTPUT_PATH'), 'build')
@@ -96,7 +62,10 @@ class Config:
 
     @classmethod
     def get_mode(cls):
-        if (cls._SETTINGS['mode'].getboolean('compile')):
+        mode = os.getenv('TEST_MODE', '')
+        if mode == 'build':
             return SubmissionMode.BUILD
+        elif mode == 'copy':
+            return SubmissionMode.COPY
 
-        return SubmissionMode.COPY
+        raise RuntimeError('mode not specified')

@@ -5,27 +5,14 @@ be sure to check the file if you plan to change something.
 import logging
 import os
 import shutil
-import dataclasses
 import json
 
-from tester.config import Config, SubmissionMode, Visibility
+from tester.config import Config, SubmissionMode
 import tester.logger
 import tester.compiler as compiler
 import tester.tests
 
 logger = logging.getLogger(__name__)
-
-class EnhancedJSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, tester.tests.TestResult):
-            return {
-                'status': o.get_status(),
-                **dataclasses.asdict(o)
-            }
-        elif dataclasses.is_dataclass(o):
-            return dataclasses.asdict(o)
-        else:
-            return super().default(o)
 
 def build(project_path):
     build_result = compiler.compile_cmake_project(project_path)
@@ -93,14 +80,14 @@ def create_success_output(binaries, tests_result):
     }
 
     with open(Config.teachers_json(), 'w') as f:
-        json.dump(teachers, f, cls=EnhancedJSONEncoder, indent=4)
+        json.dump(teachers, f, indent=4)
 
     students = {
         'compilation': [{
             'binary': binary,
             'configurations': [{
                 'name': name,
-                'result': (result.compiler_output if Config.get_visibility(name, Visibility.BUILD) else 'Failed') if result.errno != 0 else ''
+                'result': result.compiler_output if result.errno != 0 else ''
             } for name, result in configurations.items()]
         } for binary, configurations in binaries.items()],
         'tests': [{
@@ -108,13 +95,13 @@ def create_success_output(binaries, tests_result):
             'cases': [{
                 'name': name,
                 'status': result.get_status() == tester.tests.TestResultStatus.SUCCESS,
-                'result': result.stdout if Config.get_visibility(configuration, Visibility.TESTS) else ''
+                'result': result.stdout if Config.show_results_to_students() else ''
             } for name, result in cases.items()]
         } for configuration, cases in tests_result.items()]
     }
 
     with open(Config.students_json(), 'w') as f:
-        json.dump(students, f, cls=EnhancedJSONEncoder, indent=4)
+        json.dump(students, f, indent=4)
 
 def main():
     """

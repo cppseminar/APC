@@ -4,6 +4,17 @@
 FROM gcc:11.2-bullseye
 WORKDIR /
 
+# set to 1 if results should be visible to students
+ARG SHOW_RESULTS_TO_STUDENTS_ARG=0
+
+# possible values are build and copy
+# setting up compile to build will compile the submission and then copy it,
+# copy will just copy the submission before build and will build it together
+ARG TEST_MODE_ARG=build
+
+ENV SHOW_RESULTS_TO_STUDENTS=$SHOW_RESULTS_TO_STUDENTS_ARG
+ENV TEST_MODE=$TEST_MODE_ARG
+
 ENV OUTPUT_PATH=/app/output
 ENV SUBMISSION_PATH=/app/submission
 ENV TESTS_PATH=/app/tests
@@ -30,7 +41,6 @@ COPY ./tests/src $TESTS_PATH
 COPY ./cpp-support $TESTS_PATH
 COPY ./tests/dat $DATA_PATH
 COPY ./submission-cmake $SUBMISSION_PROJECT
-COPY ./tests/config.ini /app/config.ini
 
 # install vckpg, catch2
 WORKDIR /app

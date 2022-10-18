@@ -1,4 +1,22 @@
-param ($testPath, $iniPath, $containerName="tmp")
+param ($TestPath, [ValidateSet('build','copy')]$Mode='build', [switch]$ShowTestsToStudents, [String]$ContainerName)
+
+if (-Not (Test-Path $TestPath)) {
+    throw "TestPath does not exists!"
+}
+
+if (-Not ((Get-Item $TestPath) -is [System.IO.DirectoryInfo])) {
+  throw "TestPath must be a directory!"
+}
+
+if ($ContainerName.Length -eq 0) {
+  Write-Output "Container name not given using TestPath as container name."
+  $ContainerName = Split-Path $TestPath -Leaf
+}
+
+Write-Output "TestPath: $TestPath"
+Write-Output "Mode: $Mode"
+Write-Output "ShowTestsToStudents: $ShowTestsToStudents"
+Write-Output "Container name: $ContainerName"
 
 function New-TemporaryDirectory {
   $parent = [System.IO.Path]::GetTempPath()
@@ -10,7 +28,6 @@ $tempFolder = New-TemporaryDirectory
 
 try {
   Copy-Item -Path '.\*' -Destination $tempFolder -Recurse -Exclude 'example'
-
   New-Item -Path $tempFolder -Name 'tests' -ItemType 'directory'
 
   <# We include, exclude files because we may want to build it from single
@@ -18,23 +35,26 @@ try {
   to use .cpp file as data...
   #>
   New-Item -Path $tempFolder\tests -Name 'src' -ItemType 'directory'
-  Copy-Item -Path $testPath\* -Destination $tempFolder\tests\src -Include ('*.cpp', '*.cc', '*.c', '*.h', '*.hpp')
+  Copy-Item -Path $TestPath\* -Destination $tempFolder\tests\src -Include ('*.cpp', '*.cc', '*.c', '*.h', '*.hpp')
 
   New-Item -Path $tempFolder\tests -Name 'dat' -ItemType 'directory'
-  Copy-Item -Path $testPath\* -Destination $tempFolder\tests\dat -Exclude ('*.cpp', '*.cc', '*.c', '*.h', '*.hpp')
-
-  Copy-Item -Path $iniPath -Destination $tempFolder\tests\config.ini
+  Copy-Item -Path $TestPath\* -Destination $tempFolder\tests\dat -Exclude ('*.cpp', '*.cc', '*.c', '*.h', '*.hpp')
 
   $location = Get-Location
   try {
     Set-Location -Path $tempFolder
 
-    docker build -t $containerName .
+    $dockerParams = @(
+      '--build-arg', "TEST_MODE_ARG=$Mode",
+      '--build-arg', "SHOW_RESULTS_TO_STUDENTS_ARG=$ShowTestsToStudents",
+      '--tag', $ContainerName
+    )
+    & docker build @dockerParams .
   }
   finally {
     Set-Location $location
   }
 }
 finally {
-  Remove-Item -Path $tempFolder -Recurse
+  <#Remove-Item -Path $tempFolder -Recurse#>
 }
