@@ -5,6 +5,8 @@ using MongoDB.Driver;
 using MongoDB.Bson;
 
 using submissions.Models;
+using System.Linq;
+using System;
 
 namespace submissions.Services;
 
@@ -38,6 +40,27 @@ public class SubmissionsService
 
     public async Task<Submission> GetAsync(string submissionId) =>
         await _submissions.Find(x => x.Id == submissionId).SingleAsync();
+
+    public class GetForTaskItem
+    {
+        public string UserEmail { get; set; }
+        public string SubmissionId { get; set; }
+        public DateTime SubmittedOn { get; set; }
+    }
+
+    public async Task<List<GetForTaskItem>> GetForTask(string taskId) =>
+        await _submissions.Aggregate()
+            .Match(x => x.TaskId == taskId)
+            .SortByDescending(x => x.SubmittedOn)
+            .Group(x => x.UserEmail,
+                g => new GetForTaskItem
+                {
+                    UserEmail = g.Key,
+                    SubmissionId = g.First().Id,
+                    SubmittedOn = g.First().SubmittedOn
+                }
+            )
+            .ToListAsync();
 
     public async Task CreateAsync(Submission newSubmission) =>
         await _submissions.InsertOneAsync(newSubmission);

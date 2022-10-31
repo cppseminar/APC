@@ -40,6 +40,22 @@ namespace submissions.Controllers
             }
         }
 
+        [HttpGet("task/{taskId}")]
+        public async Task<ActionResult<List<SubmissionsService.GetForTaskItem>>> OnGetForTaskAsync(string taskId)
+        {
+            try
+            {
+                _logger.LogTrace("Retrieving all submissions for task {taskId}", taskId);
+
+                return Ok(await _submissions.GetForTask(taskId));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error during retrieval of data. {e}", e);
+                return StatusCode(500);  // Internal error
+            }
+        }
+
         [HttpGet("{email}")]
         public async Task<ActionResult<List<Submission>>> OnGetAsync(string email, [FromQuery]string taskId)
         {
