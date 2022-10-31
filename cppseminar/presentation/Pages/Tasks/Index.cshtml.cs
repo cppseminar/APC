@@ -7,22 +7,26 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using presentation.Model;
 using presentation.Services;
+using Microsoft.AspNetCore.Mvc;
+using System.Net.Mime;
 
 namespace presentation.Pages.Tasks
 {
     public class IndexModel : PageModel
     {
         private ILogger<IndexModel> _logger;
-        private TaskService _service;
+        private TaskService _taskService;
+        private SubmissionService _submissionService;
         private IAuthorizationService _authService;
         public IList<TaskModel> TaskList = new List<TaskModel>();
         public bool IsAdmin = false;
 
 
-        public IndexModel(ILogger<IndexModel> logger, TaskService service, IAuthorizationService authService)
+        public IndexModel(ILogger<IndexModel> logger, TaskService taskService, SubmissionService submissionServicem, IAuthorizationService authService)
         {
             _logger = logger;
-            _service = service;
+            _taskService = taskService;
+            _submissionService = submissionServicem; 
             _authService = authService;
             
         }
@@ -30,7 +34,7 @@ namespace presentation.Pages.Tasks
         {
             try
             {
-                IList<TaskModel> taskList = await _service.GetAllTasksAsync();
+                IList<TaskModel> taskList = await _taskService.GetAllTasksAsync();
                 var auth = await _authService.AuthorizeAsync(User, "Administrator");
                 IsAdmin = auth.Succeeded;
                 // Show only tasks for which you are authorized
@@ -46,6 +50,28 @@ namespace presentation.Pages.Tasks
             catch (Exception)
             {
                 ModelState.AddModelError(string.Empty, "Operation failed");
+            }
+        }
+
+        public async Task<ActionResult> OnGetDownloadAllAsync(string id)
+        {
+            try
+            {
+                var auth = await _authService.AuthorizeAsync(User, "Administrator");
+                IsAdmin = auth.Succeeded;
+
+                if (!IsAdmin)
+                    return Page();
+
+                var taskList = await _submissionService.DownloadTaskSubmissionsAsync(id);
+
+                return File(taskList, MediaTypeNames.Application.Zip, $"{id}.zip");
+
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Operation failed");
+                return Page();
             }
         }
     }

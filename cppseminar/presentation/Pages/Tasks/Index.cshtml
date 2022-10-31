@@ -26,6 +26,9 @@
                     <td>
                         @task.ClaimName -> @task.ClaimValue
                     </td>
+                    <td>
+                        <th:a asp-page-handler="DownloadAll" asp-route-id="@task.Id">Download all</th:a>
+                    </td>
                 }
             </tr>
         }

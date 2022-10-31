@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -37,6 +39,62 @@ namespace presentation.Services
                     var submissions = await message.Content.ReadAsAsync<List<Submission>>();
                     _logger.LogTrace("Retrieved {} submissions", submissions.Count);
                     return submissions;
+                }
+                else
+                {
+                    _logger.LogWarning("Code {} reason {}", message.StatusCode, message.ReasonPhrase);
+                    throw new OperationFailedException();
+                }
+            }
+            catch (TaskCanceledException e)
+            {
+                _logger.LogWarning("Get submissions timeout/cancel {e}", e);
+                throw new OperationFailedException();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Get submissions failed {e}", e);
+                throw new OperationFailedException();
+            }
+        }
+
+        public async Task<byte[]> DownloadTaskSubmissionsAsync(string taskId)
+        {
+            _logger.LogTrace("Requesting submissions from service for task {taskId}", taskId);
+            try
+            {
+                HttpResponseMessage message = await _client.GetAsync($"/submission/task/{taskId}");
+                if (message.IsSuccessStatusCode)
+                {
+                    var submissions = await message.Content.ReadAsAsync<List<Dictionary<string, string>>>();
+                    _logger.LogTrace("Retrieved {} submissions", submissions.Count);
+
+                    using var memoryStream = new MemoryStream();
+                    using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                    {
+                        for (int i = 0; i < submissions.Count; i++)
+                        {
+                            var email = submissions[i]["userEmail"];
+                            var submissionId = submissions[i]["submissionId"];
+
+                            _logger.LogTrace("Requesting submission {submissionId} for user {email}", submissionId, email);
+                            message = await _client.GetAsync($"/submission/{email}/{submissionId}?contentFormat=file");
+                            if (message.IsSuccessStatusCode)
+                            {
+                                var file = archive.CreateEntry($"{email}_{submissionId}.cpp");
+
+                                using var entryStream = file.Open();
+                                using var streamWriter = new StreamWriter(entryStream);
+
+                                _logger.LogTrace("Writting content to zip file {fileName}", file.Name);
+
+                                var data = await message.Content.ReadAsAsync<Submission>();
+                                streamWriter.Write(data.Content);
+                            }
+                        }
+                    }
+
+                    return memoryStream.ToArray();
                 }
                 else
                 {
