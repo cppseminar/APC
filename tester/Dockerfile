@@ -54,4 +54,4 @@ RUN cmake -B ./build-debug -S . -DCMAKE_TOOLCHAIN_FILE=/app/vcpkg/scripts/builds
     && cmake -B ./build-release -S . -DCMAKE_TOOLCHAIN_FILE=/app/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release
 
 WORKDIR /app
-ENTRYPOINT ["python", "-m", "tester", "./config.ini"]
+ENTRYPOINT ["python", "-m", "tester"]
