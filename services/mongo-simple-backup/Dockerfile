@@ -1,4 +1,4 @@
-FROM alpine AS get_rclone
+FROM alpine:3.14 AS get_rclone
 
 RUN apk add curl \
     && curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip \
@@ -7,14 +7,26 @@ RUN apk add curl \
     && cp rclone /usr/bin/ \
     && chmod 755 /usr/bin/rclone
 
-FROM alpine AS build
+FROM golang:1.15-alpine3.14 AS build_mongodump
 
-RUN apk add mongodb-tools
+WORKDIR /build
+
+RUN apk update \
+    && apk add git \
+    && apk add gcc \
+    && apk add musl-dev \
+    && apk add krb5-dev \
+    && git clone https://github.com/mongodb/mongo-tools \
+    && cd mongo-tools \
+    && ./make build -pkgs=mongodump
+
+FROM alpine:3.14 AS build
 
 WORKDIR /tools
 
 COPY . .
 COPY --from=get_rclone /usr/bin/rclone /usr/bin/rclone
+COPY --from=build_mongodump /build/mongo-tools/bin/mongodump /usr/bin/mongodump
 
 RUN mkdir /var/dumps \
     && echo "#!/bin/sh" > ./dump.sh \
@@ -23,7 +35,8 @@ RUN mkdir /var/dumps \
     && chmod 0766 ./dump.sh \
     && chmod 0766 ./backup.sh \
     && mkdir -p /root/.config/rclone \
-    && touch /root/.config/rclone/rclone.conf
+    && touch /root/.config/rclone/rclone.conf \
+    && apk add krb5-libs
 
 FROM build AS dev
 

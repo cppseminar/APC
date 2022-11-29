@@ -57,7 +57,14 @@ fi
 
 DUMP_VER=`mongodump --version | head -1 | cut -d\  -f3 | cut -d- -f1`
 
-# restore can be done by running
-# mongorestore --uri $CONNECTION_STR --archive=$BACKUP_FILE
+# next line will change the connection string to not contain admin database
+# this is quite a hack, but mongodb operator used in this project will add
+# the admin db to its connection strings and once mongodump sees it, it will
+# no longer dump whode server (all dbs), but just this database, this will
+# fis it :(
+CONNECTION_STR_WHOLE_DB=`echo ${CONNECTION_STR} | sed -e s#\/admin\?#\/\?#g`
 
-mongodump --uri $CONNECTION_STR --archive=$OUTPUT_DIR/$(date +"%Y-%m-%dT%H-%M-%S")-dump-${DUMP_VER}.mongodump
+# restore can be done by running
+# mongorestore --uri $CONNECTION_STR_WHOLE_DB --archive=$BACKUP_FILE
+
+mongodump --uri $CONNECTION_STR_WHOLE_DB --archive=$OUTPUT_DIR/$(date +"%Y-%m-%dT%H-%M-%S")-dump-${DUMP_VER}.mongodump
