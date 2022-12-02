@@ -8,7 +8,7 @@ import os, pwd
 from dataclasses import dataclass
 
 from tester.timeout import TimeoutManager
-from tester.config import Config
+from tester.config import Config, Configuration
 
 logger = logging.getLogger(__name__)
 
@@ -66,12 +66,14 @@ class Tests:
     def __init__(self, binary, configuration):
         self.binary = binary
         self.configuration = configuration
-        self._options = ['--success', '--durations', 'yes', '--invisibles']
+        self._options = ['--durations', 'yes', '--invisibles']
+        if self.configuration == Configuration.DEBUG:
+            self._options.append('--success')
         self.test_cases = self._list_tests()
 
 
     def _list_tests(self):
-        logger.debug('Listing all unittest for binary "%s", with configuration "%s"', self.binary, self.configuration)
+        logger.debug('Listing all unittest for binary "%s", with configuration "%s"', self.binary, str(self.configuration))
 
         temp_dir = tempfile.mkdtemp()
         temp = os.path.join(temp_dir, self.CATCH_EXEC_NAME)
@@ -91,7 +93,7 @@ class Tests:
         return stdout.splitlines()
 
     def run_test(self, test_case, submission_binary = None):
-        logger.info('Running test "%s" in configuration "%s".', test_case, self.configuration)
+        logger.info('Running test "%s" in configuration "%s".', test_case, str(self.configuration))
 
         temp_dir = tempfile.mkdtemp()
         logger.debug('Using folder "%s"', temp_dir)

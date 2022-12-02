@@ -61,9 +61,9 @@ def compile_cmake_lists(folder, configuration):
 
     try:
         with TimeoutManager() as timeout:
-            build_folder = './build-' + configuration
+            build_folder = f'./build-{configuration}'
 
-            cmake = subprocess.run(['cmake', '-B', build_folder, '-S', '.', '-DCMAKE_BUILD_TYPE=' + configuration], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, cwd=folder)
+            cmake = subprocess.run(['cmake', '-B', build_folder, '-S', '.', f'-DCMAKE_BUILD_TYPE={configuration}'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, cwd=folder)
 
             if cmake.returncode != 0:
                 logger.warn('Cannot create make files')

@@ -7,7 +7,7 @@ import os
 import shutil
 import json
 
-from tester.config import Config, SubmissionMode
+from tester.config import Config, SubmissionMode, Configuration
 import tester.logger
 import tester.compiler as compiler
 import tester.tests
@@ -32,8 +32,8 @@ def build_tests():
         shutil.copy2(os.path.join(Config.submission_path(), 'main.cpp'), os.path.join(Config.tests_path(), 'submission.h'))
 
     result = {}
-    for configuration in ['debug', 'release']:
-        result[configuration] = build(os.path.join(Config.tests_path(), 'build-' + configuration))
+    for configuration in [Configuration.DEBUG, Configuration.RELEASE]:
+        result[configuration] = build(os.path.join(Config.tests_path(), f'build-{configuration}'))
 
     return result
 
@@ -44,10 +44,10 @@ def build_submission():
     shutil.copy2(os.path.join(Config.submission_path(), 'main.cpp'), Config.submission_project())
 
     result = {}
-    for configuration in ['debug', 'release']:
+    for configuration in [Configuration.DEBUG, Configuration.RELEASE]:
         project_result = compiler.compile_cmake_lists(Config.submission_project(), configuration)
 
-        build_output = os.path.join(Config.build_output_path(), Config.submission_project().replace('/', '_') + '-' + configuration + '-cmake-lists.txt')
+        build_output = os.path.join(Config.build_output_path(), Config.submission_project().replace('/', '_') + f'-{configuration}-cmake-lists.txt')
 
         with open(build_output, "w") as text_file:
             text_file.write(project_result.compiler_output)

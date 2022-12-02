@@ -7,6 +7,13 @@ class SubmissionMode(enum.Enum):
     COPY = 'copy'
     BUILD = 'build'
 
+class Configuration(str, enum.Enum):
+    DEBUG = 'debug'
+    RELEASE = 'release'
+
+    def __str__(self):
+        return str(self.value)
+
 class Config:
     @classmethod
     def dumps(cls):
