@@ -85,6 +85,19 @@ enum class TmpFileMode {
     Wo = TFM_WO,
 };
 
+inline std::filesystem::path CreateTempFile(const std::string& data, TmpFileMode mode = TmpFileMode::Rw) {
+    std::unique_ptr<char, decltype(&std::free)> file{
+        create_tmp_file(data.data(), data.size(), static_cast<tmp_file_mode>(mode)),
+        &std::free
+    };
+
+    if (file == nullptr) {
+        throw std::runtime_error("Cannot create temp file");
+    }
+
+    return std::filesystem::path(file.get(), file.get() + strlen(file.get()));
+}
+
 inline std::filesystem::path CreateTempFile(const std::vector<char>& data, TmpFileMode mode = TmpFileMode::Rw) {
     std::unique_ptr<char, decltype(&std::free)> file{
         create_tmp_file(data.data(), data.size(), static_cast<tmp_file_mode>(mode)),
@@ -123,6 +136,12 @@ inline std::vector<std::string> ReadLinesFromFile(const std::filesystem::path& p
     }
 
     return result;
+}
+
+inline std::vector<uint8_t> ReadBytesFromFile(const std::filesystem::path& path) {
+    std::ifstream f(path, std::ios::binary);
+
+    return std::vector<uint8_t>((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 }
 
 inline void RemoveFile(const std::filesystem::path& path) {
