@@ -39,7 +39,7 @@ public class TestRunsService
         await _testRuns.Find(x => x.Id == id).SingleAsync();
 
     public async Task<long> GetCountAsync(string userEmail, string testCaseId) =>
-        await _testRuns.Find(x => x.TestCaseId == testCaseId && x.CreatedBy == userEmail).CountDocumentsAsync();
+        await _testRuns.Find(x => x.TestCaseId == testCaseId && x.CreatedBy == userEmail && x.Counted).CountDocumentsAsync();
 
     public async Task CreateAsync(TestRun newTask) =>
         await _testRuns.InsertOneAsync(newTask);

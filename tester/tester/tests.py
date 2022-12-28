@@ -8,7 +8,7 @@ import os, pwd
 from dataclasses import dataclass
 
 from tester.timeout import TimeoutManager
-from tester.config import Config, Configuration
+from tester.config import Config, Configuration, SubmissionMode
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +131,7 @@ class Tests:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     preexec_fn=lambda: demote(user_uid, user_gid),
-                    timeout=timeout,
+                    timeout=timeout if Config.get_mode() == SubmissionMode.BUILD else min(timeout, 180),
                     cwd=temp_dir,
                     env=env)
 
