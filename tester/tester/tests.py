@@ -135,8 +135,8 @@ class Tests:
                     cwd=temp_dir,
                     env=env)
 
-                stdout = catch.stdout.decode('utf-8')
-                stderr = catch.stderr.decode('utf-8')
+                stdout = catch.stdout.decode('raw_unicode_escape')
+                stderr = catch.stderr.decode('raw_unicode_escape')
 
                 logger.info('Test finished errno: %d', catch.returncode)
                 logger.debug('Test stdout: "%s"\n stderr: "%s"', stdout, stderr)
