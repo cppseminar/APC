@@ -13,7 +13,7 @@ resource vmNetApInterfaceSecurityGroup 'Microsoft.Network/networkSecurityGroups@
   properties: {
     securityRules: [
       {
-        name: 'Allow ssh'
+        name: 'allow-ssh'
         properties: {
           access: 'Allow'
           protocol: 'Tcp'
@@ -34,7 +34,7 @@ resource vmNetApIp 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
   location: location
   sku: {
     name: 'Standard'
-    tier:'Regional'
+    tier: 'Regional'
   }
   properties: {
     publicIPAddressVersion: 'IPv4'

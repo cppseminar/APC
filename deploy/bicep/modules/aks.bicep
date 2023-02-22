@@ -13,12 +13,12 @@ resource apcAks 'Microsoft.ContainerService/managedClusters@2022-01-01' = {
     }
   }
   properties: {
-    kubernetesVersion: '1.23.5'
+    kubernetesVersion: '1.25.5'
     dnsPrefix: '${prefix}-aks-dns-prefix'
     agentPoolProfiles: [
       {
         name: '${prefix}akspool'
-        count: 3
+        count: 4
         vmSize: 'Standard_B2s'
         osDiskSizeGB: 32
         osDiskType: 'Managed'

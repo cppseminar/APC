@@ -3,7 +3,7 @@ param prefix string
 param admin string = 'azureuser'
 
 
-var secuirtyRules = [
+var securityRules = [
   {
     name: 'Allow https'
     properties: {
@@ -80,7 +80,7 @@ resource vmLoggingInterfaceSecurityGroup 'Microsoft.Network/networkSecurityGroup
   location: location
   properties: {
     // TODO: Use extended security rules only for setup, not all the time
-    securityRules: concat(secuirtyRules, extendedSecurityRules)
+    securityRules: concat(securityRules, extendedSecurityRules)
   }
 }
 
