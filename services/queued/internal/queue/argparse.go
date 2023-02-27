@@ -36,7 +36,6 @@ func parseArgs() Arguments {
 		content, err := ioutil.ReadFile(*configFile)
 		if err != nil {
 			log.Println("<3>Cannot read file, error:", err)
-			os.Exit(1)
 		}
 		if err := json.Unmarshal(content, &result); err != nil {
 			log.Println("<3>Cannot parse json, error:", err)

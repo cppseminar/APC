@@ -1,0 +1,16 @@
+#cloud-config
+
+package_update: true
+packages:
+  - docker.io
+  - azure-cli
+  - git
+
+runcmd:
+  - [ az, login, --identity, --username, '{0}' ]
+  - [ az, acr, login, --name, '{1}' ]
+  - [ wget, https://raw.githubusercontent.com/cppseminar/APC/master/services/queued/scripts/deploy.sh ]
+  - [ chmod, '0766', ./deploy.sh ]
+  - [ bash, ./deploy.sh ]
+  - [ sh, -c, "(crontab -l ; echo \"0 0 * * * az login --identity --username {0}\") | sort - | uniq - | crontab -" ]
+  - [ sh, -c, "(crontab -l ; echo \"15 * * * * az acr login --name {1}\") | sort - | uniq - | crontab -" ]

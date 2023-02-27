@@ -4,7 +4,7 @@
 
 ## Development
 
-To successfully run portal locally, you need to have docker installed (on Windows it can be Docker Desktop) and access to some kind of virtual machine (for example Hyper-V) with Linux running. Make sure you can access the VM and the VM can access the host (on Windows Hyper-V adapters are part of the Unidentified networks, so they are treated as public, so some FW rules are needed).
+To successfully run portal locally, you need to have docker installed (on Windows it can be Docker Desktop).
 
 ### Create google app
 
@@ -29,7 +29,7 @@ Currently we do not support azurite for mongo backups, so if you want that you n
 1. Go to `./cppseminar` and run `docker compose up` you need to have few environment variables present (e.g. create `.env` file there or just set them)
    * `GOOGLE_CLIENT_ID` google client id
    * `GOOGLE_CLIENT_SECRET` google client secret
-   * `STORAGE_AZUREBLOB_ACCOUNT` and `STORAGE_AZUREBLOB_KEY` those are azure blob storage account for backups, so this is optional if you do not want that. 
+   * `STORAGE_AZUREBLOB_ACCOUNT` and `STORAGE_AZUREBLOB_KEY` those are azure blob storage account for backups, so this is optional if you do not want that.
 2. After everything has started go to <http://localhost:8080/> and you are good to go.
 
 ## Deployment

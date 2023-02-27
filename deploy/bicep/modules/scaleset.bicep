@@ -3,6 +3,8 @@ param location string
 param lbSubnet string
 param lbIp string
 param ssSubnet string
+param acrIdentity string
+param containerRegistry string
 
 param admin string = 'azureuser'
 
@@ -109,6 +111,7 @@ resource scaleSet 'Microsoft.Compute/virtualMachineScaleSets@2021-11-01' = {
              ]
            }
          } // linuxConnfig
+         customData: base64(format(loadTextContent('cloud-init.yaml'), acrIdentity, containerRegistry))
       } // osprofile
       networkProfile: {
         // healthProbe:
@@ -147,13 +150,18 @@ resource scaleSet 'Microsoft.Compute/virtualMachineScaleSets@2021-11-01' = {
         }
         imageReference: {
           publisher: 'canonical'
-          offer: '0001-com-ubuntu-server-focal'
-          sku: '20_04-lts-gen2'
+          offer: '0001-com-ubuntu-server-jammy'
+          sku: '22_04-lts'
           version: 'latest'
-          //id: '/subscriptions/xxx/resourceGroups/xxx/providers/Microsoft.Compute/images/xxx'
         }
       }
     }
   }
 
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${acrIdentity}': {}
+    }
+  }
 }

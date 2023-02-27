@@ -40,7 +40,7 @@ resource apcAks 'Microsoft.ContainerService/managedClusters@2022-01-01' = {
           count: 1
         }
       }
-      loadBalancerSku:'standard' // Basic throws error for some reason
+      loadBalancerSku: 'standard' // Basic throws error for some reason
       outboundType: 'loadBalancer'
     }
   }

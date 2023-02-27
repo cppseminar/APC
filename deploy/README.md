@@ -6,20 +6,20 @@ It contains infrastructure deployment scripts written in **bicep** and vm setup 
 Our architecture currently only runs in Azure, but we are slowly making transition to make it cloud provider indempendent.
 
 # How to set this up
+
 1. This folder contains automatic infrastructure deployment (bicep), but not everything. Missing parts are:
-   - Azure cosmos db
    - Azure container registry
    - Azure storage account
    - Managed identity with network contributor role for entire subscription
-     - This account must be created in r.g. apc-data
-     - Name of this manged identity must be apc-aks-user
+     - This account must be created in r. g. `apc-data`
+     - Name of this managed identity must be `apc-aks-user`
+   - Managed identity with acrpull role for created azure container registry
+     - This account must be created in r. g. `apc-data`
+     - Name of this managed identity must be ${REGISTRY}-user (if you called your registry `apcregistry`, than the name must be `apcregistry-user`)
+     - <https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity?tabs=azure-cli#example-1-access-with-a-user-assigned-identity>
 2. Use ansible to set up logging and ~~management~~ servers
 3. Build and deploy containers (source code is outside this folder) to kubernetes
-4. Create custom os image for scale set (testers)
-   - Run init script for testers (found outside in services dir)
-   - Use ansible to setup logging client for this image
-   - Set this image to virtual machine scale set
-5. Setup some necessary environment variables, that are outside of this overview
+4. Setup some necessary environment variables, that are outside of this overview
 
 # Networks
 Due to our use of VPN tunnels and internal static ips in subnets, it is necesssary to keep these in mind:

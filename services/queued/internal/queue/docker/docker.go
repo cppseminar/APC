@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -156,10 +157,27 @@ func PullImage(ctx context.Context, config DockerConfig) {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(10)*time.Minute)
 	defer cancel()
 
-	authConfig := types.AuthConfig{
-		Username: config.Username,
-		Password: config.Password,
+	var authConfig types.AuthConfig
+	if config.Username == "" {
+		cfg, err := cliconfig.Load("")
+		if err == nil {
+			registry := config.DockerImage[:strings.IndexByte(config.DockerImage, '/')]
+			auth, err := cfg.GetAuthConfig(registry)
+			if err != nil {
+				log.Printf("<4>Cannot get auth for %s from default cred store: %v\n", config.DockerImage, err)
+			} else {
+				authConfig = types.AuthConfig(auth)
+			}
+		} else {
+			log.Printf("<4>Cannot open default cred store: %v\n", err)
+		}
+	} else {
+		authConfig = types.AuthConfig{
+			Username: config.Username,
+			Password: config.Password,
+		}
 	}
+
 	encodedJSON, err := json.Marshal(authConfig)
 	if err != nil {
 		log.Println("<3>Error while marshal json:", err)

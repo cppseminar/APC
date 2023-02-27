@@ -5,6 +5,8 @@ param location string = 'germanywestcentral'
 @maxLength(5)
 param prefix string
 
+param containerRegistry string
+
 
 module network 'modules/mainnet.bicep' = {
   name: '${prefix}-vnet-deploy'
@@ -32,6 +34,8 @@ module ssset 'modules/scaleset.bicep' = {
     lbSubnet: network.outputs.lbSubnet
     lbIp: network.outputs.lbIp
     ssSubnet: network.outputs.ssetSubnet
+    acrIdentity: acrIdentity.id
+    containerRegistry: containerRegistry
   }
 }
 
@@ -58,4 +62,9 @@ module dns 'modules/dnsAdd.bicep' = {
 resource aksIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
   scope: resourceGroup('apc-data')
   name: 'apc-aks-user'
+}
+
+resource acrIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
+  scope: resourceGroup('apc-data')
+  name: '${containerRegistry}-user'
 }
