@@ -3,8 +3,7 @@ module services
 go 1.16
 
 require (
-	github.com/Microsoft/go-winio v0.5.1 // indirect
-	github.com/containerd/containerd v1.5.7 // indirect
+	github.com/containerd/containerd v1.5.18 // indirect
 	github.com/docker/cli v23.0.1+incompatible
 	github.com/docker/docker v20.10.10+incompatible
 	github.com/docker/docker-credential-helpers v0.7.0 // indirect
