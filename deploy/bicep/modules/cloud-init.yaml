@@ -3,10 +3,10 @@
 package_update: true
 packages:
   - docker.io
-  - azure-cli
   - git
 
 runcmd:
+  - [ sh, -c, "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash" ]
   - [ az, login, --identity, --username, '{0}' ]
   - [ az, acr, login, --name, '{1}' ]
   - [ wget, https://raw.githubusercontent.com/cppseminar/APC/master/services/queued/scripts/deploy.sh ]
