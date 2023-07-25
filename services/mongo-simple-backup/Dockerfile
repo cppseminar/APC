@@ -1,4 +1,4 @@
-FROM alpine:3.14 AS get_rclone
+FROM alpine:3.18 AS get_rclone
 
 RUN apk add curl \
     && curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip \
@@ -7,7 +7,7 @@ RUN apk add curl \
     && cp rclone /usr/bin/ \
     && chmod 755 /usr/bin/rclone
 
-FROM golang:1.15-alpine3.14 AS build_mongodump
+FROM golang:1.20-alpine3.18 AS build_mongodump
 
 WORKDIR /build
 
@@ -20,7 +20,7 @@ RUN apk update \
     && cd mongo-tools \
     && ./make build -pkgs=mongodump
 
-FROM alpine:3.14 AS build
+FROM alpine:3.18 AS build
 
 WORKDIR /tools
 
