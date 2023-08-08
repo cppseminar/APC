@@ -20,7 +20,7 @@ namespace presentation.Pages.Submissions
             _submissionService = submissionService;
         }
 
-        public async Task OnGetAsync()
+        public async Task OnGetAsync(int? page)
         {
             try
             {

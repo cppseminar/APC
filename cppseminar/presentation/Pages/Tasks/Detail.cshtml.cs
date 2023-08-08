@@ -85,10 +85,11 @@ namespace presentation.Pages.Tasks
             try
             {
                 _logger.LogTrace("Submission passed tests, gonna send to service");
-                Submission _ =
+                Submission postedSubmission =
                     await _submisssionService.CreateSubmissionAsync(submission);
                 _logger.LogTrace("Submission was created successfuly");
-                return RedirectToPage("/Submissions/Success");
+                System.Console.WriteLine(postedSubmission.Id);
+                return RedirectToPage("/Submissions/Detail", new {id = postedSubmission.Id});
             }
             catch (Exception e)
             {

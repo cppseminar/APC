@@ -2,7 +2,10 @@
 @model presentation.Pages.Admin.TestCase.CreateModel
 
 <h4>Create new test case</h4>
-<th:div asp-validation-summary="All" class="alert-danger p-2"></th:div>
+@if (!ViewData.ModelState.IsValid) {
+    <th:div asp-validation-summary="All" class="alert-danger p-2"></th:div>
+}
+
 <th:form method="POST" >
     <table>
         <tr>
