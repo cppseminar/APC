@@ -1,5 +1,6 @@
 @page
 @model presentation.Pages.Submissions.IndexModel
+@using presentation.Model
 
 @{
     ViewBag.Title = "Submission";
@@ -21,7 +22,11 @@
                 Submission time
             </th>
         </tr>
-        @foreach (var submission in Model.Submissions)
+        @{
+            @* int startIndex = Model.pageNumber*Model.pageSize;
+            IEnumerable<Submission> takenSubmissions = ((Model.Submissions).Skip(startIndex)).Take(Model.pageSize);     *@
+         }
+        @foreach (var submission in Model.TakenSubmissions)
         {
             <tr>
                 <td>
@@ -35,5 +40,38 @@
                 </td>
             </tr>
         }
+        <b>@Model.Submissions.Count()</b>
+        <b> @Model.numberOfPages</b>
+        <b>Current page number @Model.PageNumber</b>
+        <b>Length of taken submissions @Model.TakenSubmissions.Count()
+        </b>
+        @* <form asp-page="/Submissions/Index" method="get">
+            <label for="page-dropdown">Page:</label>
+            <select id="page-dropdown" name="PageNumber" asp-for="PageNumber">
+            @for(var i = 0; i<Model.numberOfPages; i++){
+                <option value="@i"@(i == Model.PageNumber ? "selected": "")>@i</option>
+        }
+            </select>
+        <button type="submit">Go</button>
+        </form> *@
+        @* <th:a asp-page="Index" asp-route-page="@(Model.pageNumber + 1)">Next Page</th:a> *@
+        @{
+            int[] a = new int[Model.numberOfPages];
+
+        }
+        @for(var i = 0; i<Model.numberOfPages; i++){
+                a[i] = i;
+        }
+        
+        <th:form method="get">
+        <label>
+            Page number
+            <th:select asp-for="PageNumber" asp-items="@(new SelectList(a))" onchange="this.form.submit();"></th:select>
+        </label>
+        </th:form>
+
+         
+            
+        
     </table>
 </div>
