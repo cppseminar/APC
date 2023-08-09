@@ -28,6 +28,10 @@ namespace presentation.Pages.Admin.Submissions
                     Submissions = await _submissionService.GetSubmissionsAsync();
                 else
                     Submissions = await _submissionService.GetUserSubmissionsAsync(SelectedUser);
+            // paging
+            numberOfPages = (int)Math.Ceiling(Convert.ToDouble(Submissions.Count()) / Convert.ToDouble(pageSize));
+            int startIndex = PageNumber*pageSize;
+            DisplayedSubmissions = Submissions.Skip(startIndex).Take(pageSize);
             }
             catch (OperationFailedException e)
             {
@@ -58,7 +62,11 @@ namespace presentation.Pages.Admin.Submissions
         public IEnumerable<Submission> Submissions = Enumerable.Empty<Submission>();
 
         public List<SelectListItem> Users = null;
-
+        public IEnumerable<Submission> DisplayedSubmissions = Enumerable.Empty<Submission>();
+         [BindProperty(SupportsGet = true)]
+        public int PageNumber { get; set; }
+        public int pageSize = 10;
+        public int numberOfPages = 0;
 
         private readonly ILogger<ListModel> _logger = null;
         private readonly SubmissionService _submissionService = null;

@@ -16,8 +16,23 @@
             <th:select asp-for="SelectedUser" asp-items="@Model.Users" onchange="this.form.submit();"></th:select>
         </label>
     </th:form>
+
+    @{
+        int[] pages = new int[Model.numberOfPages];
+        for(var i=0; i < Model.numberOfPages; i++){
+            pages[i] = i;
+        }
+    }
+    <br>
+    <th:form method="get">
+    <label>
+        Page number
+        <th:select asp-for="PageNumber" asp-items="@(new SelectList(pages))" onchange="this.form.submit();"></th:select>
+    </label>
+    </th:form>
+    
     <table class="table">
-        @foreach (var submission in Model.Submissions)
+        @foreach (var submission in Model.DisplayedSubmissions)
         {
             <tr>
                 <td>
@@ -39,4 +54,7 @@
             </tr>
         }
     </table>
+    
+
+
 </div>

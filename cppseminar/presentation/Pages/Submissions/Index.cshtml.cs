@@ -36,14 +36,14 @@ namespace presentation.Pages.Submissions
                 }
             }
             int startIndex = PageNumber*pageSize;
-            TakenSubmissions = Submissions.Skip(startIndex).Take(pageSize);
+            DisplayedSubmissions = Submissions.Skip(startIndex).Take(pageSize);
         }
 
         [BindProperty]
         public Submission MySubmission { get; set; }
         public IList<string> Errors = new List<string>();
         public IEnumerable<Submission> Submissions = Enumerable.Empty<Submission>();
-        public IEnumerable<Submission> TakenSubmissions = Enumerable.Empty<Submission>();
+        public IEnumerable<Submission> DisplayedSubmissions = Enumerable.Empty<Submission>();
         [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; }
         public int pageSize = 10;
