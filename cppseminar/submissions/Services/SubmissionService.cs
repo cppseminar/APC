@@ -25,17 +25,36 @@ public class SubmissionsService
         _submissions = mongoDatabase.GetCollection<Submission>("submissions");
     }
 
-    public async Task<List<Submission>> GetAsync(int count) =>
-        await _submissions.Find(_ => true).SortByDescending(x => x.SubmittedOn).Limit(count).ToListAsync();
+    public async Task<List<Submission>> GetAsync(int count, int pageNumber=0) =>
+        await _submissions.Find(_ => true).SortByDescending(x => x.SubmittedOn).Skip(count*pageNumber).Limit(count).ToListAsync();
 
-    public async Task<List<Submission>> GetForUserAsync(string email, string taskId, int count)
+    public async Task<List<Submission>> GetForUserAsync(string email, string taskId, int count, int pageNumber=0)
     {
         var filter = Builders<Submission>.Filter.Eq(x => x.UserEmail, email);
 
         if (taskId != null)
             filter &= Builders<Submission>.Filter.Eq("TaskId", ObjectId.Parse(taskId));
 
-        return await _submissions.Find(filter).SortByDescending(x => x.SubmittedOn).Limit(count).ToListAsync();
+        return await _submissions.Find(filter).SortByDescending(x => x.SubmittedOn).Skip(count*pageNumber).Limit(count).ToListAsync();
+    }
+    public async Task<List<long>> GetCountAsyncUser(string email, string taskId, int pageSize){
+        var filter = Builders<Submission>.Filter.Empty;
+        var test =  await _submissions.Find(filter).CountDocumentsAsync();
+        System.Console.WriteLine("number of test documents "+ test);
+        if (email != ""){
+            System.Console.WriteLine("This is filter");
+            System.Console.WriteLine(email);
+            filter &= Builders<Submission>.Filter.Eq(x => x.UserEmail, email);
+        }
+        if (taskId != null){
+            System.Console.WriteLine("Filter by task");
+            filter &= Builders<Submission>.Filter.Eq("TaskId", ObjectId.Parse(taskId));
+        }
+            
+        var numberOfDocuments =  await _submissions.Find(filter).CountDocumentsAsync();
+        System.Console.WriteLine("Number of documents" + numberOfDocuments);
+        var numberOfPages = (long)Math.Ceiling(Convert.ToDouble(numberOfDocuments) / Convert.ToDouble(pageSize));
+        return new List<long> {numberOfDocuments, numberOfPages };
     }
 
     public async Task<Submission> GetAsync(string submissionId) =>

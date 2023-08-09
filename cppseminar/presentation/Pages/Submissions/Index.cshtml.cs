@@ -22,21 +22,20 @@ namespace presentation.Pages.Submissions
 
         public async Task OnGetAsync()
         {
-            System.Console.WriteLine("pomoc");
-            System.Console.WriteLine(PageNumber);
-            if (!Submissions.Any()){
-                try
-                {
-                    Submissions = await _submissionService.GetUserSubmissionsAsync(User.GetEmail());
-                    numberOfPages = (int)Math.Ceiling(Convert.ToDouble(Submissions.Count()) / Convert.ToDouble(pageSize));
-                }
-                catch(OperationFailedException e)
-                {
-                    ModelState.AddModelError(string.Empty, e.Message);
+            try
+            {
+                Submissions = await _submissionService.GetUserSubmissionsAsync(User.GetEmail(), PageNumber);
+                //numberOfPages = (int)Math.Ceiling(Convert.ToDouble(Submissions.Count()) / Convert.ToDouble(pageSize));
+                if (numberOfPages == -1){
+                    var counts = await _submissionService.GetCounts(User.GetEmail()); 
+                    numberOfPages = counts[1];
+                    System.Console.WriteLine("Number of pages "+ numberOfPages);
                 }
             }
-            int startIndex = PageNumber*pageSize;
-            DisplayedSubmissions = Submissions.Skip(startIndex).Take(pageSize);
+            catch(OperationFailedException e)
+            {
+                ModelState.AddModelError(string.Empty, e.Message);
+            }
         }
 
         [BindProperty]
@@ -47,7 +46,7 @@ namespace presentation.Pages.Submissions
         [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; }
         public int pageSize = 10;
-        public int numberOfPages = 0;
+        public long numberOfPages = -1;
 
         private ILogger<IndexModel> _logger = null;
         private SubmissionService _submissionService = null;

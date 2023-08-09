@@ -24,14 +24,22 @@ namespace presentation.Pages.Admin.Submissions
         {            
             try
             {
-                if (SelectedUser == "")
-                    Submissions = await _submissionService.GetSubmissionsAsync();
-                else
-                    Submissions = await _submissionService.GetUserSubmissionsAsync(SelectedUser);
-            // paging
-            numberOfPages = (int)Math.Ceiling(Convert.ToDouble(Submissions.Count()) / Convert.ToDouble(pageSize));
-            int startIndex = PageNumber*pageSize;
-            DisplayedSubmissions = Submissions.Skip(startIndex).Take(pageSize);
+                
+                // if (SelectedUser == "")
+                // Submissions = await _submissionService.GetSubmissionsAsync();
+                // else
+                System.Console.WriteLine("Page "+ PageNumber + "Selected user "+ SelectedUser);
+                Submissions = await _submissionService.GetUserSubmissionsAsync(SelectedUser, PageNumber);
+                
+                // Paging
+               if (numberOfPages == -1){
+                    System.Console.WriteLine("Idem zistovat counts");
+                    var counts = await _submissionService.GetCounts(SelectedUser); 
+                    System.Console.WriteLine(counts[0]);
+                    numberOfPages = counts[1];
+                    System.Console.WriteLine("Number of pages "+ numberOfPages);
+                }
+                
             }
             catch (OperationFailedException e)
             {
@@ -62,11 +70,11 @@ namespace presentation.Pages.Admin.Submissions
         public IEnumerable<Submission> Submissions = Enumerable.Empty<Submission>();
 
         public List<SelectListItem> Users = null;
-        public IEnumerable<Submission> DisplayedSubmissions = Enumerable.Empty<Submission>();
+        
          [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; }
         public int pageSize = 10;
-        public int numberOfPages = 0;
+        public long numberOfPages = -1;
 
         private readonly ILogger<ListModel> _logger = null;
         private readonly SubmissionService _submissionService = null;
