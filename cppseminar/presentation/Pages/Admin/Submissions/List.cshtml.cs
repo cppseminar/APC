@@ -32,7 +32,7 @@ namespace presentation.Pages.Admin.Submissions
                 Submissions = await _submissionService.GetUserSubmissionsAsync(SelectedUser, PageNumber);
                 
                 // Paging
-               if (numberOfPages == -1){
+               if (numberOfPages == -1 || (PreviouslySelectedUser != null && PreviouslySelectedUser != SelectedUser)){
                     System.Console.WriteLine("Idem zistovat counts");
                     var counts = await _submissionService.GetCounts(SelectedUser); 
                     System.Console.WriteLine(counts[0]);
@@ -62,6 +62,7 @@ namespace presentation.Pages.Admin.Submissions
 
                 ModelState.AddModelError(string.Empty, e.Message);
             }
+            PreviouslySelectedUser = SelectedUser;
         }
 
         [BindProperty(SupportsGet = true)]
@@ -73,11 +74,12 @@ namespace presentation.Pages.Admin.Submissions
         
          [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; }
-        public int pageSize = 10;
+        public int PageSize = 10;
         public long numberOfPages = -1;
 
         private readonly ILogger<ListModel> _logger = null;
         private readonly SubmissionService _submissionService = null;
         private readonly AuthenticationService _authService = null;
+        private string PreviouslySelectedUser = null;
     }
 }
