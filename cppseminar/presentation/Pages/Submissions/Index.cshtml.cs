@@ -28,7 +28,6 @@ namespace presentation.Pages.Submissions
                 if (numberOfPages == -1){
                     var counts = await _submissionService.GetCounts(User.GetEmail()); 
                     numberOfPages = counts[1];
-                    System.Console.WriteLine("Number of pages "+ numberOfPages);
                 }
             }
             catch(OperationFailedException e)

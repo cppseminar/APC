@@ -19,25 +19,20 @@ namespace presentation.Pages.Admin.Submissions
             _submissionService = submissionService;
             _authService = authService;
         }
-
         public async Task OnGetAsync()
         {            
             try
             {
                 
-                // if (SelectedUser == "")
-                // Submissions = await _submissionService.GetSubmissionsAsync();
-                // else
-                System.Console.WriteLine("Page "+ PageNumber + "Selected user "+ SelectedUser);
+                if (SelectedUser == "")
+                Submissions = await _submissionService.GetSubmissionsAsync();
+                else
                 Submissions = await _submissionService.GetUserSubmissionsAsync(SelectedUser, PageNumber);
                 
                 // Paging
                if (numberOfPages == -1 || (PreviouslySelectedUser != null && PreviouslySelectedUser != SelectedUser)){
-                    System.Console.WriteLine("Idem zistovat counts");
                     var counts = await _submissionService.GetCounts(SelectedUser); 
-                    System.Console.WriteLine(counts[0]);
                     numberOfPages = counts[1];
-                    System.Console.WriteLine("Number of pages "+ numberOfPages);
                 }
                 
             }

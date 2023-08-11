@@ -60,8 +60,6 @@ namespace submissions.Controllers
         [HttpGet("{email}")]
         public async Task<ActionResult<List<Submission>>> OnGetAsync(string email, [FromQuery]string taskId, [FromQuery] int PageNumber=0)
         {
-            System.Console.WriteLine("Tu som");
-            System.Console.WriteLine(PageNumber);
             try
             {
                 _logger.LogTrace("Retrieving all submissions for user {email} with task id {taskId}", email, taskId);
