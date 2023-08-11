@@ -9,6 +9,8 @@
             <th>Task</th>
             <th>Created at</th>
             <th>Status</th>
+            @* Maybe delete later *@
+            <th>Counted</th> 
         </tr>
         @foreach (var testRun in Model)
         {
@@ -30,6 +32,9 @@
                 <td>@testRun.TaskName</td>
                 <td>@testRun.CreatedAt</td>
                 <td>@testRun.Status</td>
+                @* not possible because testRun model in presentation does not include this attribute *@
+                <td>@testRun.Counted</td>  
+                
             </tr>
         }
     </table>

@@ -20,8 +20,9 @@ namespace presentation.Pages.Shared.Components.TestList
             string submissionId,
             bool isAdmin = false)
         {
-            var items = await _testService.GetTestsAsync(userEmail, submissionId);
+            var items = await _testService.GetTestsAsync(userEmail, submissionId); // returns all test runs for current submission
             ViewData["IsAdmin"] = isAdmin;
+            ViewData["test"] = items;
             return View(items);
         }
     }
