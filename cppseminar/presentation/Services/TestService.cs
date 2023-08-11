@@ -89,5 +89,30 @@ namespace presentation.Services
                 $"test/{HttpUtility.UrlEncode(userName)}/" + query);
             return await response.Content.ReadAsAsync<List<TestRun>>();
         }
+        // Get used runs on one test
+        public async Task<long> GetTestRunsAsync(string userEmail, string testId)
+        {
+            userEmail = !string.IsNullOrEmpty(userEmail) ? userEmail : null;
+            testId = !string.IsNullOrEmpty(testId) ? testId : null;
+            try {
+                System.Console.WriteLine("Idem ziskavatdo get async test count");
+                // Here it returns 404, check later
+                var response = await _client.GetAsync($"/test/count/{userEmail}/{testId}");
+                System.Console.WriteLine("Response " + response);
+                if (response.IsSuccessStatusCode) {
+                    var count = await response.Content.ReadAsAsync<long>();
+                    _logger.LogTrace("Retrieved {} runs", count);
+                    return count;
+                }
+                else {
+                     _logger.LogWarning("Code {} reason {}", response.StatusCode, response.ReasonPhrase);
+                    throw new OperationFailedException();
+                }
+            }
+            catch (Exception e){
+                 _logger.LogError("Get submissions failed {e}", e);
+                throw new OperationFailedException();
+            }  
+        }
     }
 }

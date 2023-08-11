@@ -166,5 +166,36 @@ public class TestRunsController : ControllerBase
 
         return Ok();
     }
+    //added this
+    [HttpGet("/count/{userEmail}/{testId}")]
+    public async Task<ActionResult<long>> CountTestRuns([FromRoute] string userEmail, [FromRoute] string testId)
+    {
+        System.Console.WriteLine("Tu som v test run controller");
+        _logger.LogTrace("Retrieving concrete test {test} {user}", testId, userEmail);
 
+        long CountedRuns;
+
+        try
+        {
+            System.Console.WriteLine(userEmail +" "+ testId);
+            CountedRuns = await _testRuns.GetCountAsync(userEmail, testId);
+            System.Console.WriteLine("Mongo vracia");
+            System.Console.WriteLine(CountedRuns);
+        }
+        catch (FormatException e)
+        {
+            _logger.LogWarning("Wrong input format, userEmail {userEmail} testId {testId}. {e}", userEmail, testId, e);
+            return StatusCode(400);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Error retrieving data for run id {test} {e}", testId, e);
+            return StatusCode(500);
+        }
+
+        return CountedRuns;
+    }
 }
+
+
+

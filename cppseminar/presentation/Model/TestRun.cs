@@ -21,5 +21,7 @@ namespace presentation.Model
         public string Name { get; set; }
         public string Students { get; set; }
         public string Teachers { get; set; }
+        //modified this
+        public bool Counted {get;set;}
     }
 }

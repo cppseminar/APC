@@ -42,6 +42,9 @@ namespace presentation.Pages.Submissions
             _testService = testService;
         }
 
+        //
+        public List<long> RemainingRunsList;
+
         public async Task OnGetAsync([Required]string id)
         {
             if (!ModelState.IsValid)
@@ -55,12 +58,16 @@ namespace presentation.Pages.Submissions
                     await _submissionService.GetSubmissionAsync(User.GetEmail(), id);
                 var allCases = await _testCaseService.GetByTask(MySubmission.TaskId);
                 TestCaseList = new List<TestCaseRest>();
+                RemainingRunsList = new List<long>();
                 foreach (var oneCase in allCases)
                 {
                     if ((await _authService.AuthorizeAsync(
                         User, oneCase, AuthorizationConstants.Submit)).Succeeded)
                     {
                         TestCaseList.Add(oneCase);
+                        var RemainingRuns = await _testService.GetTestRunsAsync(User.GetEmail(), oneCase.Id);
+                        RemainingRunsList.Add(RemainingRuns);
+                        System.Console.WriteLine(RemainingRuns);
                     }
                 }
             }
