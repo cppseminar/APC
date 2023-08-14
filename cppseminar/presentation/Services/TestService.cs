@@ -95,10 +95,7 @@ namespace presentation.Services
             userEmail = !string.IsNullOrEmpty(userEmail) ? userEmail : null;
             testId = !string.IsNullOrEmpty(testId) ? testId : null;
             try {
-                System.Console.WriteLine("Idem ziskavatdo get async test count");
-                // Here it returns 404, check later
                 var response = await _client.GetAsync($"/test/count/{userEmail}/{testId}");
-                System.Console.WriteLine("Response " + response);
                 if (response.IsSuccessStatusCode) {
                     var count = await response.Content.ReadAsAsync<long>();
                     _logger.LogTrace("Retrieved {} runs", count);
@@ -110,7 +107,7 @@ namespace presentation.Services
                 }
             }
             catch (Exception e){
-                 _logger.LogError("Get submissions failed {e}", e);
+                 _logger.LogError("Get test runs failed {e}", e);
                 throw new OperationFailedException();
             }  
         }

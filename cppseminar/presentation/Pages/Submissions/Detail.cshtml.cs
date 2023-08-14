@@ -65,9 +65,9 @@ namespace presentation.Pages.Submissions
                         User, oneCase, AuthorizationConstants.Submit)).Succeeded)
                     {
                         TestCaseList.Add(oneCase);
-                        var RemainingRuns = await _testService.GetTestRunsAsync(User.GetEmail(), oneCase.Id);
-                        RemainingRunsList.Add(RemainingRuns);
-                        System.Console.WriteLine(RemainingRuns);
+                        // Get countedRuns to calculate number of remaining runs
+                        var CountedRuns = await _testService.GetTestRunsAsync(User.GetEmail(), oneCase.Id);
+                        RemainingRunsList.Add(oneCase.MaxRuns-CountedRuns);
                     }
                 }
             }
