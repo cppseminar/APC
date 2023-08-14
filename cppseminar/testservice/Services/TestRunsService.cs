@@ -35,6 +35,23 @@ public class TestRunsService
         return await _testRuns.Find(filter).SortByDescending(x => x.CreatedAt).Limit(count).ToListAsync();
     }
 
+    // updates counted attribute of specific test
+    public async Task<UpdateResult> SetCounted(string testRunId, bool newValue)
+    {
+        var filter = Builders<TestRun>.Filter.Empty;
+        if (testRunId == null) {
+            return null;
+        }
+        if (testRunId != null)
+            filter &= Builders<TestRun>.Filter.Eq(x => x.Id, testRunId);
+        // if (submissionId != null)
+        //     filter &= Builders<TestRun>.Filter.Eq(x => x.SubmissionId, submissionId);
+        System.Console.WriteLine("Setting test with id "+testRunId +" to value "+ newValue);
+        var update = Builders<TestRun>.Update.Set(testRun => testRun.Counted, newValue);
+
+        return await _testRuns.UpdateOneAsync(filter, update);
+    }
+
     public async Task<TestRun> GetAsync(string id) =>
         await _testRuns.Find(x => x.Id == id).SingleAsync();
 

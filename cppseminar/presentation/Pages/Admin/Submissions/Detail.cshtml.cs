@@ -57,7 +57,6 @@ namespace presentation.Pages.Admin.Submissions
             {
                 return Page();
             }
-
             var testCase = await _testCaseService.GetById(TestGuid);
             var submission = await _submissionService.GetSubmissionAsync(
                 user, submissionId.ToString(), urlOnly: true);
@@ -100,6 +99,34 @@ namespace presentation.Pages.Admin.Submissions
             // TODO: Check task date
 
             // Check permissions on submission and task and test case
+        }
+        //overloaded onpostasync when updating counted value of selected test runs
+        public async Task<ActionResult> OnPostCountedAsync(
+            [FromQuery] string testRunId)
+        {
+            var email = User.GetEmail();
+                if (email == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Please sign in again");
+                    return Page();
+                }
+            try{
+                bool countedVal = Request.Form[testRunId] == "on"? true : false;
+                var response = await _testService.SetCountedTestRun(testRunId, countedVal);
+                System.Console.WriteLine(response);
+                if (response){
+                    return RedirectToAction("OnGetAsync");
+                }
+                else{
+                    ModelState.AddModelError(string.Empty, "Operation failed");
+                    return Page();
+                }
+                 
+            }
+            catch (Exception){
+                ModelState.AddModelError(string.Empty, "Operation failed");
+                return Page();
+            }
         }
     }
 }

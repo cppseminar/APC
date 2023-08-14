@@ -1,6 +1,5 @@
 @model List<presentation.Model.TestRun>
 
-
 @if (Model != null)
 {
     <table class="table">
@@ -9,6 +8,9 @@
             <th>Task</th>
             <th>Created at</th>
             <th>Status</th>
+            @if(ViewData["IsAdmin"] as bool ? ?? false){
+                <th>Counted</th>
+            }
         </tr>
         @foreach (var testRun in Model)
         {
@@ -30,9 +32,19 @@
                 <td>@testRun.TaskName</td>
                 <td>@testRun.CreatedAt</td>
                 <td>@testRun.Status</td>
-                
+                @if(ViewData["IsAdmin"] as bool ? ?? false){
+                @* <td>@testRun.Counted</td> *@
+                <th:form method="post">
+                <td> <input type="checkbox" name="@testRun.Id" checked="@testRun.Counted"></td>
+                <td>
+                        <th:input asp-page-handler="Counted" asp-route-testRunId = "@testRun.Id"
+                        class="btn btn-primary" type="submit" value="Update"/> 
+                </td>
+                </th:form>
+            }
             </tr>
         }
+        
     </table>
 
 }
