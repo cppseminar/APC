@@ -196,7 +196,6 @@ public class TestRunsController : ControllerBase
     [HttpPost("setCounted/{testRunId}")]
     public async Task<ActionResult> UpdateTestRunCounted([FromRoute] string testRunId, [FromBody] bool countedValue)
     {
-        System.Console.WriteLine("Test run id" + testRunId);
         if (testRunId == null){
             return BadRequest();
         }
