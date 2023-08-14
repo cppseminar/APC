@@ -167,7 +167,7 @@ public class TestRunsController : ControllerBase
         return Ok();
     }
     //added this
-    [HttpGet("/count/{userEmail}/{testId}")]
+    [HttpGet("count/{userEmail}/{testId}")]
     public async Task<ActionResult<long>> CountTestRuns([FromRoute] string userEmail, [FromRoute] string testId)
     {
         System.Console.WriteLine("Tu som v test run controller");
@@ -177,10 +177,7 @@ public class TestRunsController : ControllerBase
 
         try
         {
-            System.Console.WriteLine(userEmail +" "+ testId);
             CountedRuns = await _testRuns.GetCountAsync(userEmail, testId);
-            System.Console.WriteLine("Mongo vracia");
-            System.Console.WriteLine(CountedRuns);
         }
         catch (FormatException e)
         {

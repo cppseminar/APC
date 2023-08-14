@@ -30,16 +30,26 @@ else
     <table class="table">
         <tr>
             <th>Test Name</th>
+            <th>Remaining runs</th>
         </tr>
-        @foreach (var testCase in Model.TestCaseList)
+        @* @foreach (var testCase in Model.TestCaseList) *@
+        @for(var i = 0; i < Model.TestCaseList.Count(); i++)
         {
             <tr>
                 <td>
-                    @testCase.Name
+                    @Model.TestCaseList[i].Name
+                </td>
+                <td>
+                    @if (i >= Model.RemainingRunsList.Count()){
+                        @String.Format("%s", "Unknown");
+                    }
+                    else{
+                        @Model.RemainingRunsList[i]
+                    }           
                 </td>
                 <td>
                     <th:form method="post">
-                        <th:input type="hidden" asp-for="@Model.TestGuid" value="@testCase.Id" />
+                        <th:input type="hidden" asp-for="@Model.TestGuid" value="@Model.TestCaseList[i].Id" />
                         <input class="btn btn-primary" type="submit" value="Run test!" />
                     </th:form>
                 </td>
