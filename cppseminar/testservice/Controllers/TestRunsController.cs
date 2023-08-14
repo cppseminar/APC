@@ -166,7 +166,7 @@ public class TestRunsController : ControllerBase
 
         return Ok();
     }
-    //added this
+    //counts number of used tests
     [HttpGet("count/{userEmail}/{testId}")]
     public async Task<ActionResult<long>> CountTestRuns([FromRoute] string userEmail, [FromRoute] string testId)
     {
@@ -191,6 +191,30 @@ public class TestRunsController : ControllerBase
         }
 
         return CountedRuns;
+    }
+
+    [HttpPost("setCounted/{testRunId}")]
+    public async Task<ActionResult> UpdateTestRunCounted([FromRoute] string testRunId, [FromBody] bool countedValue)
+    {
+        System.Console.WriteLine("Test run id" + testRunId);
+        if (testRunId == null){
+            return BadRequest();
+        }
+        try
+        {
+            
+            var UpdateResult = await _testRuns.SetCounted(testRunId, countedValue);
+            if (UpdateResult.IsAcknowledged){
+                return StatusCode(200);
+            }
+            else 
+                return StatusCode(500);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Invalid test run id supplied {case}. {e}", testRunId, e);
+            return BadRequest();
+        }
     }
 }
 
