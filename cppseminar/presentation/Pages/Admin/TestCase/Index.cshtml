@@ -43,6 +43,9 @@
                     <td>
                         @testCase.Id
                     </td>
+                    <td>
+                        <th:a asp-page="/Admin/TestCase/Edit" asp-route-caseId="@testCase.Id">Edit</th:a>
+                    </td>
                 </tr>
             }
         </table>
