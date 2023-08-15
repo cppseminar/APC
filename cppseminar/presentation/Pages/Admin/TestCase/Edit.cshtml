@@ -1,0 +1,66 @@
+@page
+@model presentation.Pages.Admin.TestCase.EditModel
+
+<h4>Edit test case </h4>
+@if (!ViewData.ModelState.IsValid) {
+    <th:div asp-validation-summary="All" class="alert-danger p-2"></th:div>
+}
+
+<th:form method="POST" >
+    <table>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.TestCase.Name"></th:label>
+            </th>
+            <td>
+                <th:input asp-for="@Model.TestCase.Name" value="@Model.TestCase.Name"/>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.TestCase.TaskId"></th:label>
+            </th>
+            <td>
+                <th:input asp-for="@Model.TestCase.TaskId" value="@Model.TestCase.TaskId"/>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.TestCase.DockerImage"></th:label>
+            </th>
+            <td>
+                <th:input asp-for="@Model.TestCase.DockerImage" value="@Model.TestCase.DockerImage" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.TestCase.MaxRuns"></th:label>
+            </th>
+            <td>
+                <th:input asp-for="@Model.TestCase.MaxRuns" value="@Model.TestCase.MaxRuns" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.TestCase.ClaimName"></th:label>
+            </th>
+            <td>
+                <th:input asp-for="@Model.TestCase.ClaimName" value="@Model.TestCase.ClaimName" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <th:label asp-for="@Model.TestCase.ClaimValue"></th:label>
+
+            </th>
+            <td>
+                <th:input asp-for="@Model.TestCase.ClaimValue" value="@Model.TestCase.ClaimValue" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="submit" class="btn btn-primary" value="Edit test case" />
+            </td>
+        </tr>
+    </table>
+</th:form>

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+using testservice.Model;
 using testservice.Models;
 using testservice.Services;
 
@@ -83,6 +84,26 @@ public class TestCasesController : ControllerBase
             _logger.LogTrace("Test case saved succesfully");
 
             return Created("N/A", testCase);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning("Failed saving changes with error {e}", e);
+
+            return StatusCode(500);
+        }
+    }
+    [HttpPost("update/{testCaseId}")]
+    public async Task<ActionResult> UpdateAsync([FromRoute] string testCaseId, [FromBody] TestCaseUpdate testCase)
+    {
+        _logger.LogTrace("Updating new test case {obj}", JsonSerializer.Serialize(testCase));
+        
+        try
+        {
+            await _testCases.UpdateTestCase(testCaseId, testCase);
+
+            _logger.LogTrace("Test case updated succesfully");
+
+            return Ok();
         }
         catch (Exception e)
         {
