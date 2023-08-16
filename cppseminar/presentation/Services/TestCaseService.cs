@@ -144,7 +144,7 @@ namespace presentation.Services
             }
             catch (Exception e)
             {
-                _logger.LogWarning("Creating new test case failed with: {e}", e);
+                _logger.LogWarning("Updating test case failed with: {e}", e);
                 throw new OperationFailedException();
             }
         }
