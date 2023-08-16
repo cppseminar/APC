@@ -100,7 +100,6 @@ namespace presentation.Pages.Admin.Submissions
 
             // Check permissions on submission and task and test case
         }
-        //overloaded onpostasync when updating counted value of selected test runs
         public async Task<ActionResult> OnPostCountedAsync(
             [FromQuery] string testRunId)
         {

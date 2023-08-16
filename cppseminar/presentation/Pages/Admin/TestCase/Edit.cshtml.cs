@@ -31,9 +31,10 @@ namespace presentation.Pages.Admin.TestCase
         public async Task<ActionResult> OnPostAsync([FromQuery] string caseId){ 
             if (!ModelState.IsValid){
                 ModelState.AddModelError(string.Empty, "Model is not valid");
+                return Page();
             }
             try{
-                System.Console.WriteLine(TestCase.Id); // http post resets fields not in form and it ignores bindnever attribute
+                // http post resets fields not in form and it ignores bindnever attribute, thats why we call updateTest with caseId from query 
                 await _testCaseService.UpdateTest(caseId, TestCase);
                 return RedirectToPage("/Admin/TestCase/Index");
             }
