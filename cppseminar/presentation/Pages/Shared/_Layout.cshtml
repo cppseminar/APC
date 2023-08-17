@@ -31,6 +31,7 @@
                         <li class="nav-item"><th:a asp-page="/Index" class="nav-link">Home</th:a></li>
                         <li class="nav-item"><th:a asp-page="/Tasks/Index" class="nav-link">Tasks</th:a></li>
                         <li class="nav-item"><th:a asp-page="/Submissions/Index" class="nav-link">Your Submissions</th:a></li>
+                        <li class="nav-item"><th:a asp-page="/Connection/Index" class="nav-link">Connection</th:a></li>
                         @if (User.IsAdmin())
                         {
                             <li class="nav-item"><th:a asp-page="/Admin/Users/Index" class="nav-link">Users</th:a></li>
@@ -227,5 +228,6 @@
             editor.setReadOnly(true)
         })
     </script>
+    @RenderSection("JavaScript", required: false)
 </body>
 </html>

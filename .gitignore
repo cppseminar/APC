@@ -93,6 +93,7 @@ tags
 *.sublime*
 *.code*
 *pyls*
+cppseminar/presentation/presentation.sln
 
 # From react
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
