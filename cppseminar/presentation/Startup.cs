@@ -101,6 +101,7 @@ namespace presentation
             {
                 endpoints.MapRazorPages();
             });
+            app.UseStaticFiles();
         }
     }
 }
