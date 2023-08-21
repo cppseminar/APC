@@ -1,4 +1,5 @@
 @page
+@using System.Security.Claims
 @model presentation.Pages.Connection.IndexModel
 @{
 }
@@ -7,7 +8,14 @@
 @section JavaScript
 {
    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
-   <script type="text/javascript" src="@Url.Content("~/js/script.js")"></script>
+   @if(User.Identity.IsAuthenticated)
+    {
+   <script type="text/javascript">
+    const userEmail = "@User.FindFirst(claim => claim.Type == ClaimTypes.Email).Value";
+    </script>
+    <script type="text/javascript" src="@Url.Content("~/js/script.js")"></script>
+    }
+   
 }
 
 <div>

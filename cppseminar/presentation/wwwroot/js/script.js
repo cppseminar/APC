@@ -1,3 +1,5 @@
+console.log("Test", userEmail);
+
 const connection = new signalR.HubConnectionBuilder()
     .withUrl("/monitor")
     .configureLogging(signalR.LogLevel.Information)
@@ -27,7 +29,7 @@ connection.on("ReceiveMessage", (user, message) => {
 async function invokeSendMessage() {
     // Invoke SendMessage on the Hub
     try {
-        await connection.invoke("SendMessage", "user123-TODO", "This is a message " + (new Date).getMilliseconds());
+        await connection.invoke("SendMessage", userEmail, "This is a message " + (new Date).getMilliseconds());
     } catch (err) {
         console.error(err);
     }

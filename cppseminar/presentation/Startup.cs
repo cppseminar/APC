@@ -33,6 +33,8 @@ namespace presentation
             });
             // modified this
             services.AddSignalR();
+            services.AddControllers();
+
             services.Configure<Microsoft.AspNetCore.Routing.RouteOptions>(options =>
             {
                 options.AppendTrailingSlash = true;
@@ -51,6 +53,8 @@ namespace presentation
             services.AddSingleton<AuthenticationService>();
             services.AddSingleton<TestCaseService>();
             services.AddSingleton<TestService>();
+            //
+            services.AddSingleton<MonitoringService>();
             services.AddSingleton<IAuthorizationHandler, AdminAuthorizationService>();
             services.AddSingleton<IAuthorizationHandler, TaskAuthorizationService>();
             services.AddSingleton<IAuthorizationHandler, TestCaseAuthorizationService>();
@@ -105,8 +109,14 @@ namespace presentation
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllers();
                 endpoints.MapRazorPages();
                 endpoints.MapHub<MonitoringHub>("/monitor");
+                // endpoints.MapGet("/testingeverything", async context =>
+                // {
+                //     System.Console.WriteLine("Hello, World!");
+                // });
+               
             });
             app.UseStaticFiles();
             

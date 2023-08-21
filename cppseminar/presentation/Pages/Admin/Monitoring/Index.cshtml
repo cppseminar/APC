@@ -1,0 +1,34 @@
+@page
+@using System.Security.Claims
+@model presentation.Pages.Monitoring.IndexModel
+@{
+}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+ <script type="text/javascript" src="@Url.Content("~/js/monitoring_admin.js")"></script>
+
+
+<div>
+    <span>All connected users</span>
+    <table class="table mt-2">
+        <tr>
+            <th>
+                User email
+            </th>
+            <th>
+                Last message 
+            </th>
+        </tr>
+        @foreach (var user in Model.LoggedUsers)
+        {
+            <tr>
+                <td>
+                    @user.UserEmail
+                </td>
+                <td>
+                    @user.Timestamp
+                </td>
+            </tr>
+        }    
+        
+    </table>
+</div>
