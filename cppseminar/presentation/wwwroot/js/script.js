@@ -1,5 +1,3 @@
-console.log("This is the start of the script.js...");
-
 const connection = new signalR.HubConnectionBuilder()
     .withUrl("/monitor")
     .configureLogging(signalR.LogLevel.Information)
@@ -26,18 +24,19 @@ connection.on("ReceiveMessage", (user, message) => {
     console.log("ReceiveMessage():", user, message);
 });
 
-async function main() {
-    console.log("We are in main.");
-
-    // Start the connection.
-    await start();
-    
+async function invokeSendMessage() {
     // Invoke SendMessage on the Hub
     try {
         await connection.invoke("SendMessage", "user123-TODO", "This is a message " + (new Date).getMilliseconds());
     } catch (err) {
         console.error(err);
     }
+    return false;
+}
+
+async function main() {
+    // Start the connection.
+    await start();
 }
 
 main();
