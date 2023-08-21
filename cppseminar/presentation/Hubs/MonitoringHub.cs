@@ -1,9 +1,10 @@
 using System;
 using Microsoft.AspNetCore.SignalR;
+using System.Threading.Tasks;
 
-namespace MonitoringService.Hubs
+namespace presentation.Hubs
 {
-    public class MonitoringHub : Hub
+    public class MonitoringHub: Hub
     {
         public override Task OnConnectedAsync()
         {  

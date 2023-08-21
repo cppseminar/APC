@@ -13,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using System;
 
 using presentation.Services;
+using presentation.Hubs;
 
 namespace presentation
 {
@@ -30,6 +31,8 @@ namespace presentation
             services.AddRazorPages(opts => {
                 opts.Conventions.AuthorizeFolder("/Admin", "Administrator");
             });
+            // modified this
+            services.AddSignalR();
             services.Configure<Microsoft.AspNetCore.Routing.RouteOptions>(options =>
             {
                 options.AppendTrailingSlash = true;
@@ -103,8 +106,10 @@ namespace presentation
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
+                endpoints.MapHub<MonitoringHub>("/monitor");
             });
             app.UseStaticFiles();
+            
         }
     }
 }

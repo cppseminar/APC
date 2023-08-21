@@ -1,7 +1,7 @@
 console.log("This is the start of the script.js...");
 
 const connection = new signalR.HubConnectionBuilder()
-    .withUrl("http://localhost:8525/monitor")
+    .withUrl("/monitor")
     .configureLogging(signalR.LogLevel.Information)
     .build();
 
