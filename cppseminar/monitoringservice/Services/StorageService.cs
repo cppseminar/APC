@@ -1,5 +1,6 @@
 using StackExchange.Redis;
 using System.Text.Json;
+using System.Threading.Tasks;
 using monitoringservice.Model;
 
 namespace monitoringservice.Services;
@@ -15,29 +16,36 @@ public class StorageService
         _server = redis.GetServer("redis.local", 6379);
     }
 
-    public void setPair(string Key, string Value)
+    public async Task setPairAsync(string Key, string Value)
     {
-        _db.StringSet(Key, Value);
+        await _db.StringSetAsync(Key, Value);
     }
 
-    public string getValue(string Key)
+    public async Task<string> getValueAsync(string Key)
     {
-        string value = _db.StringGet(Key);
+        string value = await _db.StringGetAsync(Key);
         return value == null ? "" : value;
     }
 
-    public string getEveryKeyValueJson()
+    public async Task<string> getEveryKeyValueJsonAsync()
     {
         List<Pair> pairs = new List<Pair>();
-        
+            
         var keys = _server.Keys();
         foreach (var key in keys)
         {
-            var value = _db.StringGet(key);
+            var value = await _db.StringGetAsync(key);
             pairs.Add(new Pair(key, value));
         }
 
         return JsonSerializer.Serialize(pairs);        
+    }
+
+    public async Task<bool> delayTestAsync(int delay)
+    {
+        await _db.StringSetAsync("delay", delay);
+        System.Threading.Thread.Sleep(delay);
+        return true;
     }
 
 }

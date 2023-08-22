@@ -21,26 +21,26 @@ public class Program
             app.UseExceptionHandler("/Error");
         }
 
-        app.MapGet("/redis/get/all", (StorageService db) => {
+        app.MapGet("/redis/get/all", async (StorageService db) => {
             System.Console.WriteLine("GET /redis/get/all");
-            return db.getEveryKeyValueJson();
+            return await db.getEveryKeyValueJsonAsync();
         });
 
-        app.MapGet("/redis/get/key/{key}", (string key, StorageService db) => {
+        app.MapGet("/redis/get/key/{key}", async (string key, StorageService db) => {
             System.Console.WriteLine($"GET /redis/get/key/, key={key}");
-            string value = db.getValue(key);
+            string value = await db.getValueAsync(key);
             if (value == null)
                 return "404\n"; // TODO - 404 status
             else
                 return value;
         });
 
-        app.MapPost("/redis/post", (Pair pair, StorageService db) => {
+        app.MapPost("/redis/post", async (Pair pair, StorageService db) => {
             System.Console.WriteLine($"POST /redis/post: {pair.Key} {pair.Value}");
             if (pair.Key == null || pair.Value == null)
                 return "Bad request\n"; // TODO - 400 status
 
-            db.setPair(pair.Key, pair.Value);
+            await db.setPairAsync(pair.Key, pair.Value);
             return "OK\n";
         });
 
