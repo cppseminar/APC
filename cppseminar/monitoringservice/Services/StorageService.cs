@@ -21,10 +21,10 @@ public class StorageService
         await _db.StringSetAsync(Key, Value);
     }
 
-    public async Task<string> getValueAsync(string Key)
+    public async Task<string?> getValueAsync(string Key)
     {
         string value = await _db.StringGetAsync(Key);
-        return value == null ? "" : value;
+        return value;
     }
 
     public async Task<string> getEveryKeyValueJsonAsync()
@@ -39,13 +39,6 @@ public class StorageService
         }
 
         return JsonSerializer.Serialize(pairs);        
-    }
-
-    public async Task<bool> delayTestAsync(int delay)
-    {
-        await _db.StringSetAsync("delay", delay);
-        System.Threading.Thread.Sleep(delay);
-        return true;
     }
 
 }
