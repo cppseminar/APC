@@ -41,21 +41,45 @@ public class Program
             }
         });
 
-        app.MapPost("/redis/post", async (Pair pair, StorageService db, HttpContext context) => {
-            System.Console.WriteLine($"POST /redis/post: {pair.Key} {pair.Value}");
-            if (pair.Key == null || pair.Value == null)
+        app.MapPost("/redis/post/pair", async (Pair pair, StorageService db, HttpContext context) => {
+            System.Console.WriteLine($"POST /redis/post/pair: {pair.Key} {pair.Value}");
+            if (!isValidPair(pair))
             {
                 context.Response.StatusCode = 400;
                 return "";
             }
             else
             {
-                await db.setPairAsync(pair.Key, pair.Value);
+                await db.setPairAsync(pair);
                 return "OK\n";
             }
         });
 
+        app.MapPost("/redis/post/list/append", async (Pair pair, StorageService db, HttpContext context) => {
+            System.Console.WriteLine($"POST /redis/post/list/append: {pair.Key} {pair.Value}");
+            if (!isValidPair(pair))
+            {
+                context.Response.StatusCode = 400;
+                return "";
+            }
+            else
+            {
+                await db.appendListPairAsync(pair);
+                return "OK\n";
+            }
+        });
+
+        app.MapGet("/redis/get/list/all", async (StorageService db) => {
+            System.Console.WriteLine("GET /redis/get/list/all");
+            return await db.getEveryListJsonAsync();
+        });
+
         app.Run();
+    }
+
+    private static bool isValidPair(Pair pair)
+    {
+        return !(pair.Key == null || pair.Value == null);
     }
 }
 
