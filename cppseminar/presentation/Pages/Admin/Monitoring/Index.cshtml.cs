@@ -24,23 +24,7 @@ namespace presentation.Pages.Monitoring
         {
             _logger = logger;
             _monitoringService = monitoringService;
+            LoggedUsers = new List<ConnectionLog>();
         }
-
-        public async Task OnGetAsync()
-        {
-            try
-            {
-                _logger.LogTrace("Obtaining list of monitored users for admin");
-                _logger.LogTrace("List successfuly retrieved");
-
-            }
-            catch(Exception e)
-            {
-                _logger.LogWarning("Error during logged users {e}", e);
-                ModelState.AddModelError(string.Empty, "Operation failed. Check log");
-            }
-        }
-        
-        
     }
 }

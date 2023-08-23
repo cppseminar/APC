@@ -28,16 +28,6 @@ namespace presentation.Services
                 new MediaTypeWithQualityHeaderValue("application/json"));
             _logger = logger;            
         }
-        // public async Task<List<ConnectionLog>> Test()
-        // {
-        //     List<ConnectionLog> list = new List<ConnectionLog>
-        //     {
-        //         new ConnectionLog("user1", DateTime.Now),
-        //         new ConnectionLog("user2", DateTime.Now),
-        //         new ConnectionLog("user3", DateTime.Now),
-        //     };
-        //     return list;
-        // }
 
         public async Task<string?> GetConnectedUsersRecentAsync()
         {

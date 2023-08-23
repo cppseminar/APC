@@ -16,9 +16,9 @@ public class StorageService
         _server = redis.GetServer("redis.local", 6379);
     }
 
-    public async Task setPairAsync(Pair pair)
+    public async Task setConnectionlogAsync(ConnectionLog connectionLog)
     {
-        await _db.StringSetAsync(pair.Key, pair.Value);
+        await _db.StringSetAsync(connectionLog.Email, connectionLog.Timestamp);
     }
 
     public async Task<string?> getValueAsync(string Key)
@@ -27,49 +27,18 @@ public class StorageService
         return value;
     }
 
-/* This works only when key-value pairs are in redis */
-    public async Task<string> getEveryKeyValueJsonAsync()
+/* This works only when key-value pairs of string-string are in redis */
+    public async Task<string> getConnectionLogsJsonAsync()
     {
-        List<Pair> pairs = new List<Pair>();
+        List<ConnectionLog> connectionLogsList = new List<ConnectionLog>();
             
-        var keys = _server.Keys();
-        foreach (var key in keys)
+        var emails = _server.Keys();
+        foreach (var email in emails)
         {
-            var value = await _db.StringGetAsync(key);
-            pairs.Add(new Pair(key, value));
+            var timestamp = await _db.StringGetAsync(email);
+            connectionLogsList.Add(new ConnectionLog(email, timestamp));
         }
 
-        return JsonSerializer.Serialize(pairs);
-    }
-
-    public async Task appendListPairAsync(Pair pair)
-    {
-        // Appending items to the list
-        await _db.ListRightPushAsync(pair.Key, pair.Value);
-
-        // var last = await _db.ListGetByIndexAsync(pair.Key, -1);
-        // Console.WriteLine($"Last item: {last}");
-    }
-
-    public async Task<string> getEveryListJsonAsync()
-    {
-        var output = new List<List<string?>>();
-        var keys = _server.Keys();
-        foreach (var key in keys)
-        {
-            var list = new List<string?>();
-            list.Add(key); // 1st item is always the key
-
-            // Retrieving all items from the list
-            var items = await _db.ListRangeAsync(key);
-            foreach (var item in items)
-            {
-                list.Add(item);
-            }
-
-            output.Add(list);
-        }
-
-        return JsonSerializer.Serialize(output);
+        return JsonSerializer.Serialize(connectionLogsList);
     }
 }
