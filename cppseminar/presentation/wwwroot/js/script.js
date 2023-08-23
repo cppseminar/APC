@@ -20,8 +20,6 @@ connection.onclose(async () => {
     console.log("Connection closed.");
     await start();
 });
-
-// Define the ReceiveMessage method so that it can be triggered from the Hub
 connection.on("ReceiveMessage", (user, message) => {
     console.log("ReceiveMessage():", user, message);
 });
@@ -32,13 +30,15 @@ async function invokeSendMessage() {
         await connection.invoke("SendMessage", userEmail, "This is a message " + (new Date).getMilliseconds());
     } catch (err) {
         console.error(err);
+        document.getElementById("errorMessages").textContent = "Unauthorized action";
     }
     return false;
 }
+// Define the ReceiveMessage method so that it can be triggered from the Hub
+
 
 async function main() {
     // Start the connection.
     await start();
 }
-
 main();

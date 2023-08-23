@@ -89,6 +89,7 @@ namespace presentation
                 options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
                                                                          .Build();
                 options.AddPolicy("Administrator", policy => policy.RequireClaim("isAdmin", "true"));
+                options.AddPolicy("Student", policy => policy.RequireClaim("isStudent", "true"));
             });
         }
 
