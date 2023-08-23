@@ -21,7 +21,8 @@
 <div>
     <h3>Connection checker</h3>
     <p>This page is used to check whether the student is still connected to our network.</p>
-    <a onclick="invokeSendMessage()">Send message<a>
+    <a id="start-logging-button" onclick="mainloop()">Start logging connection.</a>
+    <p id="last-timestamp">Last timestamp sent at: --- </p>
 </div>
 <div id="errorMessages">
     </div>

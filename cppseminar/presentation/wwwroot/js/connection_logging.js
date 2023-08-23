@@ -9,6 +9,7 @@ async function start() {
     try {
         await connection.start();
         console.log("SignalR Connected.");
+        setButtonColor("green");
     }
     catch (err) {
         console.log(err);
@@ -21,32 +22,30 @@ connection.onclose(async () => {
     await start();
 });
 
-async function invokeSendMessage() {
-    // Invoke SendMessage on the Hub
-    try {
-        await connection.invoke("SendMessage", userEmail, "This is a message " + (new Date).getMilliseconds());
-    } catch (err) {
-        console.error(err);
-        document.getElementById("errorMessages").textContent = "Unauthorized action";
-    }
-    return false;
+function setButtonColor(color) {
+    document.getElementById("start-logging-button").style.color = color;
 }
-// Define the ReceiveMessage method so that it can be triggered from the Hub
 
+function showLastLog() {
+    document.getElementById("last-timestamp").innerText = "Last timestamp sent at: " + new Date().toISOString();
+}
 
-async function main() {
+async function mainloop() {
     // Start the connection.
     await start();
 
+    let counter = 0;
     while (true) {
         try {
+            console.log(counter, "invoking LogConnection...");
             await connection.invoke("LogConnection");
+            counter += 1;
+            showLastLog();
         } catch (err) {
             console.error(err);
-            document.getElementById("errorMessages").textContent = "Unauthorized action";
+            setButtonColor("red");
+            break;
         }
-        break;
+        await new Promise(resolve => setTimeout(resolve, 2000));
     }
 }
-
-main();
