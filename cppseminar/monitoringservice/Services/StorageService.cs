@@ -18,7 +18,7 @@ public class StorageService
 
     public async Task setConnectionlogAsync(ConnectionLog connectionLog)
     {
-        await _db.StringSetAsync(connectionLog.Email, connectionLog.Timestamp);
+        await _db.StringSetAsync(connectionLog.UserEmail, connectionLog.Timestamp);
     }
 
     public async Task<string?> getValueAsync(string Key)

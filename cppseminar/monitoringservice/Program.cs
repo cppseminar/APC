@@ -27,8 +27,8 @@ public class Program
         });
 
         app.MapPost("/monitoring/post/log", async (ConnectionLog connectionLog, StorageService db, HttpContext context) => {
-            System.Console.WriteLine($"POST monitoring/post/log: {connectionLog.Email} {connectionLog.Timestamp}");
-            if (connectionLog.Email == null || connectionLog.Timestamp == null)
+            System.Console.WriteLine($"POST monitoring/post/log: {connectionLog.UserEmail} {connectionLog.Timestamp}");
+            if (connectionLog.UserEmail == null || connectionLog.Timestamp == null)
             {                
                 context.Response.StatusCode = 400;
                 return "";

@@ -17,6 +17,7 @@ namespace presentation.Hubs
         public MonitoringHub(MonitoringService monitoringService){
             _monitoringService = monitoringService;
         }
+<<<<<<< HEAD
         // public override Task OnConnectedAsync()
         // {  
         //     System.Console.WriteLine("Client connected " + Context.ConnectionId);
@@ -34,15 +35,22 @@ namespace presentation.Hubs
         [Authorize(Policy="Student")]
 >>>>>>> 23b70a5 (Added dynamic table refreshing in monitoring page)
         public async Task SendMessage(string user, string message)
+=======
+        
+        //[Authorize(Policy="Student")]
+        public async Task LogConnection()
+>>>>>>> 0fcbfd2 (SignalR hub pulls user email from claims + 1st version of connection logging in redis)
         {
-            System.Console.WriteLine();
-            System.Console.WriteLine("SendMessage: " + user + " " + message);
-            System.Console.WriteLine(Context.User.Claims);
-            foreach (Claim claim in Context.User.Claims){
-                System.Console.WriteLine(claim.Type);
-                System.Console.WriteLine(claim.Value);
+            string userEmail = "";
+            foreach (Claim claim in Context.User.Claims) {
+                if (claim.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
+                {
+                    userEmail = claim.Value;
+                    break;
+                }
             }
-            await Clients.All.SendAsync("ReceiveMessage", user, message);
+            var connectionLog = new ConnectionLog(userEmail, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            _monitoringService.LogConnectionAsync(connectionLog);
         }
         public async Task GetConnectedUsersRecentAsync(){
             var response = _monitoringService.GetConnectedUsersRecentAsync();

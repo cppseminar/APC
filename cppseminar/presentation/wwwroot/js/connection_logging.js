@@ -20,9 +20,6 @@ connection.onclose(async () => {
     console.log("Connection closed.");
     await start();
 });
-connection.on("ReceiveMessage", (user, message) => {
-    console.log("ReceiveMessage():", user, message);
-});
 
 async function invokeSendMessage() {
     // Invoke SendMessage on the Hub
@@ -40,5 +37,16 @@ async function invokeSendMessage() {
 async function main() {
     // Start the connection.
     await start();
+
+    while (true) {
+        try {
+            await connection.invoke("LogConnection");
+        } catch (err) {
+            console.error(err);
+            document.getElementById("errorMessages").textContent = "Unauthorized action";
+        }
+        break;
+    }
 }
+
 main();

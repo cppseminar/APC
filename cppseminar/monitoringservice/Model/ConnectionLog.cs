@@ -1,4 +1,4 @@
-namespace presentation.Model;
+namespace monitoringservice.Model;
 
 public class ConnectionLog
 {

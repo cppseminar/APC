@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
@@ -27,6 +28,14 @@ namespace presentation.Services
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
             _logger = logger;            
+        }
+
+        public async Task LogConnectionAsync(ConnectionLog connectionLog) {
+            var response = await _client.PostAsJsonAsync("monitoring/post/log", connectionLog);
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                _logger.LogError("LogConnectionAsync returned " + response.StatusCode);
+            }
         }
 
         public async Task<List<ConnectionLog>> GetConnectedUsersRecentAsync()
