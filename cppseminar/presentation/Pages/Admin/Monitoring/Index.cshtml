@@ -3,13 +3,12 @@
 @model presentation.Pages.Monitoring.IndexModel
 @{
 }
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
- <script type="text/javascript" src="@Url.Content("~/js/monitoring_admin.js")"></script>
+
 
 
 <div>
     <span>All connected users</span>
-    <table class="table mt-2">
+    <table class="table mt-2" id="userLogs">
         <tr>
             <th>
                 User email
@@ -18,8 +17,8 @@
                 Last message 
             </th>
         </tr>
-        <div id="userLogs">
-            @foreach (var user in Model.LoggedUsers)
+
+            @* @foreach (var user in Model.LoggedUsers)
         {
             <tr id="@user.UserEmail">
                 <td>
@@ -29,9 +28,8 @@
                     @user.Timestamp
                 </td>
             </tr>
-        }    
-        </div>
-        
-        
+        }     *@
     </table>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+ <script type="text/javascript" src="@Url.Content("~/js/monitoring_admin.js")"></script>
