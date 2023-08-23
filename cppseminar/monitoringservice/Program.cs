@@ -21,12 +21,12 @@ public class Program
             app.UseExceptionHandler("/Error");
         }
 
-        app.MapGet("/redis/get/all", async (StorageService db) => {
+        app.MapGet("/monitoring/redis/get/all", async (StorageService db) => {
             System.Console.WriteLine("GET /redis/get/all");
             return await db.getEveryKeyValueJsonAsync();
         });
 
-        app.MapGet("/redis/get/key/{key}", async (string key, StorageService db, HttpContext context) => {
+        app.MapGet("/monitoring/redis/get/key/{key}", async (string key, StorageService db, HttpContext context) => {
             System.Console.WriteLine($"GET /redis/get/key/, key={key}");
             
             string value = await db.getValueAsync(key);
@@ -41,7 +41,7 @@ public class Program
             }
         });
 
-        app.MapPost("/redis/post/pair", async (Pair pair, StorageService db, HttpContext context) => {
+        app.MapPost("/monitoring/redis/post/pair", async (Pair pair, StorageService db, HttpContext context) => {
             System.Console.WriteLine($"POST /redis/post/pair: {pair.Key} {pair.Value}");
             if (!isValidPair(pair))
             {
@@ -55,7 +55,7 @@ public class Program
             }
         });
 
-        app.MapPost("/redis/post/list/append", async (Pair pair, StorageService db, HttpContext context) => {
+        app.MapPost("/monitoring/redis/post/list/append", async (Pair pair, StorageService db, HttpContext context) => {
             System.Console.WriteLine($"POST /redis/post/list/append: {pair.Key} {pair.Value}");
             if (!isValidPair(pair))
             {
@@ -69,9 +69,13 @@ public class Program
             }
         });
 
-        app.MapGet("/redis/get/list/all", async (StorageService db) => {
+        app.MapGet("/monitoring/redis/get/list/all", async (StorageService db) => {
             System.Console.WriteLine("GET /redis/get/list/all");
             return await db.getEveryListJsonAsync();
+        });
+
+        app.MapGet("/monitoring/get/recents", async (StorageService db) => {
+            return "This is a test.";
         });
 
         app.Run();

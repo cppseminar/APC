@@ -31,8 +31,8 @@ namespace presentation.Pages.Monitoring
             try
             {
                 _logger.LogTrace("Obtaining list of monitored users for admin");
-                LoggedUsers = await _monitoringService.Test();
                 _logger.LogTrace("List successfuly retrieved");
+
             }
             catch(Exception e)
             {
