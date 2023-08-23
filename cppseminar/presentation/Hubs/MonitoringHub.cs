@@ -53,10 +53,11 @@ namespace presentation.Hubs
             _monitoringService.LogConnectionAsync(connectionLog);
         }
         public async Task GetConnectedUsersRecentAsync(){
-            var response = _monitoringService.GetConnectedUsersRecentAsync();
+            var response = await _monitoringService.GetConnectedUsersRecentAsync();
+            System.Console.WriteLine("Tu je response z monitoring service");
             System.Console.WriteLine(response);
-            var test = JsonSerializer.Serialize(response);
-            System.Console.WriteLine(test);
+            // var test = JsonSerializer.Serialize(response);
+            // System.Console.WriteLine(test);
             await Clients.Caller.SendAsync("ReceiveUsers", response, "OK");
         }
     }

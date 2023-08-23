@@ -10,6 +10,8 @@ async function start() {
     try {
         await connection.start();
         console.log("SignalR Connected.");
+        //setInterval(invokeSendMessage, 10000);
+        invokeSendMessage();
     }
     catch (err) {
         console.log(err);
@@ -25,32 +27,32 @@ connection.onclose(async () => {
 // Define the ReceiveMessage method so that it can be triggered from the Hub
 connection.on("ReceiveUsers", (users, message) => {
     console.log(users)
-    users.forEach(user => {
-        const row = document.getElementById(user.email)
-        const tbl = document.getElementById("userLogs");
-        if (row === null){
-            const dateNow = Date.now()
-            const timestamp = new Date(user.timestamp) 
-            tbl.innerHTML += `<tr id="${user.email}">
-            <td>
-                ${user.email}
-            </td>
-            <td>
-                ${Math.floor((dateNow - timestamp) / 1000)}
-            </td>
-        </tr>`
-        }
-        else{
-            row.innerHTML = `<td> 
-                            ${user.email}
-                            </td>
-                            <td>
-                            ${Math.floor((dateNow - timestamp) / 1000)}
-                            </td>`
-        }
-        console.log(user.email);
-        console.log(user.timestamp);
-    })
+    // users.forEach(user => {
+    //     const row = document.getElementById(user.email)
+    //     const tbl = document.getElementById("userLogs");
+    //     if (row === null){
+    //         const dateNow = Date.now()
+    //         const timestamp = new Date(user.timestamp) 
+    //         tbl.innerHTML += `<tr id="${user.email}">
+    //         <td>
+    //             ${user.email}
+    //         </td>
+    //         <td>
+    //             ${Math.floor((dateNow - timestamp) / 1000)}
+    //         </td>
+    //     </tr>`
+    //     }
+    //     else{
+    //         row.innerHTML = `<td> 
+    //                         ${user.email}
+    //                         </td>
+    //                         <td>
+    //                         ${Math.floor((dateNow - timestamp) / 1000)}
+    //                         </td>`
+    //     }
+    //     console.log(user.email);
+    //     console.log(user.timestamp);
+    // })
 });
 
 async function invokeSendMessage() {

@@ -30,19 +30,14 @@ namespace presentation.Services
             _logger = logger;            
         }
 
-        public async Task LogConnectionAsync(ConnectionLog connectionLog) {
-            var response = await _client.PostAsJsonAsync("monitoring/post/log", connectionLog);
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                _logger.LogError("LogConnectionAsync returned " + response.StatusCode);
-            }
-        }
-
-        public async Task<List<ConnectionLog>> GetConnectedUsersRecentAsync()
+        public async Task<System.Net.Http.HttpResponseMessage> GetConnectedUsersRecentAsync()
         {
             var response = await _client.GetAsync("monitoring/get/recents"); // monitoring/get/all
             //var responseJson = await response.Content.ReadAsStringAsync();
-            return await response.Content.ReadAsAsync<List<ConnectionLog>>();
+            System.Console.WriteLine("Odpoved z monitoring service");
+            System.Console.WriteLine(response);
+            return response;
+            // return await response.Content.ReadAsAsync<List<ConnectionLog>>();
             // System.Console.WriteLine(responseJson);
             // return responseJson;
         }
