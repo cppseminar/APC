@@ -19,11 +19,26 @@ namespace presentation.Pages.Monitoring
         [BindProperty]
         public List<ConnectionLog> LoggedUsers{get;set;}
         private readonly MonitoringService _monitoringService = null;
+
         public IndexModel(ILogger<IndexModel> logger, MonitoringService monitoringService)
         {
             _logger = logger;
             _monitoringService = monitoringService;
-            LoggedUsers = new List<ConnectionLog>();
+        }
+
+        public async Task OnGetAsync()
+        {
+            try
+            {
+                _logger.LogTrace("Obtaining list of monitored users for admin");
+                LoggedUsers = await _monitoringService.Test();
+                _logger.LogTrace("List successfuly retrieved");
+            }
+            catch(Exception e)
+            {
+                _logger.LogWarning("Error during logged users {e}", e);
+                ModelState.AddModelError(string.Empty, "Operation failed. Check log");
+            }
         }
         
         

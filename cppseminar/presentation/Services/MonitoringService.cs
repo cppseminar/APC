@@ -17,6 +17,9 @@ namespace presentation.Services
 {
     public class MonitoringService
     {
+        private readonly HttpClient _client = new HttpClient();
+        private readonly ILogger<MonitoringService> _logger = null;
+
         public MonitoringService(ILogger<MonitoringService> logger, IConfiguration config)
         {
             _client.BaseAddress = new Uri(config["API_GATEWAY"]);
@@ -24,20 +27,17 @@ namespace presentation.Services
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
             _logger = logger;
+            System.Console.WriteLine("MonitoringService constructor");
         }
         public async Task<List<ConnectionLog>> Test(){
-            var connectionLog = new ConnectionLog();
-            connectionLog.UserEmail = "Test user";
-            connectionLog.Timestamp = DateTime.Now;
             List<ConnectionLog> list = new List<ConnectionLog>
             {
-                connectionLog
+                new ConnectionLog("user1", DateTime.Now),
+                new ConnectionLog("user2", DateTime.Now),
+                new ConnectionLog("user3", DateTime.Now),
             };
             return list;
-
         }
-        private readonly HttpClient _client = new();
-        private readonly ILogger<MonitoringService> _logger = null;
     }
     
 }
