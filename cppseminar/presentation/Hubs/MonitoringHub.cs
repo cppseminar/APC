@@ -6,7 +6,6 @@ using presentation.Services;
 using presentation.Model;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using System.Text.Json;
 
 
 namespace presentation.Hubs
@@ -17,7 +16,6 @@ namespace presentation.Hubs
         public MonitoringHub(MonitoringService monitoringService){
             _monitoringService = monitoringService;
         }
-<<<<<<< HEAD
         // public override Task OnConnectedAsync()
         // {  
         //     System.Console.WriteLine("Client connected " + Context.ConnectionId);
@@ -30,34 +28,20 @@ namespace presentation.Hubs
         //     await base.OnDisconnectedAsync(exception);
         // }
         
-<<<<<<< HEAD
-=======
-        [Authorize(Policy="Student")]
->>>>>>> 23b70a5 (Added dynamic table refreshing in monitoring page)
         public async Task SendMessage(string user, string message)
-=======
-        
-        //[Authorize(Policy="Student")]
-        public async Task LogConnection()
->>>>>>> 0fcbfd2 (SignalR hub pulls user email from claims + 1st version of connection logging in redis)
         {
-            string userEmail = "";
-            foreach (Claim claim in Context.User.Claims) {
-                if (claim.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
-                {
-                    userEmail = claim.Value;
-                    break;
-                }
+            System.Console.WriteLine();
+            System.Console.WriteLine("SendMessage: " + user + " " + message);
+            System.Console.WriteLine(Context.User.Claims);
+            foreach (Claim claim in Context.User.Claims){
+                System.Console.WriteLine(claim.Type);
+                System.Console.WriteLine(claim.Value);
             }
-            var connectionLog = new ConnectionLog(userEmail, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-            _monitoringService.LogConnectionAsync(connectionLog);
+            await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
         public async Task GetConnectedUsersRecentAsync(){
-            var response = await _monitoringService.GetConnectedUsersRecentAsync();
-            System.Console.WriteLine("Tu je response z monitoring service");
+            var response = _monitoringService.GetConnectedUsersRecentAsync();
             System.Console.WriteLine(response);
-            // var test = JsonSerializer.Serialize(response);
-            // System.Console.WriteLine(test);
             await Clients.Caller.SendAsync("ReceiveUsers", response, "OK");
         }
     }
