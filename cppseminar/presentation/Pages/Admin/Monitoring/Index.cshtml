@@ -18,9 +18,10 @@
                 Last message 
             </th>
         </tr>
-        @foreach (var user in Model.LoggedUsers)
+        <div id="userLogs">
+            @foreach (var user in Model.LoggedUsers)
         {
-            <tr>
+            <tr id="@user.UserEmail">
                 <td>
                     @user.UserEmail
                 </td>
@@ -29,6 +30,8 @@
                 </td>
             </tr>
         }    
+        </div>
+        
         
     </table>
 </div>

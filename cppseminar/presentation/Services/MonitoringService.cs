@@ -29,12 +29,13 @@ namespace presentation.Services
             _logger = logger;            
         }
 
-        public async Task<string?> GetConnectedUsersRecentAsync()
+        public async Task<List<ConnectionLog>> GetConnectedUsersRecentAsync()
         {
             var response = await _client.GetAsync("monitoring/get/recents"); // monitoring/get/all
-            var responseJson = await response.Content.ReadAsStringAsync();
-            System.Console.WriteLine(responseJson);
-            return responseJson;
+            //var responseJson = await response.Content.ReadAsStringAsync();
+            return await response.Content.ReadAsAsync<List<ConnectionLog>>();
+            // System.Console.WriteLine(responseJson);
+            // return responseJson;
         }
     }
     
