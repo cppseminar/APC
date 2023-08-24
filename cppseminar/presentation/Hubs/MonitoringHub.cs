@@ -38,10 +38,8 @@ namespace presentation.Hubs
         public async Task GetConnectedUsersRecentAsync(){
             var response = await _monitoringService.GetConnectedUsersRecentAsync();
             var str = await response.Content.ReadAsStringAsync();
-            System.Console.WriteLine("Tu je str");
-            System.Console.WriteLine(str);
-            List<ConnectionLogRest> test = JsonSerializer.Deserialize<List<ConnectionLogRest>>(str);
-            var new_response = JsonSerializer.Serialize(test);
+            List<ConnectionLogRest> transformedLogs = JsonSerializer.Deserialize<List<ConnectionLogRest>>(str);
+            var new_response = JsonSerializer.Serialize(transformedLogs);
             await Clients.Caller.SendAsync("ReceiveUsers", new_response);
         }
     }

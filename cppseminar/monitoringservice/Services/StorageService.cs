@@ -40,7 +40,6 @@ public class StorageService
                 var timestamp = await _db.StringGetAsync(email);
                 connectionLogsList.Add(new ConnectionLog(email, DateTime.Parse(timestamp)));
             }
-            System.Console.WriteLine(JsonSerializer.Serialize(connectionLogsList));
             return JsonSerializer.Serialize(connectionLogsList);
         }
         catch (Exception e){

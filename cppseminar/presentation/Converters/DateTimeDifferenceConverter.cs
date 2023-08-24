@@ -12,12 +12,18 @@ public class DateTimeDifferenceConverter : JsonConverter<string>
         if (reader.TokenType == JsonTokenType.String)
         {
             string dateTimeStr = reader.GetString();
-            DateTime timestamp = DateTime.Parse(dateTimeStr, CultureInfo.InvariantCulture);
+            try{
+                DateTime timestamp = DateTime.Parse(dateTimeStr, CultureInfo.InvariantCulture);
 
-            TimeSpan difference = DateTime.UtcNow - timestamp;
-            double secondsDifference = difference.TotalSeconds;
+                TimeSpan difference = DateTime.UtcNow - timestamp;
+                double secondsDifference = difference.TotalSeconds;
 
-            return secondsDifference.ToString();
+                return secondsDifference.ToString();
+            }
+            catch (Exception e){
+                throw new Exception($"Deserialization failed {e}");
+            }
+            
         }
 
         throw new JsonException($"Unexpected token type: {reader.TokenType}");
