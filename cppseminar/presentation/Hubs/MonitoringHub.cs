@@ -22,14 +22,7 @@ namespace presentation.Hubs
         [Authorize]
         public async Task LogConnection()
         {
-            string userEmail = "";
-            foreach (Claim claim in Context.User.Claims) {
-                if (claim.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
-                {
-                    userEmail = claim.Value;
-                    break;
-                }
-            }
+            string userEmail = Context.User.FindFirst(claim => claim.Type == ClaimTypes.Email).Value;
             var connectionLog = new ConnectionLog(userEmail, DateTime.UtcNow);
             await _monitoringService.LogConnectionAsync(connectionLog);
         }
