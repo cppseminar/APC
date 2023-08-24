@@ -41,6 +41,8 @@ namespace presentation.Services
         public async Task<System.Net.Http.HttpResponseMessage> GetConnectedUsersRecentAsync()
         {
             var response = await _client.GetAsync("monitoring/get/recents"); // monitoring/get/all
+            System.Console.WriteLine("Tu je v monitorign service presentation");
+            System.Console.WriteLine(response.Content);
             return response;            
         }
     }

@@ -19,7 +19,7 @@ public class StorageService
 
     public async Task setConnectionlogAsync(ConnectionLog connectionLog)
     {
-        await _db.StringSetAsync(connectionLog.UserEmail, connectionLog.Timestamp);
+        await _db.StringSetAsync(connectionLog.UserEmail, connectionLog.Timestamp.ToString());
     }
 
     public async Task<string?> getValueAsync(string Key)
@@ -34,12 +34,18 @@ public class StorageService
         List<ConnectionLog> connectionLogsList = new List<ConnectionLog>();
             
         var emails = _server.Keys();
-        foreach (var email in emails)
-        {
-            var timestamp = await _db.StringGetAsync(email);
-            connectionLogsList.Add(new ConnectionLog(email, timestamp));
+        try{
+            foreach (var email in emails)
+            {
+                var timestamp = await _db.StringGetAsync(email);
+                connectionLogsList.Add(new ConnectionLog(email, DateTime.Parse(timestamp)));
+            }
+            System.Console.WriteLine(JsonSerializer.Serialize(connectionLogsList));
+            return JsonSerializer.Serialize(connectionLogsList);
         }
-
-        return JsonSerializer.Serialize(connectionLogsList);
+        catch (Exception e){
+            return "";
+        }
+        
     }
 }

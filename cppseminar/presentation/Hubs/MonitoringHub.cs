@@ -7,6 +7,7 @@ using presentation.Model;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
+using System.Collections.Generic;
 
 
 namespace presentation.Hubs
@@ -29,15 +30,19 @@ namespace presentation.Hubs
                     break;
                 }
             }
-            var connectionLog = new ConnectionLog(userEmail, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-            _monitoringService.LogConnectionAsync(connectionLog);
+            var connectionLog = new ConnectionLog(userEmail, DateTime.UtcNow);
+            await _monitoringService.LogConnectionAsync(connectionLog);
         }
 
          [Authorize(Policy="Administrator")]
         public async Task GetConnectedUsersRecentAsync(){
             var response = await _monitoringService.GetConnectedUsersRecentAsync();
             var str = await response.Content.ReadAsStringAsync();
-            await Clients.Caller.SendAsync("ReceiveUsers", str);
+            System.Console.WriteLine("Tu je str");
+            System.Console.WriteLine(str);
+            List<ConnectionLogRest> test = JsonSerializer.Deserialize<List<ConnectionLogRest>>(str);
+            var new_response = JsonSerializer.Serialize(test);
+            await Clients.Caller.SendAsync("ReceiveUsers", new_response);
         }
     }
 }

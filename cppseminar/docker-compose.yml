@@ -40,6 +40,7 @@ services:
             - ./presentation/Services:/src/Services
             - ./presentation/wwwroot:/src/wwwroot
             - ./presentation/Hubs:/src/Hubs
+            - ./presentation/Converters:/src/Converters
         networks:
             - sharednet
         ports:
@@ -59,6 +60,7 @@ services:
         restart: always
         depends_on:
             - rabbitmq.local
+            - monitoringservice.local
 
     userservice.local:
         build:
