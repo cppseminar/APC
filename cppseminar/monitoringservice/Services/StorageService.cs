@@ -1,13 +1,14 @@
 using StackExchange.Redis;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using monitoringservice.Model;
 
 namespace monitoringservice.Services;
 public class StorageService
 {
-    private IDatabase _db;
-    private IServer _server;
+    private readonly IDatabase _db;
+    private readonly IServer _server;
 
     public StorageService()
     {
