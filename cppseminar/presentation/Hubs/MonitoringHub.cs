@@ -19,7 +19,7 @@ namespace presentation.Hubs
             _monitoringService = monitoringService;
         }
         
-        //[Authorize(Policy="Student")]
+        [Authorize]
         public async Task LogConnection()
         {
             string userEmail = "";
@@ -36,11 +36,17 @@ namespace presentation.Hubs
 
          [Authorize(Policy="Administrator")]
         public async Task GetConnectedUsersRecentAsync(){
-            var response = await _monitoringService.GetConnectedUsersRecentAsync();
-            var str = await response.Content.ReadAsStringAsync();
-            List<ConnectionLogRest> transformedLogs = JsonSerializer.Deserialize<List<ConnectionLogRest>>(str);
-            var new_response = JsonSerializer.Serialize(transformedLogs);
-            await Clients.Caller.SendAsync("ReceiveUsers", new_response);
+            var responseJson = await _monitoringService.GetConnectedUsersRecentAsync();
+            if (responseJson == null)
+            {
+                // TODO: invoke some function for admin
+            }
+            else
+            {
+                List<ConnectionLogRest> transformedLogs = JsonSerializer.Deserialize<List<ConnectionLogRest>>(responseJson);
+                var newResponse = JsonSerializer.Serialize(transformedLogs);
+                await Clients.Caller.SendAsync("ReceiveUsers", newResponse);
+            }
         }
     }
 }

@@ -15,16 +15,6 @@ namespace presentation.Pages.Monitoring
 {
     public class IndexModel : PageModel
     {
-        private ILogger<IndexModel> _logger = null;
-        [BindProperty]
-        public List<ConnectionLog> LoggedUsers{get;set;}
-        private readonly MonitoringService _monitoringService = null;
-
-        public IndexModel(ILogger<IndexModel> logger, MonitoringService monitoringService)
-        {
-            _logger = logger;
-            _monitoringService = monitoringService;
-            LoggedUsers = new List<ConnectionLog>();
-        }
+        
     }
 }

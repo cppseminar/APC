@@ -31,17 +31,40 @@ namespace presentation.Services
         }
 
         public async Task LogConnectionAsync(ConnectionLog connectionLog) {
-            var response = await _client.PostAsJsonAsync("monitoring/post/log", connectionLog);
-            if (response.StatusCode != HttpStatusCode.OK)
+            try
             {
-                _logger.LogError("LogConnectionAsync returned " + response.StatusCode);
+                var response = await _client.PostAsJsonAsync("monitoring/post/log", connectionLog);
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    _logger.LogError("LogConnectionAsync returned " + response.StatusCode);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("LogConnectionAsync failed. " + e);
             }
         }
 
-        public async Task<System.Net.Http.HttpResponseMessage> GetConnectedUsersRecentAsync()
+        public async Task<string> GetConnectedUsersRecentAsync()
         {
-            var response = await _client.GetAsync("monitoring/get/recents"); // monitoring/get/all
-            return response;            
+            try
+            {
+                var response = await _client.GetAsync("monitoring/get/recents"); // monitoring/get/all
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    _logger.LogError("GetConnectedUsersRecentAsync returned " + response.StatusCode);
+                    return null;
+                }
+                else
+                {
+                    return await response.Content.ReadAsStringAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("GetConnectedUsersRecentAsync failed. " + e);
+                return null;
+            }
         }
     }
     
