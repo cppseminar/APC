@@ -22,12 +22,10 @@ public class Program
         }
 
         app.MapGet("/monitoring/get/recents", async (StorageService db) => {
-            System.Console.WriteLine("GET /monitoring/get/recents");
             return await db.getConnectionLogsJsonAsync();
         });
 
         app.MapPost("/monitoring/post/log", async (ConnectionLog connectionLog, StorageService db, HttpContext context) => {
-            System.Console.WriteLine($"POST monitoring/post/log: {connectionLog.UserEmail} {connectionLog.Timestamp}");
             if (connectionLog.UserEmail == null || connectionLog.Timestamp == null)
             {                
                 context.Response.StatusCode = 400;

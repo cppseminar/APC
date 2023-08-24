@@ -31,15 +31,15 @@ function showLastLog() {
 }
 
 async function mainloop() {
+    if (connection.state === signalR.HubConnectionState.Connected)
+        return;
+
     // Start the connection.
     await start();
 
-    let counter = 0;
     while (true) {
         try {
-            console.log(counter, "invoking LogConnection...");
             await connection.invoke("LogConnection");
-            counter += 1;
             showLastLog();
         } catch (err) {
             console.error(err);

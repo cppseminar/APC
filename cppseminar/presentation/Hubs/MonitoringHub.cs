@@ -36,11 +36,8 @@ namespace presentation.Hubs
          [Authorize(Policy="Administrator")]
         public async Task GetConnectedUsersRecentAsync(){
             var response = await _monitoringService.GetConnectedUsersRecentAsync();
-            System.Console.WriteLine("Tu je response z monitoring service");
-            System.Console.WriteLine(response);
-            // var test = JsonSerializer.Serialize(response);
-            // System.Console.WriteLine(test);
-            await Clients.Caller.SendAsync("ReceiveUsers", response, "OK");
+            var str = await response.Content.ReadAsStringAsync();
+            await Clients.Caller.SendAsync("ReceiveUsers", str);
         }
     }
 }

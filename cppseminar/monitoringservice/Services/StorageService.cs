@@ -18,7 +18,6 @@ public class StorageService
 
     public async Task setConnectionlogAsync(ConnectionLog connectionLog)
     {
-        System.Console.WriteLine("Setting connection log "+connectionLog.UserEmail);
         await _db.StringSetAsync(connectionLog.UserEmail, connectionLog.Timestamp);
     }
 
@@ -39,7 +38,6 @@ public class StorageService
             var timestamp = await _db.StringGetAsync(email);
             connectionLogsList.Add(new ConnectionLog(email, timestamp));
         }
-        System.Console.WriteLine("Get connections returns " + JsonSerializer.Serialize(connectionLogsList));
 
         return JsonSerializer.Serialize(connectionLogsList);
     }
