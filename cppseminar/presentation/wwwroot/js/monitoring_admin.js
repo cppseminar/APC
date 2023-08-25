@@ -6,6 +6,7 @@ const connection = new signalR.HubConnectionBuilder()
 async function start() {
     try {
         await connection.start();
+        document.getElementById("alertBox").textContent = "";
         console.log("SignalR Connected.");
     }
     catch (err) {
@@ -16,6 +17,7 @@ async function start() {
 
 connection.onclose(async () => {
     console.log("Connection closed.");
+    document.getElementById("alertBox").textContent = "Connection closed, trying to start a new connection...";
     await start();
 });
 
@@ -32,15 +34,27 @@ connection.on("ReceiveUsers", (users) => {
                             Last message 
                         </th>
                         </tr>`;
+        let time = 0;
+        let color = "black";
         users.forEach(user => {
-            tbl.innerHTML += `<b><tr id=${user.UserEmail}><td>${user.UserEmail}</td><td>${Math.round(user.Timestamp * 100) / 100
-        } seconds ago</td></tr></b>`;
+            time = Math.round(user.Timestamp * 100) / 100;
+            if (time > 5 && time < 15){
+                color = "orange";
+            }
+            else if (time > 15) {
+                color = "red";
+            }
+            tbl.innerHTML += `<b><tr id=${user.UserEmail}><td>${user.UserEmail}</td><td style="color:${color}">${time} seconds ago</td></tr></b>`;
         })
     }
     catch (exception){
         console.log(exception);
     }
 });
+connection.on("ErrorGettingUsers", (message)=>{
+    const box = document.getElementById("alertBox");
+    box.textContent = message;
+})
 
 async function invokeGetConnectedUsersRecentAsync() {
     // Invoke SendMessage on the Hub

@@ -33,6 +33,7 @@ namespace presentation.Hubs
             if (responseJson == null)
             {
                 // TODO: invoke some function for admin
+                 await Clients.Caller.SendAsync("ErrorGettingUsers", "Monitoring service responded with null");
             }
             else
             {
