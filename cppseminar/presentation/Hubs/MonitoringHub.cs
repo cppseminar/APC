@@ -38,6 +38,7 @@ namespace presentation.Hubs
             else
             {
                 List<ConnectionLogTimeDiff> transformedLogs = JsonSerializer.Deserialize<List<ConnectionLogTimeDiff>>(responseJson);
+                transformedLogs.Sort((log1, log2) => string.Compare(log1.UserEmail, log2.UserEmail));
                 var newResponse = JsonSerializer.Serialize(transformedLogs);
                 await Clients.Caller.SendAsync("ReceiveUsers", newResponse);
             }
