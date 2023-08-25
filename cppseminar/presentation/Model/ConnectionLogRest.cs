@@ -4,7 +4,7 @@ using presentation.Converters;
 
 namespace presentation.Model;
 
-public class ConnectionLogRest
+public class ConnectionLogTimeDiff
 {
     public string UserEmail { get; set; }
     [JsonPropertyName("Timestamp")]

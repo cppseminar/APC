@@ -37,7 +37,7 @@ namespace presentation.Hubs
             }
             else
             {
-                List<ConnectionLogRest> transformedLogs = JsonSerializer.Deserialize<List<ConnectionLogRest>>(responseJson);
+                List<ConnectionLogTimeDiff> transformedLogs = JsonSerializer.Deserialize<List<ConnectionLogTimeDiff>>(responseJson);
                 var newResponse = JsonSerializer.Serialize(transformedLogs);
                 await Clients.Caller.SendAsync("ReceiveUsers", newResponse);
             }
