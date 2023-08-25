@@ -7,23 +7,16 @@
 
 @section JavaScript
 {
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
-   @if(User.Identity.IsAuthenticated)
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    @if(User.Identity.IsAuthenticated)
     {
-   <script type="text/javascript">
-    const userEmail = "@User.FindFirst(claim => claim.Type == ClaimTypes.Email).Value";
-    </script>
     <script type="text/javascript" src="@Url.Content("~/js/connection_logging.js")"></script>
     }
-   
 }
 
 <div>
     <h3>Connection checker</h3>
-    <p>This page is used to check whether the student is still connected to our network.</p>
-    <a id="start-logging-button" onclick="mainloop()">Start logging connection.</a>
-    <p id="last-timestamp">Last timestamp sent at: --- </p>
+    <p id="connection-status">Connection status: Not started</p>
+    <p id="last-timestamp"></p>
 </div>
-<div id="errorMessages">
-    </div>
-
+<div id="errorMessages"></div>

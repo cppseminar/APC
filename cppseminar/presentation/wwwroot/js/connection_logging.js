@@ -1,51 +1,49 @@
-console.log("Test", userEmail);
-
 const connection = new signalR.HubConnectionBuilder()
     .withUrl("/monitor")
     .configureLogging(signalR.LogLevel.Information)
     .build();
-
-async function start() {
-    try {
-        await connection.start();
-        console.log("SignalR Connected.");
-        setButtonColor("green");
-    }
-    catch (err) {
-        console.log(err);
-        setTimeout(start, 5000);
-    }
-};
 
 connection.onclose(async () => {
     console.log("Connection closed.");
     await start();
 });
 
-function setButtonColor(color) {
-    document.getElementById("start-logging-button").style.color = color;
+function setConnectionStatusDisplay(status, color) {
+    let elem = document.getElementById("connection-status");
+    elem.style.color = color;
+    elem.innerText = "Connection status: " + status;
 }
 
 function showLastLog() {
-    document.getElementById("last-timestamp").innerText = "Last timestamp sent at: " + new Date().toISOString();
+    document.getElementById("last-timestamp").innerText = "Last timestamp sent at: " + new Date().toLocaleTimeString();
 }
 
 async function mainloop() {
-    if (connection.state === signalR.HubConnectionState.Connected)
-        return;
-
-    // Start the connection.
-    await start();
-
-    while (true) {
+    while (true) {                
         try {
             await connection.invoke("LogConnection");
             showLastLog();
         } catch (err) {
             console.error(err);
-            setButtonColor("red");
+            setConnectionStatusDisplay("Error when invoking LogConnection", "red");
             break;
         }
         await new Promise(resolve => setTimeout(resolve, 2000));
     }
 }
+
+async function start() {
+    try {
+        await connection.start();
+        console.log("SignalR Connected.");
+        setConnectionStatusDisplay("Connected", "green");
+        mainloop();
+    }
+    catch (err) {
+        console.log(err);
+        setConnectionStatusDisplay("Unable to connect", "red");
+        setTimeout(start, 5000);
+    }
+}
+
+start();
