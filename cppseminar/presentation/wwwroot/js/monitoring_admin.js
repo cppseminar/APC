@@ -3,26 +3,19 @@ const connection = new signalR.HubConnectionBuilder()
     .configureLogging(signalR.LogLevel.Information)
     .build();
 
-async function start() {
-    try {
-        await connection.start();
-        document.getElementById("alertBox").textContent = "";
-        console.log("SignalR Connected.");
-    }
-    catch (err) {
-        console.log(err);
-        setTimeout(start, 5000);
-    }
-};
 
 connection.onclose(async () => {
     console.log("Connection closed.");
-    document.getElementById("alertBox").textContent = "Connection closed, trying to start a new connection...";
+    setAlert("Connection closed, trying to start a new connection...");
     await start();
 });
+function setAlert(message){
+    document.getElementById("alertBox").textcontent = message;
+}
 
 // Define the ReceiveMessage method so that it can be triggered from the Hub
 connection.on("ReceiveUsers", (users) => {
+    console.log("Receive users");
     try {
         users = JSON.parse(users);
         const tbl = document.getElementById("userLogs");
@@ -64,12 +57,34 @@ async function invokeGetConnectedUsersRecentAsync() {
         console.error(err);
     }
 }
-
-async function main() {
-    // Start the connection.
-    await start();
-
-    setInterval(invokeGetConnectedUsersRecentAsync, 2000);
+async function start() {
+    try {
+        await connection.start();
+        document.getElementById("alertBox").textContent = "";
+        mainloop();
+    }
+    catch (err) {
+        console.log(err);
+        setAlert("Unable to connect.");
+        setTimeout(start, 5000);
+    }
 }
 
-main();
+async function mainloop() {
+    console.log("Sme po starte");
+
+    while (true){
+        try{
+            await connection.invoke("GetConnectedUsersRecentAsync");
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            console.log("Cau");
+        }
+        catch (err){
+            setAlert("Error when invoking GetconnectedUsers");
+            break;
+        }
+    }
+
+}
+
+start();
