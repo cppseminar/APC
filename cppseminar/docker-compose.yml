@@ -40,7 +40,6 @@ services:
             - ./presentation/Services:/src/Services
             - ./presentation/wwwroot:/src/wwwroot
             - ./presentation/Hubs:/src/Hubs
-            - ./presentation/Converters:/src/Converters
         networks:
             - sharednet
         ports:
