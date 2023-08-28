@@ -19,7 +19,7 @@ public class MonitoringController : ControllerBase
 
     public MonitoringController(ILogger<MonitoringController> logger, StorageService service)
     {
-        _logger = logger; // TODO: Why only _logger.LogInformation() works? the other methods don't show in the console.
+        _logger = logger;
         _service = service;
     }
 

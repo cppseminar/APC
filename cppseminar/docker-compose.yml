@@ -286,6 +286,7 @@ services:
             - ./monitoringservice/Services:/src/Services
             - ./monitoringservice/Controllers:/src/Controllers
             - ./monitoringservice/monitoringservice.csproj:/src/monitoringservice.csproj
+            - ./monitoringservice/appsettings.json:/src/appsettings.json
         networks:
             - sharednet
         ports:
