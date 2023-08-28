@@ -27,20 +27,23 @@ namespace presentation.Hubs
             await _monitoringService.LogConnectionAsync(connectionLog);
         }
 
-         [Authorize(Policy="Administrator")]
-        public async Task GetConnectedUsersRecentAsync(){
-            var responseJson = await _monitoringService.GetConnectedUsersRecentAsync();
-            if (responseJson == null)
+        [Authorize(Policy="Administrator")]
+        public async Task GetConnectedUsersRecentAsync()
+        {
+            var responseData = await _monitoringService.GetConnectedUsersRecentAsync();
+            if (responseData == null)
             {
                  await Clients.Caller.SendAsync("ErrorGettingUsers", "Monitoring service responded with null");
             }
             else
             {
-                System.Console.WriteLine(responseJson);
-                List<ConnectionLogTimeDiff> transformedLogs = JsonSerializer.Deserialize<List<ConnectionLogTimeDiff>>(responseJson);
-                transformedLogs.Sort((log1, log2) => string.Compare(log1.UserEmail, log2.UserEmail));
-                var newResponse = JsonSerializer.Serialize(transformedLogs);
-                await Clients.Caller.SendAsync("ReceiveUsers", newResponse);
+                var connectionLogTimeDiffList = new List<ConnectionLogTimeDiff>();
+                foreach (var connectionLog in responseData)
+                {
+                    connectionLogTimeDiffList.Add(new ConnectionLogTimeDiff(connectionLog));
+                }
+                connectionLogTimeDiffList.Sort((log1, log2) => string.Compare(log1.UserEmail, log2.UserEmail));
+                await Clients.Caller.SendAsync("ReceiveUsers", JsonSerializer.Serialize(connectionLogTimeDiffList));
             }
         }
     }

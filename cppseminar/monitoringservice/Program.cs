@@ -1,9 +1,9 @@
 using System;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
 using monitoringservice.Model;
 using monitoringservice.Services;
 
@@ -12,62 +12,45 @@ namespace monitoringservice;
 public class Program
 {
     public static void Main(string[] args)
-    {
-        var builder = WebApplication.CreateBuilder(args);
-        builder.Services.AddSingleton<StorageService>();
-        var app = builder.Build();
+    {        
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Verbose()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(new RenderedCompactJsonFormatter())
+            .CreateLogger();
 
-        if (!app.Environment.IsDevelopment())
+        try
         {
-            app.UseExceptionHandler("/Error");
+            Log.Information("Starting web host");
+            CreateHostBuilder(args).Build().Run();
         }
-        app.Use((context, next) =>
+        catch (Exception e)
         {
-            context.Request.EnableBuffering();
-            return next();
-        });
+            Log.Fatal("Host terminated unexpectedly. {e}", e);
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
+    }
 
-        var logger = app.Services.GetRequiredService<ILogger<Program>>();
-
-        app.MapGet("/monitoring/get/recents", async (StorageService db, HttpContext context) => {
-            try
-            {
-                return await db.getConnectionLogsJsonAsync();
-            }
-            catch (Exception e)
-            {
-                logger.LogError("Exception occured while retrieving all ConnectionLog records. " + e);
-                context.Response.StatusCode = 500;
-                return "";
-            }
-        });
-
-        app.MapPost("/monitoring/post/log", async (ConnectionLog connectionLog, StorageService db, HttpContext context) => {
-            if (connectionLog.UserEmail == null || connectionLog.Timestamp == null)
-            {
-                context.Request.Body.Position = 0;
-                string body = await new StreamReader(context.Request.Body).ReadToEndAsync();
-                logger.LogWarning($"ConnectionLog not found in the request: {body}");
-                context.Response.StatusCode = 400;
-                return "";
-            }
-            else
-            {
-                try
+    public static IHostBuilder CreateHostBuilder(string[] args)
+    {
+        if (Environment.GetEnvironmentVariable("LOG_PRETTY") == "1")
+        {
+            return Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    await db.setConnectionlogAsync(connectionLog);
-                    return "";
-                }
-                catch (Exception e)
-                {
-                    logger.LogError("Exception occured while logging user connection. " + e);
-                    context.Response.StatusCode = 500;
-                    return "";
-                }
-            }
-        });
-
-        app.Run();
+                    webBuilder.UseStartup<Startup>();
+                });
+        }
+        return Host.CreateDefaultBuilder(args)
+            .UseSerilog()
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.UseStartup<Startup>();
+            });
     }
 }
 

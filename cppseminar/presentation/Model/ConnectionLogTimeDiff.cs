@@ -1,14 +1,15 @@
 using System;
-using System.Text.Json.Serialization;
-using presentation.Converters;
 
 namespace presentation.Model;
 
 public class ConnectionLogTimeDiff
 {
     public string UserEmail { get; set; }
-    [JsonPropertyName("Timestamp")]
-    [JsonConverter(typeof(DateTimeDifferenceConverter))]
-    public string Seconds { get; set; }
-    
+    public double Seconds { get; set; }
+
+    public ConnectionLogTimeDiff(ConnectionLog connectionLog)
+    {
+        UserEmail = connectionLog.UserEmail;
+        Seconds = (double)(DateTime.UtcNow - connectionLog.Timestamp).TotalSeconds;
+    }
 }

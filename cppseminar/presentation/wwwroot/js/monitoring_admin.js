@@ -9,8 +9,9 @@ connection.onclose(async () => {
     setAlert("Connection closed, trying to start a new connection...");
     await start();
 });
+
 function setAlert(message){
-    document.getElementById("alertBox").textcontent = message;
+    document.getElementById("alertBox").innerText = message;
 }
 
 // Define the ReceiveMessage method so that it can be triggered from the Hub
@@ -29,12 +30,15 @@ connection.on("ReceiveUsers", (users) => {
         let time = 0;
         let color = "black";
         users.forEach(user => {
-            time = Math.round(user.Timestamp * 100) / 100;
+            time = (Math.round(user.Seconds * 100) / 100).toFixed(2);
             if (time > 5 && time < 15){
                 color = "orange";
             }
             else if (time > 15) {
                 color = "red";
+            }
+            else {
+                color = "green";
             }
             tbl.innerHTML += `<b><tr id=${user.UserEmail}><td>${user.UserEmail}</td><td style="color:${color}">${time} seconds ago</td></tr></b>`;
         })
@@ -44,8 +48,7 @@ connection.on("ReceiveUsers", (users) => {
     }
 });
 connection.on("ErrorGettingUsers", (message)=>{
-    const box = document.getElementById("alertBox");
-    box.textContent = message;
+    setAlert(message);
 })
 
 async function invokeGetConnectedUsersRecentAsync() {
@@ -59,7 +62,7 @@ async function invokeGetConnectedUsersRecentAsync() {
 async function start() {
     try {
         await connection.start();
-        document.getElementById("alertBox").textContent = "";
+        setAlert("");
         mainloop();
     }
     catch (err) {
@@ -71,12 +74,12 @@ async function start() {
 
 async function mainloop() {
     while (true){
-        try{
+        try {
             await connection.invoke("GetConnectedUsersRecentAsync");
             await new Promise(resolve => setTimeout(resolve, 1000));
         }
-        catch (err){
-            setAlert("Error when invoking GetconnectedUsers");
+        catch (err) {
+            setAlert("Error when invoking GetconnectedUsers.");
             break;
         }
     }

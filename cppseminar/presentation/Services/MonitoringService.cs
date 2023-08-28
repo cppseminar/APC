@@ -45,7 +45,7 @@ namespace presentation.Services
             }
         }
 
-        public async Task<string> GetConnectedUsersRecentAsync()
+        public async Task<List<ConnectionLog>> GetConnectedUsersRecentAsync()
         {
             try
             {
@@ -57,7 +57,7 @@ namespace presentation.Services
                 }
                 else
                 {
-                    return await response.Content.ReadAsStringAsync();
+                    return await response.Content.ReadAsAsync<List<ConnectionLog>>();
                 }
             }
             catch (Exception e)
