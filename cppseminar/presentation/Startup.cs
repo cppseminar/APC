@@ -117,10 +117,8 @@ namespace presentation
                 // {
                 //     System.Console.WriteLine("Hello, World!");
                 // });
-               
             });
             app.UseStaticFiles();
-            
         }
     }
 }

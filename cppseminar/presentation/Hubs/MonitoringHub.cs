@@ -18,7 +18,7 @@ namespace presentation.Hubs
         public MonitoringHub(MonitoringService monitoringService){
             _monitoringService = monitoringService;
         }
-        
+
         [Authorize]
         public async Task LogConnection()
         {

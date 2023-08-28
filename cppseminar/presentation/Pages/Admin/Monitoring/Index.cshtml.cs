@@ -15,6 +15,6 @@ namespace presentation.Pages.Monitoring
 {
     public class IndexModel : PageModel
     {
-        
+
     }
 }

@@ -27,7 +27,7 @@ namespace presentation.Services
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
-            _logger = logger;            
+            _logger = logger;
         }
 
         public async Task LogConnectionAsync(ConnectionLog connectionLog) {

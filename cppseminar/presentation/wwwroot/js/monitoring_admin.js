@@ -15,7 +15,6 @@ function setAlert(message){
 
 // Define the ReceiveMessage method so that it can be triggered from the Hub
 connection.on("ReceiveUsers", (users) => {
-    console.log("Receive users");
     try {
         users = JSON.parse(users);
         const tbl = document.getElementById("userLogs");
@@ -71,13 +70,10 @@ async function start() {
 }
 
 async function mainloop() {
-    console.log("Sme po starte");
-
     while (true){
         try{
             await connection.invoke("GetConnectedUsersRecentAsync");
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            console.log("Cau");
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
         catch (err){
             setAlert("Error when invoking GetconnectedUsers");

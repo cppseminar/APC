@@ -19,7 +19,7 @@ function showLastLog() {
 }
 
 async function mainloop() {
-    while (true) {                
+    while (true) {
         try {
             await connection.invoke("LogConnection");
             showLastLog();

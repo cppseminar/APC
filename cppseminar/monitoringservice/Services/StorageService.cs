@@ -32,7 +32,7 @@ public class StorageService
     public async Task<string> getConnectionLogsJsonAsync()
     {
         List<ConnectionLog> connectionLogsList = new List<ConnectionLog>();
-            
+
         var emails = _server.Keys();
         try{
             foreach (var email in emails)
@@ -45,6 +45,5 @@ public class StorageService
         catch (Exception e){
             return "";
         }
-        
     }
 }

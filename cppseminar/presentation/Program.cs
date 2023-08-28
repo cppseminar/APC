@@ -41,7 +41,6 @@ namespace presentation
                     .ConfigureWebHostDefaults(webBuilder =>
                     {
                         webBuilder.UseStartup<Startup>();
-                        
                     });
             }
             return Host.CreateDefaultBuilder(args)

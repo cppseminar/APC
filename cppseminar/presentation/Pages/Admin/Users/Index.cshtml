@@ -14,7 +14,7 @@
         @foreach (var user in Model.AllUsers)
         {
             <tr>
-                <td><th:a asp-page="/Admin/Users/Index" asp-page-handler="Detail" asp-route-email="@user"> @user</th:a></td>            
+                <td><th:a asp-page="/Admin/Users/Index" asp-page-handler="Detail" asp-route-email="@user"> @user</th:a></td>
             </tr>
         }
     </table>
