@@ -32,11 +32,11 @@ namespace presentation.Hubs
             var responseJson = await _monitoringService.GetConnectedUsersRecentAsync();
             if (responseJson == null)
             {
-                // TODO: invoke some function for admin
                  await Clients.Caller.SendAsync("ErrorGettingUsers", "Monitoring service responded with null");
             }
             else
             {
+                System.Console.WriteLine(responseJson);
                 List<ConnectionLogTimeDiff> transformedLogs = JsonSerializer.Deserialize<List<ConnectionLogTimeDiff>>(responseJson);
                 transformedLogs.Sort((log1, log2) => string.Compare(log1.UserEmail, log2.UserEmail));
                 var newResponse = JsonSerializer.Serialize(transformedLogs);
