@@ -37,8 +37,8 @@ namespace presentation.Pages.Admin.TestCase
             }
             try
             {
-                // http post resets fields not in form and it ignores bindnever attribute, thats why we call updateTest with caseId from query 
-                await _testCaseService.UpdateTest(caseId, TestCase);
+                // http post resets fields not in form and it ignores bindnever attribute, thats why we call updateTest with caseId from query await _testCaseService.UpdateTest(caseId, TestCase);
+                
                 return RedirectToPage("/Admin/TestCase/Index");
             }
             catch (Exception)
