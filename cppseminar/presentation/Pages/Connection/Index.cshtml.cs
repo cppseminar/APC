@@ -5,12 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using presentation.Model;
-using presentation.Services;
-using System.Net.Mime;
+using presentation.Filters;
 
 namespace presentation.Pages.Connection
 {
+    [TestIPFilter("178.41.87.254")]
     public class IndexModel : PageModel
     {
         private ILogger<IndexModel> _logger;
