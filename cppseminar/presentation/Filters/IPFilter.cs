@@ -1,22 +1,77 @@
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using System;
+using System.Collections.Generic;
 using System.Net;
 namespace presentation.Filters;
-public class TestIPFilter : ResultFilterAttribute
-{
-    private readonly IPAddress _allowedIPAddress;
 
-    public TestIPFilter(string allowedIPAddress)
+public class TestIPFilter : Attribute, IResourceFilter
+{
+    private readonly byte[] _allowedLowerBytes;
+    private readonly byte[] _allowedUpperBytes;
+
+    public TestIPFilter(string allowedIPLowerStr, string allowedIPUpperStr)
     {
-        IPAddress.TryParse(allowedIPAddress, out _allowedIPAddress);
+        IPAddress allowedIPLower;
+        IPAddress.TryParse(allowedIPLowerStr, out allowedIPLower);
+        _allowedLowerBytes = allowedIPLower.GetAddressBytes();
+
+        IPAddress allowedIPUpper;
+        IPAddress.TryParse(allowedIPUpperStr, out allowedIPUpper);
+        _allowedUpperBytes = allowedIPUpper.GetAddressBytes();
+
+        // Check if lower bound is indeed lower
+        for (int i = 0; i < _allowedLowerBytes.Length; i++)
+        {
+            if (_allowedLowerBytes[i] > _allowedUpperBytes[i])
+            {
+                throw new ArgumentException("Invalid range of IP addresses.");
+            }
+        }
+    }
+    public TestIPFilter(List<string> allowedIPRanges)
+    {
+        System.Console.WriteLine("Test");
+        string allowedIPUpperStr = allowedIPRanges[1];
+        string allowedIPLowerStr = allowedIPRanges[0];
+
+        IPAddress allowedIPLower;
+        IPAddress.TryParse(allowedIPLowerStr, out allowedIPLower);
+        _allowedLowerBytes = allowedIPLower.GetAddressBytes();
+
+        IPAddress allowedIPUpper;
+        IPAddress.TryParse(allowedIPUpperStr, out allowedIPUpper);
+        _allowedUpperBytes = allowedIPUpper.GetAddressBytes();
+
+        // Check if lower bound is indeed lower
+        for (int i = 0; i < _allowedLowerBytes.Length; i++)
+        {
+            if (_allowedLowerBytes[i] > _allowedUpperBytes[i])
+            {
+                throw new ArgumentException("Invalid range of IP addresses.");
+            }
+        }
     }
 
-    public override void OnResultExecuting(ResultExecutingContext context)
+    private bool AddressWithinRange(IPAddress clientAddress)
     {
-        System.Console.WriteLine("On result executing is here");
-        string remoteIpAddress = context.HttpContext.Connection.RemoteIpAddress?.ToString();
+        byte[] clientAddressBytes = clientAddress.GetAddressBytes();
+        for (int i = 0; i < _allowedLowerBytes.Length; i++)
+        {
+            if (clientAddressBytes[i] < _allowedLowerBytes[i] || clientAddressBytes[i] > _allowedUpperBytes[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 
-        if (remoteIpAddress != _allowedIPAddress?.ToString())
+    public void OnResourceExecuting(ResourceExecutingContext context)
+    {
+        IPAddress clientIPAddress;
+        IPAddress.TryParse(context.HttpContext.Connection.RemoteIpAddress?.ToString(), out clientIPAddress);
+
+        if (!AddressWithinRange(clientIPAddress))
         {
             context.Result = new ContentResult
             {
@@ -24,6 +79,10 @@ public class TestIPFilter : ResultFilterAttribute
                 Content = "Access denied."
             };
         }
+    }
+
+    public void OnResourceExecuted(ResourceExecutedContext context)
+    {
     }
 }
 
