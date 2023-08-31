@@ -4,7 +4,7 @@ using System;
 using System.Net;
 namespace presentation.Filters;
 
-public class TestIPFilter : ResultFilterAttribute
+public class TestIPFilter : Attribute, IResourceFilter
 {
     private readonly byte[] _allowedLowerBytes;
     private readonly byte[] _allowedUpperBytes;
@@ -42,7 +42,7 @@ public class TestIPFilter : ResultFilterAttribute
         return true;
     }
 
-    public override void OnResultExecuting(ResultExecutingContext context)
+    public void OnResourceExecuting(ResourceExecutingContext context)
     {
         IPAddress clientIPAddress;
         IPAddress.TryParse(context.HttpContext.Connection.RemoteIpAddress?.ToString(), out clientIPAddress);
@@ -55,6 +55,10 @@ public class TestIPFilter : ResultFilterAttribute
                 Content = "Access denied."
             };
         }
+    }
+
+    public void OnResourceExecuted(ResourceExecutedContext context)
+    {
     }
 }
 
