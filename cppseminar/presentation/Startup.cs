@@ -14,6 +14,11 @@ using System;
 
 using presentation.Services;
 using presentation.Hubs;
+using presentation.Filters;
+using Microsoft.AspNetCore.SignalR;
+using System.Collections.Generic;
+using System.Linq;
+
 
 namespace presentation
 {
@@ -32,7 +37,18 @@ namespace presentation
                 opts.Conventions.AuthorizeFolder("/Admin", "Administrator");
             });
             // modified this
-            services.AddSignalR();
+            IConfigurationSection allowedIpAddressesconfig = Configuration.GetSection("AllowedIpAddresses");
+            var allowedIpAddresses = allowedIpAddressesconfig.Get<string[]>();
+            services.AddSignalR(hubOptions => {
+                hubOptions.AddFilter(new IPHubFilter(allowedIpAddresses));
+            });
+            List<string> allowedList = allowedIpAddresses.ToList();
+            services.AddSingleton<List<string>>(allowedList);
+            
+            
+
+            //services.AddSingleton<IPHubFilter>(new IPHubFilter(allowedIPAddress));
+
             services.AddControllers();
 
             services.Configure<Microsoft.AspNetCore.Routing.RouteOptions>(options =>

@@ -8,7 +8,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using System.Collections.Generic;
-
+using presentation.Filters;
 
 namespace presentation.Hubs
 {
@@ -17,6 +17,9 @@ namespace presentation.Hubs
         private MonitoringService _monitoringService;
         public MonitoringHub(MonitoringService monitoringService){
             _monitoringService = monitoringService;
+        }
+        public override async Task OnConnectedAsync(){
+    
         }
 
         [Authorize]
