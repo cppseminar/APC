@@ -14,14 +14,10 @@ namespace presentation.Pages.Connection
         [TestIPFilter("172.18.0.0", "172.18.255.255")]
         private ILogger<IndexModel> _logger;
         public bool IsAdmin = false;
-        public string upper;
-        public string lower;
     
-        public IndexModel(ILogger<IndexModel> logger, List<string> allowedIpAddresses)
+        public IndexModel(ILogger<IndexModel> logger)
         {
             _logger = logger;
-            this.upper = allowedIpAddresses[0]; // we wont be able to use this in testipfilter cuz it needs to be static or constant... we dont have the information 
-            this.lower = allowedIpAddresses[1];
         }
 
         
