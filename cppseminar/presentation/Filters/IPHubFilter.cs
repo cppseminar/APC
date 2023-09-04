@@ -7,44 +7,10 @@ using System.Net;
 using System.Net.Http;
 namespace presentation.Filters;
 
-public class IPHubFilter : IHubFilter
+public class IPHubFilter : GenericIPFilter, IHubFilter
 {
-    private readonly byte[] _allowedLowerBytes;
-    private readonly byte[] _allowedUpperBytes;
-
-    public IPHubFilter(string allowedIPLowerStr, string allowedIPUpperStr)
+    public IPHubFilter(string IPLower, string IPUpper) : base(IPLower, IPUpper)
     {
-        IPAddress allowedIPLower;
-        IPAddress allowedIPUpper;
-        if (!IPAddress.TryParse(allowedIPLowerStr, out allowedIPLower) || !IPAddress.TryParse(allowedIPUpperStr, out allowedIPUpper))
-        {
-            throw new ArgumentException($"Failed to parse IP address: {allowedIPLowerStr} {allowedIPUpperStr}");
-        }
-        
-        _allowedLowerBytes = allowedIPLower.GetAddressBytes();
-        _allowedUpperBytes = allowedIPUpper.GetAddressBytes();
-
-        // Check if lower bound is indeed lower
-        for (int i = 0; i < _allowedLowerBytes.Length; i++)
-        {
-            if (_allowedLowerBytes[i] > _allowedUpperBytes[i])
-            {
-                throw new ArgumentException("Invalid range of IP addresses.");
-            }
-        }
-    }
-
-    private bool AddressWithinRange(IPAddress clientAddress)
-    {
-        byte[] clientAddressBytes = clientAddress.GetAddressBytes();
-        for (int i = 0; i < _allowedLowerBytes.Length; i++)
-        {
-            if (clientAddressBytes[i] < _allowedLowerBytes[i] || clientAddressBytes[i] > _allowedUpperBytes[i])
-            {
-                return false;
-            }
-        }
-        return true;
     }
 
     public Task OnConnectedAsync(HubLifetimeContext context, Func<HubLifetimeContext, Task> next)
