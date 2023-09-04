@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using presentation.Services;
 namespace presentation.Filters;
 
 public class TestIPFilter : Attribute, IResourceFilter
@@ -29,29 +30,8 @@ public class TestIPFilter : Attribute, IResourceFilter
             }
         }
     }
-    public TestIPFilter(List<string> allowedIPRanges)
-    {
-        System.Console.WriteLine("Test");
-        string allowedIPUpperStr = allowedIPRanges[1];
-        string allowedIPLowerStr = allowedIPRanges[0];
 
-        IPAddress allowedIPLower;
-        IPAddress.TryParse(allowedIPLowerStr, out allowedIPLower);
-        _allowedLowerBytes = allowedIPLower.GetAddressBytes();
 
-        IPAddress allowedIPUpper;
-        IPAddress.TryParse(allowedIPUpperStr, out allowedIPUpper);
-        _allowedUpperBytes = allowedIPUpper.GetAddressBytes();
-
-        // Check if lower bound is indeed lower
-        for (int i = 0; i < _allowedLowerBytes.Length; i++)
-        {
-            if (_allowedLowerBytes[i] > _allowedUpperBytes[i])
-            {
-                throw new ArgumentException("Invalid range of IP addresses.");
-            }
-        }
-    }
 
     private bool AddressWithinRange(IPAddress clientAddress)
     {
@@ -70,7 +50,7 @@ public class TestIPFilter : Attribute, IResourceFilter
     {
         IPAddress clientIPAddress;
         IPAddress.TryParse(context.HttpContext.Connection.RemoteIpAddress?.ToString(), out clientIPAddress);
-
+        System.Console.WriteLine("This is client ip address: " + clientIPAddress);
         if (!AddressWithinRange(clientIPAddress))
         {
             context.Result = new ContentResult

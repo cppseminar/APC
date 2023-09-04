@@ -6,12 +6,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using presentation.Filters;
+using Microsoft.AspNetCore.Mvc;
 
 namespace presentation.Pages.Connection
 {
+    [ServiceFilter(typeof(TestIPFilter))]
     public class IndexModel : PageModel
     {
-        [TestIPFilter("172.18.0.0", "172.18.255.255")]
+        
         private ILogger<IndexModel> _logger;
         public bool IsAdmin = false;
     
