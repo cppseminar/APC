@@ -18,16 +18,23 @@ public class IPHubFilter : IHubFilter
         var length = allowedIpAddresses.Length;
         if (length < 2 && length > 0){
             IPAddress allowedIPLower;
-            IPAddress.TryParse(allowedIpAddresses[0], out allowedIPLower);
+            bool res = IPAddress.TryParse(allowedIpAddresses[0], out allowedIPLower);
+            if (res ==false){
+                throw new Exception("Failed to parse IP address");
+            }
             allowedIPRanges.Add(new Tuple<byte[], byte[]>(allowedIPLower.GetAddressBytes(),new byte[]{}));
         }
         else{
             IPAddress allowedIPUpper;
             IPAddress allowedIPLower;
             for(var i = 0; i < length; i+=2){
-                IPAddress.TryParse(allowedIpAddresses[i], out allowedIPLower);
+                if(!IPAddress.TryParse(allowedIpAddresses[i], out allowedIPLower)){
+                    throw new Exception("Failed to parse IP address");
+                }
                 if((i+1) < length){
-                    IPAddress.TryParse(allowedIpAddresses[i+1], out allowedIPUpper);
+                    if(!IPAddress.TryParse(allowedIpAddresses[i+1], out allowedIPUpper)){
+                        throw new Exception("Failed to parse IP address");
+                    }
                     allowedIPRanges.Add(new Tuple<byte[], byte[]>(allowedIPLower.GetAddressBytes(), allowedIPUpper.GetAddressBytes()));
                 }
                 else{
@@ -42,7 +49,9 @@ public class IPHubFilter : IHubFilter
     {
         var remoteIpAddresStr = context.Context.GetHttpContext()?.Connection.RemoteIpAddress.ToString();
         IPAddress remoteIPAddress;
-        IPAddress.TryParse(remoteIpAddresStr, out remoteIPAddress);
+        if(!IPAddress.TryParse(remoteIpAddresStr, out remoteIPAddress)){
+            throw new Exception("Failed to parse IP address");
+        }
         
         if (!AddressWithinRange(remoteIPAddress))
         {
@@ -67,7 +76,9 @@ public class IPHubFilter : IHubFilter
     {
         var remoteIpAddresStr = invocationContext.Context.GetHttpContext()?.Connection.RemoteIpAddress.ToString();
         IPAddress remoteIPAddress;
-        IPAddress.TryParse(remoteIpAddresStr, out remoteIPAddress);
+        if(!IPAddress.TryParse(remoteIpAddresStr, out remoteIPAddress)){
+            throw new Exception("Failed to parse IP address");
+        }
 
         if (!AddressWithinRange(remoteIPAddress))
         {
