@@ -9,84 +9,67 @@ namespace presentation.Filters;
 
 public class IPHubFilter : IHubFilter
 {
-    //private readonly string[] _allowedIpAddresses;
-    private readonly List<Tuple<byte[], byte[]>> allowedIPRanges = new List<Tuple<byte[], byte[]>>();   
+    private readonly byte[] _allowedLowerBytes;
+    private readonly byte[] _allowedUpperBytes;
 
-    public IPHubFilter(string[] allowedIpAddresses)
+    public IPHubFilter(string allowedIPLowerStr, string allowedIPUpperStr)
     {
-
-        var length = allowedIpAddresses.Length;
-        if (length < 2 && length > 0){
-            IPAddress allowedIPLower;
-            bool res = IPAddress.TryParse(allowedIpAddresses[0], out allowedIPLower);
-            if (res ==false){
-                throw new Exception("Failed to parse IP address");
-            }
-            allowedIPRanges.Add(new Tuple<byte[], byte[]>(allowedIPLower.GetAddressBytes(),new byte[]{}));
-        }
-        else{
-            IPAddress allowedIPUpper;
-            IPAddress allowedIPLower;
-            for(var i = 0; i < length; i+=2){
-                if(!IPAddress.TryParse(allowedIpAddresses[i], out allowedIPLower)){
-                    throw new Exception("Failed to parse IP address");
-                }
-                if((i+1) < length){
-                    if(!IPAddress.TryParse(allowedIpAddresses[i+1], out allowedIPUpper)){
-                        throw new Exception("Failed to parse IP address");
-                    }
-                    allowedIPRanges.Add(new Tuple<byte[], byte[]>(allowedIPLower.GetAddressBytes(), allowedIPUpper.GetAddressBytes()));
-                }
-                else{
-                     allowedIPRanges.Add(new Tuple<byte[], byte[]>(allowedIPLower.GetAddressBytes(),new byte[]{}));
-                }
-            }
-        }
-        
-    }
-
-     public Task OnConnectedAsync(HubLifetimeContext context, Func<HubLifetimeContext, Task> next)
-    {
-        var remoteIpAddresStr = context.Context.GetHttpContext()?.Connection.RemoteIpAddress.ToString();
-        IPAddress remoteIPAddress;
-        if(!IPAddress.TryParse(remoteIpAddresStr, out remoteIPAddress)){
-            throw new Exception("Failed to parse IP address");
-        }
-        
-        if (!AddressWithinRange(remoteIPAddress))
+        IPAddress allowedIPLower;
+        IPAddress allowedIPUpper;
+        if (!IPAddress.TryParse(allowedIPLowerStr, out allowedIPLower) || !IPAddress.TryParse(allowedIPUpperStr, out allowedIPUpper))
         {
-           System.Console.WriteLine("IP adress not allowed in onconnected "+remoteIpAddresStr);
-           context.Context.Abort();
-        }        
-        return next(context);
+            throw new ArgumentException($"Failed to parse IP address: {allowedIPLowerStr} {allowedIPUpperStr}");
+        }
+        
+        _allowedLowerBytes = allowedIPLower.GetAddressBytes();
+        _allowedUpperBytes = allowedIPUpper.GetAddressBytes();
+
+        // Check if lower bound is indeed lower
+        for (int i = 0; i < _allowedLowerBytes.Length; i++)
+        {
+            if (_allowedLowerBytes[i] > _allowedUpperBytes[i])
+            {
+                throw new ArgumentException("Invalid range of IP addresses.");
+            }
+        }
     }
-    private bool AddressWithinRange(IPAddress clientAddress){
+
+    private bool AddressWithinRange(IPAddress clientAddress)
+    {
         byte[] clientAddressBytes = clientAddress.GetAddressBytes();
-        foreach(var range in allowedIPRanges){
-            for(int i=0; i < range.Item1.Length; i++){
-                if(clientAddressBytes[i]< range.Item1[i] || (range.Item2.Length != 0 && clientAddressBytes[i]> range.Item2[i])){
-                    return false;
-                }
+        for (int i = 0; i < _allowedLowerBytes.Length; i++)
+        {
+            if (clientAddressBytes[i] < _allowedLowerBytes[i] || clientAddressBytes[i] > _allowedUpperBytes[i])
+            {
+                return false;
             }
         }
         return true;
+    }
+
+    public Task OnConnectedAsync(HubLifetimeContext context, Func<HubLifetimeContext, Task> next)
+    {
+        var remoteIpAddresStr = context.Context.GetHttpContext()?.Connection.RemoteIpAddress.ToString();
+        IPAddress remoteIPAddress;
+        if (!IPAddress.TryParse(remoteIpAddresStr, out remoteIPAddress) || !AddressWithinRange(remoteIPAddress))
+        {
+            System.Console.WriteLine("IP Address failed to parse or not allowed in OnConnected. " + remoteIpAddresStr);
+            context.Context.Abort();
+        }
+        return next(context);
     }
 
     public async ValueTask<object?> InvokeMethodAsync(HubInvocationContext invocationContext, Func<HubInvocationContext, ValueTask<object?>> next)
     {
         var remoteIpAddresStr = invocationContext.Context.GetHttpContext()?.Connection.RemoteIpAddress.ToString();
         IPAddress remoteIPAddress;
-        if(!IPAddress.TryParse(remoteIpAddresStr, out remoteIPAddress)){
-            throw new Exception("Failed to parse IP address");
-        }
 
-        if (!AddressWithinRange(remoteIPAddress))
+        if (!IPAddress.TryParse(remoteIpAddresStr, out remoteIPAddress) || !AddressWithinRange(remoteIPAddress))
         {
-            System.Console.WriteLine("IP adress not allowed in invoke method "+ remoteIpAddresStr);
+            System.Console.WriteLine("IP Address failed to parse or not allowed in invoke method. " + remoteIpAddresStr);
             invocationContext.Context.Abort();
             return null;
         }
-
         return await next(invocationContext);
     }
 }

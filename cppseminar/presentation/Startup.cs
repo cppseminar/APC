@@ -37,13 +37,14 @@ namespace presentation
                 opts.Conventions.AuthorizeFolder("/Admin", "Administrator");
             });
             // modified this
-            IConfigurationSection allowedIpAddressesconfig = Configuration.GetSection("AllowedIpAddresses");
-            var allowedIpAddressesRanges = allowedIpAddressesconfig.Get<string[]>();
+            
+            IConfigurationSection allowedIpAddresses = Configuration.GetSection("ALLOWED_IP_RANGE");
+            System.Console.WriteLine(allowedIpAddresses["Lower"]);
             services.AddSignalR(hubOptions => {
-                hubOptions.AddFilter(new IPHubFilter(allowedIpAddressesRanges));
+                hubOptions.AddFilter(new IPHubFilter(allowedIpAddresses["Lower"], allowedIpAddresses["Upper"]));
             });
-            List<string> allowedList = allowedIpAddressesRanges.ToList();
-            services.AddSingleton<List<string>>(allowedList);
+            // List<string> allowedList = allowedIpAddressesRanges.ToList();
+            // services.AddSingleton<List<string>>(allowedList);
             
             
 
