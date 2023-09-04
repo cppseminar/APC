@@ -41,6 +41,7 @@ services:
             - ./presentation/wwwroot:/src/wwwroot
             - ./presentation/Hubs:/src/Hubs
             - ./presentation/Filters:/src/Filters
+            - ./presentation/appsettings.json:/src/appsettings.json
         networks:
             - sharednet
         ports:

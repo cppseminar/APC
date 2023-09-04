@@ -38,11 +38,11 @@ namespace presentation
             });
             // modified this
             IConfigurationSection allowedIpAddressesconfig = Configuration.GetSection("AllowedIpAddresses");
-            var allowedIpAddresses = allowedIpAddressesconfig.Get<string[]>();
+            var allowedIpAddressesRanges = allowedIpAddressesconfig.Get<string[]>();
             services.AddSignalR(hubOptions => {
-                hubOptions.AddFilter(new IPHubFilter(allowedIpAddresses));
+                hubOptions.AddFilter(new IPHubFilter(allowedIpAddressesRanges));
             });
-            List<string> allowedList = allowedIpAddresses.ToList();
+            List<string> allowedList = allowedIpAddressesRanges.ToList();
             services.AddSingleton<List<string>>(allowedList);
             
             
