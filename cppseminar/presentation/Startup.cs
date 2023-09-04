@@ -42,12 +42,8 @@ namespace presentation
             services.AddSignalR(hubOptions => {
                 hubOptions.AddFilter(new IPHubFilter(allowedIpAddressesRanges));
             });
-            List<string> allowedList = allowedIpAddressesRanges.ToList();
-            services.AddSingleton<List<string>>(allowedList);
+            services.AddSingleton(new TestIPFilter(allowedIpAddressesRanges[0], allowedIpAddressesRanges[1]));
             
-            
-
-            //services.AddSingleton<IPHubFilter>(new IPHubFilter(allowedIPAddress));
 
             services.AddControllers();
 
