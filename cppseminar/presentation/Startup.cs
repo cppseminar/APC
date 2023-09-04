@@ -43,7 +43,7 @@ namespace presentation
             services.AddSignalR(hubOptions => {
                 hubOptions.AddFilter(new IPHubFilter(allowedIpAddresses["Lower"], allowedIpAddresses["Upper"]));
             });
-            services.AddSingleton(new TestIPFilter(allowedIpAddresses["Lower"], allowedIpAddresses["Upper"]));
+            services.AddSingleton(new PageIPFilter(allowedIpAddresses["Lower"], allowedIpAddresses["Upper"]));
 
             services.AddControllers();
 

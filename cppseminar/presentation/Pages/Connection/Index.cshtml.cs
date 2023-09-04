@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace presentation.Pages.Connection
 {
-    [ServiceFilter(typeof(TestIPFilter))]
+    [ServiceFilter(typeof(PageIPFilter))]
     public class IndexModel : PageModel
     {
         

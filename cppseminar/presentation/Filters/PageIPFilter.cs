@@ -6,12 +6,12 @@ using System.Net;
 using presentation.Services;
 namespace presentation.Filters;
 
-public class TestIPFilter : Attribute, IResourceFilter
+public class PageIPFilter : Attribute, IResourceFilter
 {
     private readonly byte[] _allowedLowerBytes;
     private readonly byte[] _allowedUpperBytes;
 
-    public TestIPFilter(string allowedIPLowerStr, string allowedIPUpperStr)
+    public PageIPFilter(string allowedIPLowerStr, string allowedIPUpperStr)
     {
         IPAddress allowedIPLower;
         IPAddress.TryParse(allowedIPLowerStr, out allowedIPLower);
