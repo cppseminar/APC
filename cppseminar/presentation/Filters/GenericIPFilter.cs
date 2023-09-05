@@ -42,5 +42,22 @@ public class GenericIPFilter
             }
         }
         return true;
+    }
+    public IPAddress GetRemoteIP(string remoteIpAddresStr, string forwardedForHeader){
+        IPAddress remoteIPAddress;
+        // if X-Forwarded-For is not empty
+        if(!string.IsNullOrEmpty(forwardedForHeader)){
+            System.Console.WriteLine("Forwarded-For " + forwardedForHeader);
+            // check if the header is a valid IP address
+            if(IPAddress.TryParse(forwardedForHeader, out remoteIPAddress)){
+                return remoteIPAddress;
+                }
+        }
+        // if X-Forwarded-For is empty or not a valid IP address continue with remoteIPAddressStr
+        if (IPAddress.TryParse(remoteIpAddresStr, out remoteIPAddress))
+        {
+            return remoteIPAddress;
+        }
+        return null;
     }    
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using presentation.Services;
+using System.Linq;
 namespace presentation.Filters;
 
 public class PageIPFilter : GenericIPFilter, IResourceFilter
@@ -14,9 +15,12 @@ public class PageIPFilter : GenericIPFilter, IResourceFilter
 
     public void OnResourceExecuting(ResourceExecutingContext context)
     {
-        IPAddress clientIPAddress;
-        IPAddress.TryParse(context.HttpContext.Connection.RemoteIpAddress?.ToString(), out clientIPAddress);
-        if (!AddressWithinRange(clientIPAddress))
+        
+        var remoteIpAddresStr = context.HttpContext.Connection.RemoteIpAddress.ToString();
+        var forwardedForHeader = context.HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        IPAddress clientIPAddress = GetRemoteIP(remoteIpAddresStr, forwardedForHeader);
+
+        if (clientIPAddress == null || !AddressWithinRange(clientIPAddress))
         {
             context.Result = new ContentResult
             {
