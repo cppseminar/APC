@@ -15,13 +15,13 @@ public class PageIPFilter : GenericIPFilter, IResourceFilter
 
     public void OnResourceExecuting(ResourceExecutingContext context)
     {
-        
-        var remoteIpAddresStr = context.HttpContext.Connection.RemoteIpAddress.ToString();
-        var forwardedForHeader = context.HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        IPAddress clientIPAddress = GetRemoteIP(remoteIpAddresStr, forwardedForHeader);
+        var remoteIpAddressStr = context.HttpContext.Connection.RemoteIpAddress.ToString();
+        var forwardedForHeaderStr = context.HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        IPAddress clientIPAddress = GetRemoteIP(remoteIpAddressStr, forwardedForHeaderStr);
 
         if (clientIPAddress == null || !AddressWithinRange(clientIPAddress))
         {
+            System.Console.WriteLine($"IP Address failed to parse or not allowed on this page. {remoteIpAddressStr} {forwardedForHeaderStr}");
             context.Result = new ContentResult
             {
                 StatusCode = (int)HttpStatusCode.Forbidden,

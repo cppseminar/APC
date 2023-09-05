@@ -15,12 +15,13 @@ public class IPHubFilter : GenericIPFilter, IHubFilter
 
     public Task OnConnectedAsync(HubLifetimeContext context, Func<HubLifetimeContext, Task> next)
     {
-        var remoteIpAddresStr = context.Context.GetHttpContext()?.Connection.RemoteIpAddress.ToString();
-        var forwardedForHeader = context.Context.GetHttpContext()?.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        IPAddress remoteIPAddress = GetRemoteIP(remoteIpAddresStr, forwardedForHeader);
+        var remoteIpAddressStr = context.Context.GetHttpContext()?.Connection.RemoteIpAddress.ToString();
+        var forwardedForHeaderStr = context.Context.GetHttpContext()?.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        IPAddress remoteIPAddress = GetRemoteIP(remoteIpAddressStr, forwardedForHeaderStr);
+
         if (remoteIPAddress == null || !AddressWithinRange(remoteIPAddress))
         {
-            System.Console.WriteLine("IP Address failed to parse or not allowed in OnConnected. " + remoteIpAddresStr);
+            System.Console.WriteLine($"IP Address failed to parse or not allowed in OnConnected. {remoteIpAddressStr} {forwardedForHeaderStr}");
             context.Context.Abort();
         }
         return next(context);
@@ -28,12 +29,12 @@ public class IPHubFilter : GenericIPFilter, IHubFilter
 
     public async ValueTask<object?> InvokeMethodAsync(HubInvocationContext invocationContext, Func<HubInvocationContext, ValueTask<object?>> next)
     {
-        var remoteIpAddresStr = invocationContext.Context.GetHttpContext()?.Connection.RemoteIpAddress.ToString();
-        var forwardedForHeader = invocationContext.Context.GetHttpContext()?.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        IPAddress remoteIPAddress = GetRemoteIP(remoteIpAddresStr, forwardedForHeader);
+        var remoteIpAddressStr = invocationContext.Context.GetHttpContext()?.Connection.RemoteIpAddress.ToString();
+        var forwardedForHeaderStr = invocationContext.Context.GetHttpContext()?.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        IPAddress remoteIPAddress = GetRemoteIP(remoteIpAddressStr, forwardedForHeaderStr);
         if (remoteIPAddress == null || !AddressWithinRange(remoteIPAddress))
         {
-            System.Console.WriteLine("IP Address failed to parse or not allowed in invoke method. " + remoteIpAddresStr);
+            System.Console.WriteLine($"IP Address failed to parse or not allowed in invoke method. {remoteIpAddressStr} {forwardedForHeaderStr}");
             invocationContext.Context.Abort();
             return null;
         }

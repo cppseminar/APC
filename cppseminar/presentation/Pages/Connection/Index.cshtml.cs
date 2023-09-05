@@ -21,13 +21,5 @@ namespace presentation.Pages.Connection
         {
             _logger = logger;
         }
-
-        
-        public async Task OnGetAsync(){
-            _logger.LogInformation(Request.Headers["X-Forwarded-For"]); // this should be able to extract the original IP adress, after it goes through kubernetes
-            var clientIPAddress = Request.HttpContext.Connection.RemoteIpAddress.ToString(); // extracting ip adress locally
-            _logger.LogInformation($"Client IP address: {clientIPAddress}");
-        }
     }
-    
 }
