@@ -29,9 +29,8 @@ namespace submissions.Controllers
         {
             try
             {
-                System.Console.WriteLine("PAge number in all submissions "+ PageNumber);
+                _logger.LogTrace("Page number in all submissions "+ PageNumber);
                 _logger.LogTrace("Retrieving all submissions");
-                System.Console.WriteLine("V obycajnom getAsync");
                 return Ok(await _submissions.GetAsync(_pageSize,PageNumber));
             }
             catch (Exception e)
@@ -84,7 +83,7 @@ namespace submissions.Controllers
             try
             {
                 _logger.LogTrace("Retrieving all submissions for user {email} with task id {taskId}", email, taskId);
-                return Ok(await _submissions.GetCountAsyncUser(email, taskId, _pageSize));
+                return Ok(await _submissions.GetNumberOfPagesAsync(email, taskId, _pageSize));
             }
             catch (System.FormatException e)
             {
@@ -104,12 +103,7 @@ namespace submissions.Controllers
             try
             {
                 _logger.LogTrace("Retrieving all submissions for user {email} with task id {taskId}", email, taskId);
-                return Ok(await _submissions.GetCountAsyncUser(email, taskId, _pageSize));
-            }
-            catch (System.FormatException e)
-            {
-                _logger.LogError("Wrong input format. {e}", e);
-                return StatusCode(400);
+                return Ok(await _submissions.GetNumberOfPagesAsync(email, taskId, _pageSize));
             }
             catch (Exception e)
             {

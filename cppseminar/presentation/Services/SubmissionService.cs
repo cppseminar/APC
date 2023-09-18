@@ -26,14 +26,14 @@ namespace presentation.Services
             _logger = logger;
         }
 
-        public async Task<IList<Submission>> GetUserSubmissionsAsync(string userEmail, int PageNumber=0)
+        public async Task<IList<Submission>> GetUserSubmissionsAsync(string userEmail, int pageNumber=0)
         {
             userEmail ??= "";
             userEmail = HttpUtility.UrlEncode(userEmail);
             _logger.LogTrace("Requesting submissions from service");
             try
             {
-                HttpResponseMessage message = await _client.GetAsync($"/submission/{userEmail}?PageNumber={PageNumber}");
+                HttpResponseMessage message = await _client.GetAsync($"/submission/{userEmail}?PageNumber={pageNumber}");
                 if (message.IsSuccessStatusCode)
                 {
                     var submissions = await message.Content.ReadAsAsync<List<Submission>>();
@@ -58,7 +58,7 @@ namespace presentation.Services
             }
         }
 
-        public async Task<List<long>> GetCounts(string userEmail)
+        public async Task<int> GetNumberOfPages(string userEmail)
         {
             userEmail ??= "";
             userEmail = HttpUtility.UrlEncode(userEmail);
@@ -75,9 +75,9 @@ namespace presentation.Services
                     
                 if (message.IsSuccessStatusCode)
                 {
-                    var count = await message.Content.ReadAsAsync<List<long>>();
-                    _logger.LogTrace("Retrieved {} submissions", count[0]);
-                    return count;
+                    var numberOfPages = await message.Content.ReadAsAsync<int>();
+                    _logger.LogTrace("Retrieved {} submissions", numberOfPages);
+                    return numberOfPages;
                 }
                 else
                 {

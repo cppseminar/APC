@@ -37,7 +37,7 @@ public class SubmissionsService
 
         return await _submissions.Find(filter).SortByDescending(x => x.SubmittedOn).Skip(count*pageNumber).Limit(count).ToListAsync();
     }
-    public async Task<List<long>> GetCountAsyncUser(string email, string taskId, int pageSize){
+    public async Task<int> GetNumberOfPagesAsync(string email, string taskId, int pageSize){
         var filter = Builders<Submission>.Filter.Empty;
         var test =  await _submissions.Find(filter).CountDocumentsAsync();
         if (email != ""){
@@ -48,8 +48,8 @@ public class SubmissionsService
         }
             
         var numberOfDocuments =  await _submissions.Find(filter).CountDocumentsAsync();
-        var numberOfPages = (long)Math.Ceiling(Convert.ToDouble(numberOfDocuments) / Convert.ToDouble(pageSize));
-        return new List<long> {numberOfDocuments, numberOfPages };
+        var numberOfPages = (int)Math.Ceiling(Convert.ToDouble(numberOfDocuments) / Convert.ToDouble(pageSize));
+        return numberOfPages;
     }
 
     public async Task<Submission> GetAsync(string submissionId) =>

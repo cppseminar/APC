@@ -25,15 +25,12 @@ namespace presentation.Pages.Admin.Submissions
             {
                 
                 if (SelectedUser == "")
-                Submissions = await _submissionService.GetSubmissionsAsync();
+                    Submissions = await _submissionService.GetSubmissionsAsync();
                 else
-                Submissions = await _submissionService.GetUserSubmissionsAsync(SelectedUser, PageNumber);
+                    Submissions = await _submissionService.GetUserSubmissionsAsync(SelectedUser, PageNumber);
                 
                 // Paging
-               if (numberOfPages == -1 || (PreviouslySelectedUser != null && PreviouslySelectedUser != SelectedUser)){
-                    var counts = await _submissionService.GetCounts(SelectedUser); 
-                    numberOfPages = counts[1];
-                }
+                numberOfPages = await _submissionService.GetNumberOfPages(SelectedUser); 
                 
             }
             catch (OperationFailedException e)
@@ -69,8 +66,7 @@ namespace presentation.Pages.Admin.Submissions
         
          [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; }
-        public int PageSize = 10;
-        public long numberOfPages = -1;
+        public int numberOfPages = 0;
 
         private readonly ILogger<ListModel> _logger = null;
         private readonly SubmissionService _submissionService = null;

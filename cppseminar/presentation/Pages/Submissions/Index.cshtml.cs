@@ -25,10 +25,7 @@ namespace presentation.Pages.Submissions
             try
             {
                 Submissions = await _submissionService.GetUserSubmissionsAsync(User.GetEmail(), PageNumber);
-                if (numberOfPages == -1){
-                    var counts = await _submissionService.GetCounts(User.GetEmail()); 
-                    numberOfPages = counts[1];
-                }
+                numberOfPages = await _submissionService.GetNumberOfPages(User.GetEmail()); 
             }
             catch(OperationFailedException e)
             {
@@ -43,8 +40,7 @@ namespace presentation.Pages.Submissions
         public IEnumerable<Submission> DisplayedSubmissions = Enumerable.Empty<Submission>();
         [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; }
-        public int pageSize = 10;
-        public long numberOfPages = -1;
+        public int numberOfPages = 0;
 
         private ILogger<IndexModel> _logger = null;
         private SubmissionService _submissionService = null;
