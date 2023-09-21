@@ -11,10 +11,7 @@
 <th:div asp-validation-summary="All"></th:div>
 <div>
     @{
-        int[] pages = new int[Model.numberOfPages];
-        for(var i=0; i < Model.numberOfPages; i++){
-            pages[i] = i;
-        }
+        var pages = Enumerable.Range(0, Model.numberOfPages);
     }
     <br>
     <th:form method="get" id="pageForm">

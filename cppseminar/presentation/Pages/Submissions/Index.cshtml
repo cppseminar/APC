@@ -37,17 +37,15 @@
             </tr>
         }
         @{
-            int[] a = new int[Model.numberOfPages];
+            var pageNumbers = Enumerable.Range(0, Model.numberOfPages);
 
         }
-        @for(var i = 0; i<Model.numberOfPages; i++){
-                a[i] = i;
-        }
+        
         <br>
         <th:form method="get">
         <label>
             Page number
-            <th:select asp-for="PageNumber" asp-items="@(new SelectList(a))" onchange="this.form.submit();"></th:select>
+            <th:select asp-for="PageNumber" asp-items="@(new SelectList(pageNumbers))" onchange="this.form.submit();"></th:select>
         </label>
         </th:form>
 

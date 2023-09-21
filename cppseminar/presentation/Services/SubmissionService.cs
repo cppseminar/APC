@@ -60,8 +60,7 @@ namespace presentation.Services
 
         public async Task<int> GetNumberOfPages(string userEmail)
         {
-            userEmail ??= "";
-            userEmail = HttpUtility.UrlEncode(userEmail);
+            userEmail = HttpUtility.UrlEncode(userEmail ?? "");
             _logger.LogTrace("Requesting submissions from service");
             try
             {

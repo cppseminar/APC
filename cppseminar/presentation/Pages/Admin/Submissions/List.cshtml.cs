@@ -54,7 +54,7 @@ namespace presentation.Pages.Admin.Submissions
 
                 ModelState.AddModelError(string.Empty, e.Message);
             }
-            PreviouslySelectedUser = SelectedUser;
+
         }
 
         [BindProperty(SupportsGet = true)]
@@ -71,6 +71,5 @@ namespace presentation.Pages.Admin.Submissions
         private readonly ILogger<ListModel> _logger = null;
         private readonly SubmissionService _submissionService = null;
         private readonly AuthenticationService _authService = null;
-        private string PreviouslySelectedUser = null;
     }
 }
