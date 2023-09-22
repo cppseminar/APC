@@ -113,7 +113,7 @@ services:
           timeout: 10s
 
     azurite.local:
-        image: mcr.microsoft.com/azure-storage/azurite:3.14.0
+        image: mcr.microsoft.com/azure-storage/azurite:3.14.0 
         volumes:
             - azurite_data:/data
         ports:
@@ -124,6 +124,7 @@ services:
             - 0.0.0.0
             - --location
             - /data
+            - --skipApiVersionCheck
         networks:
             - sharednet
         environment:
@@ -204,7 +205,9 @@ services:
             MONGO_INITDB_ROOT_PASSWORD: password
         volumes:
             - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-            - ./mongo/admins.txt:/data/init/admins.txt:ro
+            - type: bind
+              source: ./mongo/admins.txt
+              target: /data/init/admins.txt 
             - mongo_data:/data/db
 # MongoDB connection string mongodb://admin:password@mongo.local:27017/
 

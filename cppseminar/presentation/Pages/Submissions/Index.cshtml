@@ -1,5 +1,6 @@
 @page
 @model presentation.Pages.Submissions.IndexModel
+@using presentation.Model
 
 @{
     ViewBag.Title = "Submission";
@@ -35,5 +36,21 @@
                 </td>
             </tr>
         }
+        @{
+            var pageNumbers = Enumerable.Range(0, Model.numberOfPages);
+
+        }
+        
+        <br>
+        <th:form method="get">
+        <label>
+            Page number
+            <th:select asp-for="PageNumber" asp-items="@(new SelectList(pageNumbers))" onchange="this.form.submit();"></th:select>
+        </label>
+        </th:form>
+
+         
+            
+        
     </table>
 </div>

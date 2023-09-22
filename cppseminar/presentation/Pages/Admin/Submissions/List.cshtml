@@ -10,12 +10,21 @@
 <h3>Submissions</h3>
 <th:div asp-validation-summary="All"></th:div>
 <div>
-    <th:form method="get">
-        <label>
+    @{
+        var pages = Enumerable.Range(0, Model.numberOfPages);
+    }
+    <br>
+    <th:form method="get" id="pageForm">
+    <label>
+         <label>
             Filter by user
             <th:select asp-for="SelectedUser" asp-items="@Model.Users" onchange="this.form.submit();"></th:select>
         </label>
+        Page number
+        <th:select asp-for="PageNumber" asp-items="@(new SelectList(pages))" onchange="this.form.submit()"></th:select>
+    </label>
     </th:form>
+
     <table class="table">
         @foreach (var submission in Model.Submissions)
         {
@@ -39,4 +48,7 @@
             </tr>
         }
     </table>
+    
+
+
 </div>

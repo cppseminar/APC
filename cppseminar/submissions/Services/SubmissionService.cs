@@ -25,17 +25,31 @@ public class SubmissionsService
         _submissions = mongoDatabase.GetCollection<Submission>("submissions");
     }
 
-    public async Task<List<Submission>> GetAsync(int count) =>
-        await _submissions.Find(_ => true).SortByDescending(x => x.SubmittedOn).Limit(count).ToListAsync();
+    public async Task<List<Submission>> GetAsync(int count, int pageNumber=0) =>
+        await _submissions.Find(_ => true).SortByDescending(x => x.SubmittedOn).Skip(count*pageNumber).Limit(count).ToListAsync();
 
-    public async Task<List<Submission>> GetForUserAsync(string email, string taskId, int count)
+    public async Task<List<Submission>> GetForUserAsync(string email, string taskId, int count, int pageNumber=0)
     {
         var filter = Builders<Submission>.Filter.Eq(x => x.UserEmail, email);
 
         if (taskId != null)
             filter &= Builders<Submission>.Filter.Eq("TaskId", ObjectId.Parse(taskId));
 
-        return await _submissions.Find(filter).SortByDescending(x => x.SubmittedOn).Limit(count).ToListAsync();
+        return await _submissions.Find(filter).SortByDescending(x => x.SubmittedOn).Skip(count*pageNumber).Limit(count).ToListAsync();
+    }
+    public async Task<int> GetNumberOfPagesAsync(string email, string taskId, int pageSize){
+        var filter = Builders<Submission>.Filter.Empty;
+        var test =  await _submissions.Find(filter).CountDocumentsAsync();
+        if (email != ""){
+            filter &= Builders<Submission>.Filter.Eq(x => x.UserEmail, email);
+        }
+        if (taskId != null){
+            filter &= Builders<Submission>.Filter.Eq("TaskId", ObjectId.Parse(taskId));
+        }
+            
+        var numberOfDocuments =  await _submissions.Find(filter).CountDocumentsAsync();
+        var numberOfPages = (int)Math.Ceiling(Convert.ToDouble(numberOfDocuments) / Convert.ToDouble(pageSize));
+        return numberOfPages;
     }
 
     public async Task<Submission> GetAsync(string submissionId) =>

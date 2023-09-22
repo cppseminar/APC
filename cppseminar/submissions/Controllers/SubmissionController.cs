@@ -25,13 +25,13 @@ namespace submissions.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Submission>>> OnGetAsync()
+        public async Task<ActionResult<List<Submission>>> OnGetAsync([FromQuery] int PageNumber=0)
         {
             try
             {
+                _logger.LogTrace("Page number in all submissions "+ PageNumber);
                 _logger.LogTrace("Retrieving all submissions");
-
-                return Ok(await _submissions.GetAsync(30));
+                return Ok(await _submissions.GetAsync(_pageSize,PageNumber));
             }
             catch (Exception e)
             {
@@ -57,13 +57,13 @@ namespace submissions.Controllers
         }
 
         [HttpGet("{email}")]
-        public async Task<ActionResult<List<Submission>>> OnGetAsync(string email, [FromQuery]string taskId)
+        public async Task<ActionResult<List<Submission>>> OnGetAsync(string email, [FromQuery]string taskId, [FromQuery] int PageNumber=0)
         {
             try
             {
                 _logger.LogTrace("Retrieving all submissions for user {email} with task id {taskId}", email, taskId);
 
-                return Ok(await _submissions.GetForUserAsync(email, taskId, 30));
+                return Ok(await _submissions.GetForUserAsync(email, taskId, _pageSize, PageNumber));
             }
             catch (System.FormatException e)
             {
@@ -76,6 +76,42 @@ namespace submissions.Controllers
                 return StatusCode(500);  // Internal error
             }
         }
+
+        [HttpGet("{email}/count")]
+        public async Task<ActionResult<List<Submission>>> OnGetAsync(string email, [FromQuery]string taskId)
+        {
+            try
+            {
+                _logger.LogTrace("Retrieving all submissions for user {email} with task id {taskId}", email, taskId);
+                return Ok(await _submissions.GetNumberOfPagesAsync(email, taskId, _pageSize));
+            }
+            catch (System.FormatException e)
+            {
+                _logger.LogError("Wrong input format. {e}", e);
+                return StatusCode(400);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error during retrieval of data. {e}", e);
+                return StatusCode(500);  // Internal error
+            }
+        }
+        [HttpGet("count")]
+        public async Task<ActionResult<List<Submission>>> CountAllDocuments([FromQuery]string taskId)
+        {
+            string email = "";
+            try
+            {
+                _logger.LogTrace("Retrieving all submissions for user {email} with task id {taskId}", email, taskId);
+                return Ok(await _submissions.GetNumberOfPagesAsync(email, taskId, _pageSize));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error during retrieval of data. {e}", e);
+                return StatusCode(500);  // Internal error
+            }
+        }
+
 
 
         // https://www.yogihosting.com/aspnet-core-api-controllers/
@@ -182,5 +218,6 @@ namespace submissions.Controllers
         private readonly SubmissionsService _submissions = null;
         private readonly ILogger<SubmissionController> _logger = null;
         private readonly StorageService _storage = null;
+        private readonly int _pageSize = 10;
     }
 }

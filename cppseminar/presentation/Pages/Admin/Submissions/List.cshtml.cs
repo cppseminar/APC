@@ -19,15 +19,19 @@ namespace presentation.Pages.Admin.Submissions
             _submissionService = submissionService;
             _authService = authService;
         }
-
         public async Task OnGetAsync()
         {            
             try
             {
+                
                 if (SelectedUser == "")
                     Submissions = await _submissionService.GetSubmissionsAsync();
                 else
-                    Submissions = await _submissionService.GetUserSubmissionsAsync(SelectedUser);
+                    Submissions = await _submissionService.GetUserSubmissionsAsync(SelectedUser, PageNumber);
+                
+                // Paging
+                numberOfPages = await _submissionService.GetNumberOfPages(SelectedUser); 
+                
             }
             catch (OperationFailedException e)
             {
@@ -50,6 +54,7 @@ namespace presentation.Pages.Admin.Submissions
 
                 ModelState.AddModelError(string.Empty, e.Message);
             }
+
         }
 
         [BindProperty(SupportsGet = true)]
@@ -58,7 +63,10 @@ namespace presentation.Pages.Admin.Submissions
         public IEnumerable<Submission> Submissions = Enumerable.Empty<Submission>();
 
         public List<SelectListItem> Users = null;
-
+        
+         [BindProperty(SupportsGet = true)]
+        public int PageNumber { get; set; }
+        public int numberOfPages = 0;
 
         private readonly ILogger<ListModel> _logger = null;
         private readonly SubmissionService _submissionService = null;

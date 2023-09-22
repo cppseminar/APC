@@ -26,19 +26,57 @@ namespace presentation.Services
             _logger = logger;
         }
 
-        public async Task<IList<Submission>> GetUserSubmissionsAsync(string userEmail)
+        public async Task<IList<Submission>> GetUserSubmissionsAsync(string userEmail, int pageNumber=0)
         {
             userEmail ??= "";
             userEmail = HttpUtility.UrlEncode(userEmail);
             _logger.LogTrace("Requesting submissions from service");
             try
             {
-                HttpResponseMessage message = await _client.GetAsync($"/submission/{userEmail}");
+                HttpResponseMessage message = await _client.GetAsync($"/submission/{userEmail}?PageNumber={pageNumber}");
                 if (message.IsSuccessStatusCode)
                 {
                     var submissions = await message.Content.ReadAsAsync<List<Submission>>();
                     _logger.LogTrace("Retrieved {} submissions", submissions.Count);
                     return submissions;
+                }
+                else
+                {
+                    _logger.LogWarning("Code {} reason {}", message.StatusCode, message.ReasonPhrase);
+                    throw new OperationFailedException();
+                }
+            }
+            catch (TaskCanceledException e)
+            {
+                _logger.LogWarning("Get submissions timeout/cancel {e}", e);
+                throw new OperationFailedException();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Get submissions failed {e}", e);
+                throw new OperationFailedException();
+            }
+        }
+
+        public async Task<int> GetNumberOfPages(string userEmail)
+        {
+            userEmail = HttpUtility.UrlEncode(userEmail ?? "");
+            _logger.LogTrace("Requesting submissions from service");
+            try
+            {
+                HttpResponseMessage message = null; 
+                if (userEmail == ""){
+                    message = await _client.GetAsync($"/submission/count");
+                }
+                else   {
+                    message = await _client.GetAsync($"/submission/{userEmail}/count");
+                }
+                    
+                if (message.IsSuccessStatusCode)
+                {
+                    var numberOfPages = await message.Content.ReadAsAsync<int>();
+                    _logger.LogTrace("Retrieved {} submissions", numberOfPages);
+                    return numberOfPages;
                 }
                 else
                 {
