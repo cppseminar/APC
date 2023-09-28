@@ -88,7 +88,7 @@ namespace presentation.Pages.Tasks
                 Submission postedSubmission =
                     await _submisssionService.CreateSubmissionAsync(submission);
                 _logger.LogTrace("Submission was created successfuly");
-                System.Console.WriteLine(postedSubmission.Id);
+
                 return RedirectToPage("/Submissions/Detail", new {id = postedSubmission.Id});
             }
             catch (Exception e)
