@@ -170,14 +170,11 @@ public class TestRunsController : ControllerBase
     [HttpGet("count/{userEmail}/{testId}")]
     public async Task<ActionResult<long>> CountTestRuns([FromRoute] string userEmail, [FromRoute] string testId)
     {
-        System.Console.WriteLine("Tu som v test run controller");
         _logger.LogTrace("Retrieving concrete test {test} {user}", testId, userEmail);
-
-        long CountedRuns;
 
         try
         {
-            CountedRuns = await _testRuns.GetCountAsync(userEmail, testId);
+            return await _testRuns.GetCountAsync(userEmail, testId);
         }
         catch (FormatException e)
         {
@@ -189,8 +186,6 @@ public class TestRunsController : ControllerBase
             _logger.LogError("Error retrieving data for run id {test} {e}", testId, e);
             return StatusCode(500);
         }
-
-        return CountedRuns;
     }
 
     [HttpPost("setCounted/{testRunId}")]

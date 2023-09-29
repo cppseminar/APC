@@ -44,9 +44,6 @@ public class TestRunsService
         }
         if (testRunId != null)
             filter &= Builders<TestRun>.Filter.Eq(x => x.Id, testRunId);
-        // if (submissionId != null)
-        //     filter &= Builders<TestRun>.Filter.Eq(x => x.SubmissionId, submissionId);
-        System.Console.WriteLine("Setting test with id "+testRunId +" to value "+ newValue);
         var update = Builders<TestRun>.Update.Set(testRun => testRun.Counted, newValue);
 
         return await _testRuns.UpdateOneAsync(filter, update);
