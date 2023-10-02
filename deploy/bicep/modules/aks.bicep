@@ -13,7 +13,7 @@ resource apcAks 'Microsoft.ContainerService/managedClusters@2022-01-01' = {
     }
   }
   properties: {
-    kubernetesVersion: '1.25.5'
+    kubernetesVersion: '1.27.3'
     dnsPrefix: '${prefix}-aks-dns-prefix'
     agentPoolProfiles: [
       {
