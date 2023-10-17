@@ -1,7 +1,7 @@
 # do not build this file directly, use create-docker.ps1, it will set up
 # all the required paths and copy whatever is needed
 
-FROM gcc:11.2-bullseye
+FROM gcc:13.2-bookworm
 WORKDIR /
 
 # set to 1 if results should be visible to students
@@ -23,7 +23,7 @@ ENV SUBMISSION_PROJECT=/app/submission-cmake
 
 # install dependencies, create folders
 RUN apt-get update \
-    && apt-get -y install python \
+    && apt-get -y install python3 \
     && apt-get -y install python-is-python3 \
     && apt-get -y install cmake \
     && apt-get -y install git \
@@ -44,7 +44,7 @@ COPY ./submission-cmake $SUBMISSION_PROJECT
 
 # install vckpg, catch2
 WORKDIR /app
-RUN git clone --depth 1 --branch 2022.08.15 https://github.com/Microsoft/vcpkg.git \
+RUN git clone --depth 1 --branch 2023.08.09 https://github.com/Microsoft/vcpkg.git \
     && ./vcpkg/bootstrap-vcpkg.sh \
     && ./vcpkg/vcpkg install catch2
 

@@ -68,6 +68,7 @@ TEST_CASE("afterfree", "[debug][release]") {
     REQUIRE(p.Wait(2s) == 0);
 }
 
+#ifdef NDEBUG
 TEST_CASE("Perf test", "[release]") {
     BENCHMARK("Perf test") {
         Process p(GetSubmissionPath(), {"bench"});
@@ -78,3 +79,4 @@ TEST_CASE("Perf test", "[release]") {
         p.Wait(2s);
     };
 }
+#endif
