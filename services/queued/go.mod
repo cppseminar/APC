@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/docker/cli v24.0.5+incompatible
-	github.com/docker/docker v24.0.5+incompatible
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sys v0.10.0
 )
