@@ -225,22 +225,6 @@ services:
         networks:
             - sharednet
 
-    mongo-backup.local:
-        build:
-            context: ../services/mongo-simple-backup
-            target: dev
-        environment:
-            - MONGO_CONN_STR=mongodb://admin:password@mongo.local:27017/
-            - RCLONE_CONFIG_MONGO_BACKUPS_TYPE=azureblob
-            - RCLONE_CONFIG_MONGO_BACKUPS_ACCOUNT=${STORAGE_AZUREBLOB_ACCOUNT}
-            - RCLONE_CONFIG_MONGO_BACKUPS_KEY=${STORAGE_AZUREBLOB_KEY}
-            - RCLONE_CONFIG_MONGO_BACKUPS_ENDPOINT=
-        restart: unless-stopped
-        networks:
-            - sharednet
-        depends_on:
-            - mongo.local
-
     test-worker.local:
         build:
             context: ../services/queued

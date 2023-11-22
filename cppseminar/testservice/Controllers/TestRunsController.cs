@@ -166,5 +166,50 @@ public class TestRunsController : ControllerBase
 
         return Ok();
     }
+    //counts number of used tests
+    [HttpGet("count/{userEmail}/{testId}")]
+    public async Task<ActionResult<long>> CountTestRuns([FromRoute] string userEmail, [FromRoute] string testId)
+    {
+        _logger.LogTrace("Retrieving concrete test {test} {user}", testId, userEmail);
 
+        try
+        {
+            return await _testRuns.GetCountAsync(userEmail, testId);
+        }
+        catch (FormatException e)
+        {
+            _logger.LogWarning("Wrong input format, userEmail {userEmail} testId {testId}. {e}", userEmail, testId, e);
+            return StatusCode(400);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Error retrieving data for run id {test} {e}", testId, e);
+            return StatusCode(500);
+        }
+    }
+
+    [HttpPost("setCounted/{testRunId}")]
+    public async Task<ActionResult> UpdateTestRunCounted([FromRoute] string testRunId, [FromBody] bool countedValue)
+    {
+        if (testRunId == null){
+            return BadRequest();
+        }
+        try
+        {
+            var UpdateResult = await _testRuns.SetCounted(testRunId, countedValue);
+            if (UpdateResult.IsAcknowledged){
+                return StatusCode(200);
+            }
+            else
+                return StatusCode(500);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Invalid test run id supplied {case}. {e}", testRunId, e);
+            return BadRequest();
+        }
+    }
 }
+
+
+

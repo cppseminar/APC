@@ -34,6 +34,14 @@ if (dbs.indexOf('usersDb') == -1) {
   db.createCollection('users', { capped: false })
   db.users.createIndex({ 'UserEmail': 1 }, { unique: true })
 
+  db.users.insertOne({
+          UserEmail: "manduchluky@gmail.com",
+          Claims: {
+              isAdmin: 'true',
+              isStudent: 'true',
+          }
+      })
+
   // add administrators
   const admins = fs.readFileSync('/data/init/admins.txt', 'utf8')
   admins
