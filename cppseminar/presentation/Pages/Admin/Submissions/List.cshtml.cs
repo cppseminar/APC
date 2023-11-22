@@ -20,7 +20,7 @@ namespace presentation.Pages.Admin.Submissions
             _authService = authService;
         }
         public async Task OnGetAsync()
-        {            
+        {
             try
             {
                 

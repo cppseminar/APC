@@ -1,0 +1,25 @@
+@page
+@using System.Security.Claims
+@model presentation.Pages.Monitoring.IndexModel
+@{
+}
+<div id="alertBox">
+
+</div>
+
+
+<div>
+    <span>All connected users</span>
+    <table class="table mt-2" id="userLogs">
+        <tr>
+            <th>
+                User email
+            </th>
+            <th>
+                Last message 
+            </th>
+        </tr>
+    </table>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+ <script type="text/javascript" src="@Url.Content("~/js/monitoring_admin.js")"></script>

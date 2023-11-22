@@ -1,0 +1,22 @@
+@page
+@using System.Security.Claims
+@model presentation.Pages.Connection.IndexModel
+@{
+}
+
+
+@section JavaScript
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    @if(User.Identity.IsAuthenticated)
+    {
+    <script type="text/javascript" src="@Url.Content("~/js/connection_logging.js")"></script>
+    }
+}
+
+<div>
+    <h3>Connection checker</h3>
+    <p id="connection-status">Connection status: Not started</p>
+    <p id="last-timestamp"></p>
+</div>
+<div id="errorMessages"></div>
