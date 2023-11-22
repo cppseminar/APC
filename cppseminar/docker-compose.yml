@@ -38,6 +38,10 @@ services:
             - ./presentation/Model:/src/Model
             - ./presentation/Pages:/src/Pages
             - ./presentation/Services:/src/Services
+            - ./presentation/wwwroot:/src/wwwroot
+            - ./presentation/Hubs:/src/Hubs
+            - ./presentation/Filters:/src/Filters
+            - ./presentation/appsettings.json:/src/appsettings.json
         networks:
             - sharednet
         ports:
@@ -57,6 +61,7 @@ services:
         restart: always
         depends_on:
             - rabbitmq.local
+            - monitoringservice.local
 
     userservice.local:
         build:
@@ -261,7 +266,46 @@ services:
             - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml
         networks:
             - sharednet
+    
+    redis.local:
+        image: redis:7.2.0
+        build:
+            target: dev
+        networks:
+            - sharednet
+        ports:
+            - 6379:6379
+        restart: always
 
+    monitoringservice.local:
+        build:
+            context: ./monitoringservice
+            target: dev
+        volumes:
+            - ./monitoringservice/Program.cs:/src/Program.cs
+            - ./monitoringservice/Startup.cs:/src/Startup.cs
+            - ./monitoringservice/Model:/src/Model
+            - ./monitoringservice/Services:/src/Services
+            - ./monitoringservice/Controllers:/src/Controllers
+            - ./monitoringservice/monitoringservice.csproj:/src/monitoringservice.csproj
+            - ./monitoringservice/appsettings.json:/src/appsettings.json
+        networks:
+            - sharednet
+        ports:
+            - 8085:80
+        environment:
+            DOTNET_USE_POLLING_FILE_WATCHER: 1
+            DOTNET_WATCH_SUPPRESS_MSBUILD_INCREMENTALISM: 1
+            DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
+            DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
+            ASPNETCORE_ENVIRONMENT: Development
+            API_GATEWAY: http://gateway.local:5000/
+            LOG_PRETTY: 1
+        restart: always
+        depends_on:
+            redis.local:
+                condition: service_started
+            
 
 networks:
     sharednet:

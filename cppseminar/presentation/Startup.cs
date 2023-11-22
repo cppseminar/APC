@@ -13,6 +13,12 @@ using Microsoft.Extensions.Hosting;
 using System;
 
 using presentation.Services;
+using presentation.Hubs;
+using presentation.Filters;
+using Microsoft.AspNetCore.SignalR;
+using System.Collections.Generic;
+using System.Linq;
+
 
 namespace presentation
 {
@@ -30,6 +36,17 @@ namespace presentation
             services.AddRazorPages(opts => {
                 opts.Conventions.AuthorizeFolder("/Admin", "Administrator");
             });
+            // modified this
+            
+            IConfigurationSection allowedIpAddresses = Configuration.GetSection("ALLOWED_IP_RANGE");
+            System.Console.WriteLine(allowedIpAddresses["Lower"]);
+            services.AddSignalR(hubOptions => {
+                hubOptions.AddFilter(new IPHubFilter(allowedIpAddresses["Lower"], allowedIpAddresses["Upper"]));
+            });
+            services.AddSingleton(new PageIPFilter(allowedIpAddresses["Lower"], allowedIpAddresses["Upper"]));
+
+            services.AddControllers();
+
             services.Configure<Microsoft.AspNetCore.Routing.RouteOptions>(options =>
             {
                 options.AppendTrailingSlash = true;
@@ -48,6 +65,8 @@ namespace presentation
             services.AddSingleton<AuthenticationService>();
             services.AddSingleton<TestCaseService>();
             services.AddSingleton<TestService>();
+            //
+            services.AddSingleton<MonitoringService>();
             services.AddSingleton<IAuthorizationHandler, AdminAuthorizationService>();
             services.AddSingleton<IAuthorizationHandler, TaskAuthorizationService>();
             services.AddSingleton<IAuthorizationHandler, TestCaseAuthorizationService>();
@@ -82,25 +101,36 @@ namespace presentation
                 options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
                                                                          .Build();
                 options.AddPolicy("Administrator", policy => policy.RequireClaim("isAdmin", "true"));
+                options.AddPolicy("Student", policy => policy.RequireClaim("isStudent", "true"));
             });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            System.Console.WriteLine(env.ContentRootPath);
             app.UseForwardedHeaders();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+            
+            app.UseStaticFiles();
 
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllers();
                 endpoints.MapRazorPages();
+                endpoints.MapHub<MonitoringHub>("/monitor");
+                // endpoints.MapGet("/testingeverything", async context =>
+                // {
+                //     System.Console.WriteLine("Hello, World!");
+                // });
             });
+            app.UseStaticFiles();
         }
     }
 }

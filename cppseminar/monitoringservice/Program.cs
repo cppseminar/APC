@@ -4,13 +4,15 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
+using monitoringservice.Model;
+using monitoringservice.Services;
 
-namespace userservice;
+namespace monitoringservice;
 
 public class Program
 {
     public static void Main(string[] args)
-    {
+    {        
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Verbose()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)

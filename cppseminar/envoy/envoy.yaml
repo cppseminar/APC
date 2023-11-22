@@ -45,6 +45,10 @@ static_resources:
                             path_separated_prefix: /test
                           route:
                             cluster: test-service
+                        - match:
+                            path_separated_prefix: /monitoring
+                          route:
+                            cluster: monitoring-service
                 http_filters:
                   - name: envoy.filters.http.router
                     typed_config:
@@ -88,4 +92,15 @@ static_resources:
                   address:
                     socket_address:
                       address: submissions.local
+                      port_value: 80
+    - name: monitoring-service
+      type: strict_dns
+      load_assignment:
+        cluster_name: monitoring-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: monitoringservice.local
                       port_value: 80

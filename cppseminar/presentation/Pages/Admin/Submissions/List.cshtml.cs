@@ -21,7 +21,7 @@ namespace presentation.Pages.Admin.Submissions
         }
 
         public async Task OnGetAsync()
-        {            
+        {
             try
             {
                 if (SelectedUser == "")
