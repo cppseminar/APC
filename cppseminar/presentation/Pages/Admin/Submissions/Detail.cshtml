@@ -59,8 +59,9 @@ else
     <div>
         @await Component.InvokeAsync(
             "TestList",
-            new { userEmail = @Model.CurrentSubmission.UserEmail, submissionId = Model.CurrentSubmission.Id, isAdmin = true })
+            new { userEmail = @Model.CurrentSubmission.UserEmail, submissionId = Model.CurrentSubmission.Id, isAdmin = true})
     </div>
+    
 
     <h3>Your tests</h3>
     <div>
