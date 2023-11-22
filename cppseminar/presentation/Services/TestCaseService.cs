@@ -122,9 +122,31 @@ namespace presentation.Services
                 }
                 result.EnsureSuccessStatusCode();
                 testCase = await result.Content.ReadAsAsync<TestCaseRest>();
+                
 
             });
             return testCase;
+        }
+        public async Task UpdateTest(string testCaseId, TestCaseRest testCase){
+            _logger.LogTrace("Updating test case {case}", testCase);
+            try
+            {
+                var result = await _client.PostAsJsonAsync($"/cases/update/{testCaseId}", testCase);
+                System.Console.WriteLine(result);
+                if (result.IsSuccessStatusCode)
+                {
+                    _logger.LogTrace("Test case update returned success code");
+                    return;
+                }
+                else{
+                    throw new OperationFailedException("Operation failed");
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning("Updating test case failed with: {e}", e);
+                throw new OperationFailedException();
+            }
         }
     }
 }
