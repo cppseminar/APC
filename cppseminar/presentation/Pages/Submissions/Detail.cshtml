@@ -30,12 +30,27 @@ else
     <table class="table">
         <tr>
             <th>Test Name</th>
+            <th>Used tests</th>
+            <th>Run test</th>
         </tr>
+
         @foreach (var testCase in Model.TestCaseList)
         {
             <tr>
                 <td>
                     @testCase.Name
+                </td>
+                <td>
+                    @if (testCase.SubmittedCount != null)
+                    {
+                        <span>@testCase.SubmittedCount</span>
+                    }
+                    else
+                    {
+                        <span>Unknown (error)</span>
+                    }
+                    of
+                    @testCase.MaxRuns
                 </td>
                 <td>
                     <th:form method="post">

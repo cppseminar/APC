@@ -91,6 +91,22 @@ namespace presentation.Services
             return await response.Content.ReadAsAsync<List<TestRun>>();
         }
 
+        // Get number of submitted tests (that are counted)
+        public async Task<TestRunCountRest> GetTestCountAsync(string userEmail, string testCaseId)
+        {
+            try {
+                var response = await _client.GetAsync($"/testcount/{userEmail}/{testCaseId}");
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new OperationFailedException("Test counting returned code " + response.StatusCode);
+                }
+                return await response.Content.ReadAsAsync<TestRunCountRest>();
+            }
+            catch (Exception e) {
+                 _logger.LogError("Get test runs failed for '{}' '{}' with error: {e}",userEmail, testCaseId, e);
+                throw new OperationFailedException();
+            }  
+        }
    
         public async Task SetCounted(string userEmail, string testRunId, bool value)
         {

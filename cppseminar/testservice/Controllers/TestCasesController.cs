@@ -72,7 +72,7 @@ public class TestCasesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> PostAsync([FromBody] TestCase testCase)
+    public async Task<ActionResult> OnPostAsync([FromBody] TestCase testCase)
     {
         _logger.LogTrace("Creating new test case {obj}", JsonSerializer.Serialize(testCase));
 

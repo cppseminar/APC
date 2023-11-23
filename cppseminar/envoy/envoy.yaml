@@ -42,7 +42,8 @@ static_resources:
                           route:
                             cluster: test-service
                         - match:
-                            path_separated_prefix: /test
+                            # Match everything beginning with test e.g. /test/, /testcount/
+                            prefix: /test
                           route:
                             cluster: test-service
                 http_filters:
