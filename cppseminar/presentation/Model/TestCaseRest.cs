@@ -29,5 +29,9 @@ namespace presentation.Model
         public string ClaimName { get; set; }
         [Required]
         public string ClaimValue { get; set; }
+
+        // This is only helper field, that is not returned from REST, it is used only internally
+        // It is number of tests, that were already submitted for this test case, by logged in user
+        public int? SubmittedCount { get; set; } = null;
     }
 }

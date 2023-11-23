@@ -60,6 +60,12 @@ namespace presentation.Pages.Submissions
                     if ((await _authService.AuthorizeAsync(
                         User, oneCase, AuthorizationConstants.Submit)).Succeeded)
                     {
+                        try
+                        {
+                            var testCount = await _testService.GetTestCountAsync(User.GetEmail(), oneCase.Id);
+                            oneCase.SubmittedCount = testCount.Count;
+                        }
+                        catch (Exception ex) { }
                         TestCaseList.Add(oneCase);
                     }
                 }

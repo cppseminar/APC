@@ -39,7 +39,7 @@ public class TestRunsController : ControllerBase
     public async Task<ActionResult<List<TestRun>>> OnGetAsync(
         [FromRoute] string userEmail, [FromQuery] string submissionId)
     {
-        _logger.LogTrace("Retrieving concrete test taskid submissionid {subm} user {user}", submissionId, userEmail);
+        _logger.LogTrace("Retrieving list of runs for: submissionid {subm} user {user}", submissionId, userEmail);
 
         try
         {
@@ -61,7 +61,7 @@ public class TestRunsController : ControllerBase
     public async Task<ActionResult<TestRun>> OnGetByIdAsync(
         [FromRoute] string userEmail, [FromRoute] string testId)
     {
-        _logger.LogTrace("Retrieving concrete test {test} {user}", testId, userEmail);
+        _logger.LogTrace("Retrieving specific test run {test} by {user}", testId, userEmail);
 
         TestRun testRun;
 
