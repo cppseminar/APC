@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -16,10 +14,14 @@ namespace presentation.Pages.Admin.Test
 
         public TestRun TestResult { get; set; }
 
+        [BindProperty]
+        public bool Counted { get; set; } = true;
+
         public DetailModel(TestService testService)
         {
             _testService = testService;
         }
+
         public async Task OnGetAsync(string userEmail, [Required]string testId)
         {
             try
@@ -30,6 +32,15 @@ namespace presentation.Pages.Admin.Test
             {
                 ModelState.AddModelError(string.Empty, "Operation failed");
             }
+        }
+
+        public async Task<ActionResult> OnPostCountedAsync([Required]string userEmail, [Required] string testId)
+        {
+            await _testService.SetCounted(
+                userEmail: userEmail,
+                testRunId: testId,
+                value: Counted);
+            return RedirectToAction("Index");
         }
     }
 }

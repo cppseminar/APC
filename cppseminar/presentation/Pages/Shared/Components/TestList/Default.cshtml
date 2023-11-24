@@ -1,6 +1,5 @@
 @model List<presentation.Model.TestRun>
 
-
 @if (Model != null)
 {
     <table class="table">
@@ -21,11 +20,21 @@
                               asp-route-userEmail="@testRun.CreatedBy">
                             @testRun.TestCaseName
                         </th:a>
+                        @if (testRun.Counted == false)
+                        {
+                            <span class="badge badge-info">Not counting</span>
+                        }
                     </td>
                 }
                 else
                 {
-                    <td><th:a asp-page="/Tests/Detail" asp-route-id="@testRun.Id">@testRun.TestCaseName</th:a></td>
+                    <td>
+                        <th:a asp-page="/Tests/Detail" asp-route-id="@testRun.Id">@testRun.TestCaseName</th:a>
+                        @if(testRun.Counted == false)
+                        {
+                            <span class="badge badge-info">Not counting</span>
+                        }
+                    </td>
                 }
                 <td>@testRun.TaskName</td>
                 <td>@testRun.CreatedAt</td>

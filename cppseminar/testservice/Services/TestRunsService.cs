@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -33,6 +34,19 @@ public class TestRunsService
             filter &= Builders<TestRun>.Filter.Eq(x => x.SubmissionId, submissionId);
 
         return await _testRuns.Find(filter).SortByDescending(x => x.CreatedAt).Limit(count).ToListAsync();
+    }
+
+    // Update document. Return null if document doesn't exist else return new document
+    public async Task<TestRun> PatchOneAsync(string userEmail, string testId, BsonDocument update)
+    {
+        var bsonUpdate = new BsonDocument
+        {
+            {"$set" , update}
+        };
+        return await _testRuns.FindOneAndUpdateAsync(
+            x => x.Id == testId && x.CreatedBy == userEmail,
+            bsonUpdate,
+            new() { IsUpsert = false, ReturnDocument = ReturnDocument.After });
     }
 
     public async Task<TestRun> GetAsync(string id) =>

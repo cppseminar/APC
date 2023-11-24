@@ -21,5 +21,12 @@ namespace presentation.Model
         public string Name { get; set; }
         public string Students { get; set; }
         public string Teachers { get; set; }
+        public bool Counted {get;set;}
+    }
+
+    // Data sent to test service via PATCH
+    public class TestRunPatchRest
+    {
+        public bool Counted { get; set; }
     }
 }
