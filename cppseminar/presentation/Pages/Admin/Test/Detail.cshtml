@@ -29,6 +29,29 @@
                 <td>Test id</td>
                 <td>@Model.TestResult.Id</td>
             </tr>
+            <tr>
+                <td>Counted</td>
+                <td>
+                    <th:form method="post" asp-page-handler="counted">
+                        <th:input type="hidden" asp-for="Counted"  value="@(!Model.TestResult.Counted)" />
+                        @Model.TestResult.Counted
+                        (
+                            @if(Model.TestResult.Counted)
+                            {
+                                <input class="btn btn-link m-0 p-0" type="submit" value="Don't count" />
+                            }
+                            else
+                            {
+                                <input class="btn btn-link m-0 p-0" type="submit" value="Start counting" />
+                            }
+                        )
+                        
+                    </th:form>
+                </td>
+            </tr>
+           
+
+
             @if (Model.TestResult.FinishedAt != null)
             {
                 <tr>

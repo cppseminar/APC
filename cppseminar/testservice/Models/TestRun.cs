@@ -72,6 +72,12 @@ public class TestRun
     private string _name;
 }
 
+public class TestRunPatch
+{
+    [Required]
+    public bool Counted { get; set; }
+}
+
 public class TestRunConstants
 {
     public const string TestMessageFinished = "All tests finished successfully";

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -116,6 +117,22 @@ public class TestRunsController : ControllerBase
         }
     }
 
+    [HttpPatch("{userEmail}/{testId}")]
+    public async Task<ActionResult> OnPatchByIdAsync(
+        [FromRoute] string userEmail, [FromRoute] string testId, [FromBody] TestRunPatch patch)
+    {
+        var result = await _testRuns.PatchOneAsync(userEmail: userEmail, testId: testId, update: patch.ToBsonDocument());
+        if (result == null)
+        {
+            _logger.LogWarning("Failed update testrun {id} by {user}. Not found.", testId, userEmail);
+            return NotFound();
+        }
+
+        _logger.LogTrace("Succesfully update testrun {id} by {user}", testId, userEmail);
+        return Ok();
+    }
+
+
     [HttpPost]
     public async Task<ActionResult> OnPostAsync([FromBody] TestRun testRun)
     {
@@ -166,5 +183,4 @@ public class TestRunsController : ControllerBase
 
         return Ok();
     }
-
 }

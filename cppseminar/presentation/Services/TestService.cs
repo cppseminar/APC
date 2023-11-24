@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Configuration;
@@ -88,6 +89,16 @@ namespace presentation.Services
             var response = await _client.GetAsync(
                 $"test/{HttpUtility.UrlEncode(userName)}/" + query);
             return await response.Content.ReadAsAsync<List<TestRun>>();
+        }
+
+   
+        public async Task SetCounted(string userEmail, string testRunId, bool value)
+        {
+            var data = new TestRunPatchRest { Counted = value };
+            string uri = $"test/{HttpUtility.UrlEncode(userEmail)}/{testRunId}";
+            var httpContent = new StringContent(
+                JsonSerializer.Serialize(data), Encoding.UTF8, "application/json");
+            var result = await _client.PatchAsync(uri, httpContent);
         }
     }
 }
