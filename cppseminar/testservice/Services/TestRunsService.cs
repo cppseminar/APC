@@ -37,17 +37,11 @@ public class TestRunsService
     }
 
     // Update document. Return null if document doesn't exist else return new document
-    public async Task<TestRun> PatchOneAsync(string userEmail, string testId, BsonDocument update)
-    {
-        var bsonUpdate = new BsonDocument
-        {
-            {"$set" , update}
-        };
-        return await _testRuns.FindOneAndUpdateAsync(
+    public async Task<TestRun> PatchOneAsync(string userEmail, string testId, BsonDocument update) =>
+        await _testRuns.FindOneAndUpdateAsync(
             x => x.Id == testId && x.CreatedBy == userEmail,
-            bsonUpdate,
+            new BsonDocument{{"$set" , update}},
             new() { IsUpsert = false, ReturnDocument = ReturnDocument.After });
-    }
 
     public async Task<TestRun> GetAsync(string id) =>
         await _testRuns.Find(x => x.Id == id).SingleAsync();
