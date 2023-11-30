@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
 using submissions.Models;
 using submissions.Services;
 
@@ -21,7 +20,7 @@ namespace submissions.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<WorkTask>>> Get()
+        public async Task<ActionResult<List<WorkTask>>> GetAsync()
         {
             try
             {
@@ -35,7 +34,7 @@ namespace submissions.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<WorkTask>> Get(string id)
+        public async Task<ActionResult<WorkTask>> GetByIdAsync(string id)
         {
             try
             {
@@ -62,6 +61,19 @@ namespace submissions.Controllers
                 _logger.LogError("Error during creating of task {task}. {e}", JsonSerializer.Serialize(task), e);
                 return StatusCode(500);
             }
+        }
+
+        [HttpPatch("{taskId}")]
+        public async Task<ActionResult<WorkTask>>OnPatchByIdAsync([FromRoute]string taskId, [FromBody]WorkTaskPatch task)
+        {
+            var result = await _tasks.PatchOneAsync(taskId, task.GetBson());
+            if (result == null)
+            {
+                _logger.LogWarning("Update task failed. Not found. Id: {}", taskId);
+                return NotFound();
+            }
+            _logger.LogTrace("Successfully pdated task: {}", taskId);
+            return Ok(result);
         }
 
         private readonly TasksService _tasks = null;

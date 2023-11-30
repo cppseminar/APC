@@ -51,6 +51,9 @@ namespace presentation
             services.AddSingleton<IAuthorizationHandler, AdminAuthorizationService>();
             services.AddSingleton<IAuthorizationHandler, TaskAuthorizationService>();
             services.AddSingleton<IAuthorizationHandler, TestCaseAuthorizationService>();
+
+            services.AddHttpContextAccessor();
+
             // TODO: Review lifetime of cookies
             services.AddAuthentication(options =>
             {

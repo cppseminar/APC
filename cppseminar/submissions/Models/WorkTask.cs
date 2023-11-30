@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -32,4 +33,31 @@ public class WorkTask
         set => ends = value;
     }
     private DateTime? ends = null;
+
+    public string RequiredIp { get; set; } = "";
+}
+
+
+public class WorkTaskPatch
+{
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+    public DateTime? Ends { get; set; }
+    public string? ClaimName { get; set; }
+    public string? ClaimValue { get; set; }
+    public string? RequiredIp { get; set; }
+
+    public BsonDocument GetBson()
+    {
+        // Drop missing fields by converting to json, because json converter
+        // supports null dropping. Then convert to bson
+        var jsonOptions = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition =
+                System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        };
+
+        var inJson = JsonSerializer.Serialize(this, jsonOptions);
+        return BsonDocument.Parse(inJson);
+    }
 }

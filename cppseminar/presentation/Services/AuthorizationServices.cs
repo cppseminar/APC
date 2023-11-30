@@ -6,6 +6,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using presentation.Model;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace presentation.Services
 {
@@ -34,18 +36,48 @@ namespace presentation.Services
         : AuthorizationHandler<OperationAuthorizationRequirement, TaskModel>
 
     {
+        private readonly ILogger<TaskAuthorizationService> _logger;
+        IHttpContextAccessor _httpContextAccessor;
+
+        public TaskAuthorizationService(IHttpContextAccessor httpContextAccessor, ILogger<TaskAuthorizationService> logger)
+        {
+            _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
+        }
+
         protected override Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
             OperationAuthorizationRequirement requirement,
             TaskModel task)
         {
+            // Check claims
             if (task == null || task.ClaimName == null || task.ClaimValue == null)
             {
                 return Task.CompletedTask;
             }
             var taskClaim = context.User.FindFirst(
                 claim => claim.Type == task.ClaimName && claim.Value == task.ClaimValue);
-            if (taskClaim != null)
+            if (taskClaim == null)
+            {
+                return Task.CompletedTask;
+            }
+            // Claims match, do next check
+
+            // Check IP address
+            if (task.RequiredIp == "")
+            {
+                context.Succeed(requirement);
+            }
+
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null)
+            {
+                _logger.LogError("Misconfigured http accessor in authorization");
+                return Task.CompletedTask;
+            }
+            
+            var ip = httpContext.Connection.RemoteIpAddress.ToString();
+            if (ip == task.RequiredIp)
             {
                 context.Succeed(requirement);
             }

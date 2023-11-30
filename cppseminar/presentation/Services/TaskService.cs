@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -96,6 +97,18 @@ namespace presentation.Services
             {
                 _logger.LogWarning("Error during task GET {error}", e);
                 return null;
+            }
+        }
+
+        public async Task PatchOneAsync(string id, TaskModel patch)
+        {
+            string uri = $"tasks/{HttpUtility.UrlEncode(id)}";
+            var httpContent = new StringContent(
+                patch.ToJsonPatch(), Encoding.UTF8, "application/json");
+            var result = await _client.PatchAsync(uri, httpContent);
+            if (!result.IsSuccessStatusCode)
+            {
+                throw new OperationFailedException($"Patch tasks failed with code {result.StatusCode}");
             }
         }
 

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 using submissions.Models;
+using MongoDB.Bson;
 
 namespace submissions.Services;
 
@@ -30,4 +31,11 @@ public class TasksService
 
     public async Task CreateAsync(WorkTask newTask) =>
         await _tasks.InsertOneAsync(newTask);
+
+    // Returns updated WorkTask on success, null on not found.
+    public async Task<WorkTask> PatchOneAsync(string taskId, BsonDocument update) =>
+       await _tasks.FindOneAndUpdateAsync(
+           x => x.Id == taskId,
+           new BsonDocument { { "$set", update } },
+           new() { IsUpsert = false, ReturnDocument = ReturnDocument.After });
 }
