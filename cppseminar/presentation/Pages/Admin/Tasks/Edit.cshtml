@@ -1,0 +1,77 @@
+@page "{taskId}"
+@model presentation.Pages.Tasks.EditModel
+
+
+<h3>Edit existing task</h3>
+@if (!ModelState.IsValid)
+{
+    <h4>Error</h4>
+    <p>Please fix following errors and resubmit</p>
+    <th:div asp-validation-summary="All"></th:div>
+}
+
+
+<th:form method="post">
+    
+    <table class="table">
+        <tr>
+            <td>
+                <th:label asp-for="MyTask.Name">Task name*</th:label>
+            </td>
+            <td>
+                <th:input asp-for="MyTask.Name" />
+                <th:span asp-validation-for="MyTask.Name"></th:span>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <th:label asp-for="MyTask.Description">Description (accepts <strong>HTML</strong>!)*</th:label>
+            </td>
+            <td>
+                <th:textarea class="form-control" asp-for="MyTask.Description"></th:textarea>
+                <th:span asp-validation-for="MyTask.Description"></th:span>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <th:label asp-for="MyTask.Ends">Deadline (DateTime)*</th:label>
+            </td>
+            <td>
+                <th:input asp-for="MyTask.Ends" />
+                <th:span asp-validation-for="MyTask.Ends"></th:span>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <th:label asp-for="MyTask.ClaimName"></th:label>
+            </td>
+            <td>
+                <th:input asp-for="MyTask.ClaimName" />
+                <th:span asp-validation-for="MyTask.ClaimName"></th:span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <th:label asp-for="MyTask.ClaimValue"></th:label>
+            </td>
+            <td>
+                <th:input asp-for="MyTask.ClaimValue" />
+                <th:span asp-validation-for="MyTask.ClaimValue"></th:span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <th:label asp-for="MyTask.RequiredIp"></th:label>
+            </td>
+            <td>
+                <th:input asp-for="MyTask.RequiredIp" />
+                <th:span asp-validation-for="MyTask.RequiredIp"></th:span>
+            </td>
+        </tr>
+    </table>
+    <input type="submit" class="btn btn-primary" />
+</th:form>
+

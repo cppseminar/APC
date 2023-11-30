@@ -27,7 +27,13 @@
                         @task.ClaimName -> @task.ClaimValue
                     </td>
                     <td>
+                        @task.RequiredIp
+                    </td>
+                    <td>
                         <th:a asp-page-handler="DownloadAll" asp-route-id="@task.Id">Download all</th:a>
+                    </td>
+                    <td>
+                        <th:a asp-page="/Admin/Tasks/Edit" asp-route-taskId="@task.Id">Edit</th:a>
                     </td>
                 }
             </tr>
