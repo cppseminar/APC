@@ -105,7 +105,7 @@ namespace presentation.Services
             catch (Exception e) {
                  _logger.LogError("Get test runs failed for '{}' '{}' with error: {e}",userEmail, testCaseId, e);
                 throw new OperationFailedException();
-            }  
+            }
         }
    
         public async Task SetCounted(string userEmail, string testRunId, bool value)
