@@ -41,6 +41,12 @@ COPY ./tests/src $TESTS_PATH
 COPY ./cpp-support $TESTS_PATH
 COPY ./tests/dat $DATA_PATH
 COPY ./submission-cmake $SUBMISSION_PROJECT
+COPY ./fold2lf.py /app
+
+# covert possible CRLF to LF in data directory
+WORKDIR /app
+RUN python ./fold2lf.py --folder $DATA_PATH -vv
+RUN rm -f ./fold2lf.py
 
 # install vckpg, catch2
 WORKDIR /app
