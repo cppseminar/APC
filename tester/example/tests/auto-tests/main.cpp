@@ -1,6 +1,6 @@
-#define CATCH_CONFIG_MAIN
-#define CATCH_CONFIG_ENABLE_BENCHMARKING
-#include <catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/benchmark/catch_benchmark.hpp>
+
 #include "./support-wrap.hpp"
 
 #include <string>
@@ -11,7 +11,7 @@ using namespace std::literals::string_literals;
 
 
 
-TEST_CASE("Zero parameters", "[example][debug]") {
+TEST_CASE("Zero parameters", "[debug][release]") {
     Process p(GetSubmissionPath(), {});
 
     REQUIRE( p.ReadLine(30s).value_or("") == "Hello world!" );
@@ -68,7 +68,6 @@ TEST_CASE("afterfree", "[debug][release]") {
     REQUIRE(p.Wait(2s) == 0);
 }
 
-#ifdef NDEBUG
 TEST_CASE("Perf test", "[release]") {
     BENCHMARK("Perf test") {
         Process p(GetSubmissionPath(), {"bench"});
@@ -79,4 +78,3 @@ TEST_CASE("Perf test", "[release]") {
         p.Wait(2s);
     };
 }
-#endif

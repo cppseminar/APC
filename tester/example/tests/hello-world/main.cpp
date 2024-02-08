@@ -1,6 +1,5 @@
-#define CATCH_CONFIG_MAIN
-#define CATCH_CONFIG_ENABLE_BENCHMARKING
-#include <catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+
 #include "./support-wrap.hpp"
 
 #include <string>
@@ -11,7 +10,7 @@ using namespace std::literals::string_literals;
 
 
 
-TEST_CASE("Hello world", "[debug]") {
+TEST_CASE("Hello world", "[debug][release]") {
     Process p(GetSubmissionPath(), {});
 
     REQUIRE( p.ReadLine(30s).value_or("") == "Hello world!" );
@@ -20,7 +19,7 @@ TEST_CASE("Hello world", "[debug]") {
     REQUIRE(p.Wait(2s) == 0);
 }
 
-TEST_CASE("Echo back", "[debug]") {
+TEST_CASE("Echo back", "[debug][release]") {
     Process p(GetSubmissionPath(), {"Ahoj APC++ 2021!"});
 
     REQUIRE( p.ReadLine(30s).value_or("") == "Ahoj APC++ 2021!" );
@@ -29,7 +28,7 @@ TEST_CASE("Echo back", "[debug]") {
     REQUIRE(p.Wait(2s) == 0);
 }
 
-TEST_CASE("Get data", "[debug]") {
+TEST_CASE("Get data", "[debug][release]") {
     auto file = GetData("input.txt");
 
     std::ifstream in(file);
@@ -41,7 +40,7 @@ TEST_CASE("Get data", "[debug]") {
     REQUIRE(line == "Hello world!");
 }
 
-TEST_CASE("Cannot modify data", "[debug]") {
+TEST_CASE("Cannot modify data", "[debug][release]") {
     auto file = GetData("input.txt");
 
     std::ofstream out(file);
