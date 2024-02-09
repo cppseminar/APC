@@ -35,6 +35,12 @@ RUN apt-get update \
     && mkdir -p $SUBMISSION_PROJECT \
     && useradd -ms /bin/bash apc-test
 
+# install vckpg, catch2
+WORKDIR /app
+RUN git clone --depth 1 --branch 2024.01.12 https://github.com/Microsoft/vcpkg.git \
+    && ./vcpkg/bootstrap-vcpkg.sh \
+    && ./vcpkg/vcpkg install catch2
+
 # copy required files
 COPY ./tester /app/tester
 COPY ./tests/src $TESTS_PATH
@@ -45,14 +51,8 @@ COPY ./fold2lf.py /app
 
 # covert possible CRLF to LF in data directory
 WORKDIR /app
-RUN python ./fold2lf.py --folder $DATA_PATH -vv
-RUN rm -f ./fold2lf.py
-
-# install vckpg, catch2
-WORKDIR /app
-RUN git clone --depth 1 --branch 2024.01.12 https://github.com/Microsoft/vcpkg.git \
-    && ./vcpkg/bootstrap-vcpkg.sh \
-    && ./vcpkg/vcpkg install catch2
+RUN python ./fold2lf.py --folder $DATA_PATH -vv \
+    && rm -f ./fold2lf.py
 
 # create makefiles for tests
 WORKDIR $TESTS_PATH
