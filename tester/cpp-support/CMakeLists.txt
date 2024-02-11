@@ -19,11 +19,11 @@ project(apc-tests LANGUAGES C CXX VERSION 1.0.0)
 
 find_package(Catch2 CONFIG REQUIRED)
 
-add_executable(apc-tests "main.cpp" "support.c")
+add_executable(apc-tests "launch.cpp" "main.cpp" "support.c")
 target_compile_features(apc-tests PUBLIC cxx_std_20)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 target_link_libraries(apc-tests PRIVATE Threads::Threads)
-target_link_libraries(apc-tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(apc-tests PRIVATE Catch2::Catch2)
