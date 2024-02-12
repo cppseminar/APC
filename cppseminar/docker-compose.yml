@@ -191,7 +191,7 @@ services:
         environment:
             DOCKER_TLS_CERTDIR: ""
         volumes:
-            - worker_shared:/data
+            - worker_shared:/data  
 
     mongo.local:
         image: mongo:6.0.1
@@ -205,9 +205,7 @@ services:
             MONGO_INITDB_ROOT_PASSWORD: password
         volumes:
             - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-            - type: bind
-              source: ./mongo/admins.txt
-              target: /data/init/admins.txt 
+            - ./mongo/init:/data/init:ro 
             - mongo_data:/data/db
 # MongoDB connection string mongodb://admin:password@mongo.local:27017/
 
@@ -244,9 +242,13 @@ services:
     test-worker.local:
         build:
             context: ../services/queued
+            args:
+                DOCKER_REGISTRY_USER: ${DOCKER_REGISTRY_USER}
+                DOCKER_REGISTRY_PASS: ${DOCKER_REGISTRY_PASS}
         environment:
             DOCKER_HOST: tcp://docker-in-docker.local:2375
             SHARED_DATA_DIR: /data
+
         networks:
             - sharednet
         restart: always
