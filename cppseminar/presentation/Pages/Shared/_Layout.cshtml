@@ -5,6 +5,7 @@
 <head>
     <meta name="viewport" content="width=device-width" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/agate.css" integrity="sha256-hY1/ZM6a1qv3LUtX1ZeQWbt9SShK1fbQmHxYURRperM=" crossorigin="anonymous">
     <style type="text/css">
         .editor {
             width: 100%;
@@ -48,15 +49,28 @@
     <div class="container p-3">
         @RenderBody()
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js" integrity="sha256-A/Bhn6U7642jcUJxdcb00N9bOwuKNXKjv6oWAxgpW2Y=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked@4.1.0/marked.min.js" integrity="sha256-hrr3XpKvqYgFyeFbyZTFvPYmu5rkjcIjAP6IU7tM/4Q=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js" integrity="sha256-0kaYYq3qitkkVZpP/6uKTJwfTpqFNM6OHDbsaYzw9Uw=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js" integrity="sha256-6x9rGYgLyApf40xqYYhRc7YO3aRVunozyYcU2xfTn5k=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked-highlight@2.1.1/lib/index.umd.js" integrity="sha256-yoTwjo/7nKghlUliA1G8DE3EHReX5IS2pmcg2mDC9+k=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/highlight.pack.min.js" integrity="sha256-yeMmUlHbk3Q2fuSCxKTJOAcO+KSYnzaHv/phSqz4NLo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha256-YMa+wAM6QkVyz999odX7lPRxkoYAan8suedu4k2Zur8=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/json2html/2.2.2/json2html.min.js" integrity="sha512-LYBxdtbgyLlB9aFozpSH9IpPpP+7t+tRoBG7VhLJ2APxcstLkyMI78qCaLwoIEQwKzbdS0VdK9o3ps4q6NT1cQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.11.0/ace.min.js" integrity="sha512-6pDHCWoec69aZTg0ERg6luKv9ITHrRgy4w0WqVCgii2FoQevTDvibuCWDrTEm7W4HH0Dq9xhyZ3qw33rrnUMQw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.11.0/theme-monokai.min.js" integrity="sha512-vH1p51CJtqdqWMpL32h5B9600achcN1XeTfd31hEcrCcCb5PCljIu7NQppgdNtdsayRQTnKmyf94s6HYiGQ9BA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.11.0/mode-c_cpp.min.js" integrity="sha512-yrjaGZSXaUR0K7QsfA61DTlPtXoZpkIMN87076mYNbFfPD3FQtcuKiQqwPgj/ldy5Rk31Kh4+Omrc0SNzIHttg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
+        hljs.initHighlightingOnLoad();
+
+        const {markedHighlight} = globalThis.markedHighlight;
+
+        const markedhl = new marked.Marked(
+            markedHighlight({
+                    langPrefix: 'hljs language-',
+                    highlight: (code, lang, info) => hljs.highlightAuto(code).value,
+                })
+            )
+
         function resolveTeachersJson(elemId) {
             const templates = {
                 parent: {
@@ -217,7 +231,7 @@
             const doc = new DOMParser().parseFromString(this.innerHTML.trim(), 'text/html')
             const text = doc.documentElement.textContent
 
-            this.innerHTML = DOMPurify.sanitize(marked.parse(text))
+            this.innerHTML = DOMPurify.sanitize(markedhl.parse(text))
         })
 
         $('.editor').each(function () {
