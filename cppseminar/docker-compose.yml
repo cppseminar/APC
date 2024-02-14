@@ -22,7 +22,7 @@ services:
             DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
             MongoDB__DatabaseName: submissionsDb
             MongoDB__ConnectionString: mongodb://admin:password@mongo.local:27017/
-            StorageConnectionString: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
+            StorageConnectionString: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite:10000/azuriteuser;
             LOG_PRETTY: 1
         restart: always
         depends_on:
@@ -50,13 +50,14 @@ services:
             ASPNETCORE_ENVIRONMENT: Development
             LINKS_CURRENT_DOCS: https://example.com/
             API_GATEWAY: http://gateway.local:5000/
-            STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
+            STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite:10000/azuriteuser;
             GoogleOid__ClientId: ${GOOGLE_CLIENT_ID}
             GoogleOid__ClientSecret: ${GOOGLE_CLIENT_SECRET}
             LOG_PRETTY: 1
         restart: always
         depends_on:
             - rabbitmq.local
+            - azurite
 
     userservice.local:
         build:
@@ -95,7 +96,7 @@ services:
         depends_on:
             rabbitmq.local:
                 condition: service_healthy
-            azurite.local:
+            azurite:
                 condition: service_started
             mongo.local:
                 condition: service_started
@@ -103,7 +104,7 @@ services:
             TEST_REQUESTS_QUEUE: test-input
             TEST_RESULTS_QUEUE: test-output
             MQ_URI: amqp://rabbitmq.local/
-            BLOB_STORAGE_CONNECTION: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
+            BLOB_STORAGE_CONNECTION: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite:10000/azuriteuser;
             MongoDB__DatabaseName: testsDb
             MongoDB__ConnectionString: mongodb://admin:password@mongo.local:27017/
             LOG_PRETTY: 1
@@ -112,8 +113,8 @@ services:
           test: ['CMD', 'curl', '-f', 'http://localhost/healthcheck']
           timeout: 10s
 
-    azurite.local:
-        image: mcr.microsoft.com/azure-storage/azurite:3.14.0 
+    azurite:
+        image: mcr.microsoft.com/azure-storage/azurite:3.29.0 
         volumes:
             - azurite_data:/data
         ports:
@@ -125,12 +126,14 @@ services:
             - --location
             - /data
             - --skipApiVersionCheck
+            - --debug
+            - /debug.log
         networks:
             - sharednet
         environment:
             AZURITE_ACCOUNTS: azuriteuser:UGFzc3dvcmQxMjMhfg==
 # Connection string:
-# DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://localhost:10000/azuriteuser;
+# DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite:10000/azuriteuser;
 
     vmtestqueue.local:
         build:
@@ -156,7 +159,7 @@ services:
             - 8084:80
         environment:
             LOG_PRETTY: 1
-            RESULTS_BLOB_CONN_STR: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite.local:10000/azuriteuser;
+            RESULTS_BLOB_CONN_STR: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite:10000/azuriteuser;
             RESULTS_QUEUE_NAME: test-output
             VM_TEST_RETURN_ADDR: vmtestserver.local:80
             VM_TEST_ADDR: test-worker.local:10009
