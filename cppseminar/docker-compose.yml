@@ -74,6 +74,8 @@ services:
         ports:
             - 8082:80
         environment:
+            DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
+            DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
             LOG_PRETTY: 1
             MongoDB__DatabaseName: usersDb
             MongoDB__ConnectionString: mongodb://admin:password@mongo.local:27017/
