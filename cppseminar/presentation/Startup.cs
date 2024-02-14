@@ -1,3 +1,4 @@
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
@@ -5,8 +6,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Azure.Storage.Blob;
-using Microsoft.Azure.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -68,19 +67,14 @@ namespace presentation
                 options.Events.OnCreatingTicket = context => AuthenticationService.OnCreateTicketAsync(authInstance, context);
             });
 
-            if (CloudStorageAccount.TryParse(Configuration["STORAGE_CONNECTION_STRING"], out CloudStorageAccount keyStorageAccount))
-            {
-                CloudBlobClient blobClient = keyStorageAccount.CreateCloudBlobClient();
-                CloudBlobContainer blobContainer = blobClient.GetContainerReference("cookiekeys");
-                blobContainer.CreateIfNotExists();
-                services.AddDataProtection().PersistKeysToAzureBlobStorage(blobContainer, "keys.xml");
-                // TODO: SetApplicationName
-            }
-            else
-            {
-                throw new ArgumentException("Cannot parse connection string to key storage");
-            }
+            var blobServiceClient = new BlobServiceClient(Configuration["STORAGE_CONNECTION_STRING"]);
+            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("cookiekeys");
+            containerClient.CreateIfNotExists();
 
+            Console.WriteLine("before PersistKeysToAzureBlobStorage");
+
+            services.AddDataProtection().PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("keys.xml"));
+            
             services.AddAuthorization(options => {
                 options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
                                                                          .Build();

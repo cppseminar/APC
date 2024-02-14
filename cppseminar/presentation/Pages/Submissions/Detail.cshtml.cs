@@ -65,7 +65,7 @@ namespace presentation.Pages.Submissions
                             var testCount = await _testService.GetTestCountAsync(User.GetEmail(), oneCase.Id);
                             oneCase.SubmittedCount = testCount.Count;
                         }
-                        catch (Exception ex) { /* empty, error is logged in GetTestCountAsync */ }
+                        catch (Exception) { /* empty, error is logged in GetTestCountAsync */ }
                         TestCaseList.Add(oneCase);
                     }
                 }

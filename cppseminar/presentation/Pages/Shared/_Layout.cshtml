@@ -5,7 +5,7 @@
 <head>
     <meta name="viewport" content="width=device-width" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/agate.css" integrity="sha256-hY1/ZM6a1qv3LUtX1ZeQWbt9SShK1fbQmHxYURRperM=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/styles/atelier-dune-light.css" integrity="sha256-41Yqdj3xNHeqkkwcdlovbTRmTeuvYCaOwLhEcBcb7QY=" crossorigin="anonymous">
     <style type="text/css">
         .editor {
             width: 100%;
@@ -55,10 +55,10 @@
     <script src="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/highlight.pack.min.js" integrity="sha256-yeMmUlHbk3Q2fuSCxKTJOAcO+KSYnzaHv/phSqz4NLo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha256-YMa+wAM6QkVyz999odX7lPRxkoYAan8suedu4k2Zur8=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/json2html/2.2.2/json2html.min.js" integrity="sha512-LYBxdtbgyLlB9aFozpSH9IpPpP+7t+tRoBG7VhLJ2APxcstLkyMI78qCaLwoIEQwKzbdS0VdK9o3ps4q6NT1cQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.11.0/ace.min.js" integrity="sha512-6pDHCWoec69aZTg0ERg6luKv9ITHrRgy4w0WqVCgii2FoQevTDvibuCWDrTEm7W4HH0Dq9xhyZ3qw33rrnUMQw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.11.0/theme-monokai.min.js" integrity="sha512-vH1p51CJtqdqWMpL32h5B9600achcN1XeTfd31hEcrCcCb5PCljIu7NQppgdNtdsayRQTnKmyf94s6HYiGQ9BA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.11.0/mode-c_cpp.min.js" integrity="sha512-yrjaGZSXaUR0K7QsfA61DTlPtXoZpkIMN87076mYNbFfPD3FQtcuKiQqwPgj/ldy5Rk31Kh4+Omrc0SNzIHttg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/json2html/2.2.3/json2html.min.js" integrity="sha512-zhWwASt1FySoQCUbnZQune6UVg2EXMLDJtyDPGybmJH/kZ3cuAorXZyiV2pHCl9AZRQLGLRV9Z0/3LzEP463XA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.min.js" integrity="sha512-kiECX53fzPhY5cnGzxTUZUOefsjR7gY3SD2OOgcsxZ0nAMZ3e+lkqxhXzGAFm05KjIaQ49/OyNryGTcbLb2V9w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/theme-monokai.js" integrity="sha512-Sdw8bUflcjHyNw2HABuSBSjs7tFUhcra6MMT5n5GUQrol2j6vUSRjnrn8MQZmKSL+aL2KKTE5aziFNUPFdsX9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/mode-c_cpp.min.js" integrity="sha512-caUbWe+l7h52Yfiut+hnk+W8LT4v3OlrvqVK7AUE7HKhMcFI86cmrD0cshe98P1UpfpsK30mQDzRhkzYwZHzQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
         hljs.initHighlightingOnLoad();
 
@@ -67,7 +67,7 @@
         const markedhl = new marked.Marked(
             markedHighlight({
                     langPrefix: 'hljs language-',
-                    highlight: (code, lang, info) => hljs.highlightAuto(code).value,
+                    highlight: (code, lang, info) => hljs.highlightAuto(code, [lang, 'plaintext']).value,
                 })
             )
 
