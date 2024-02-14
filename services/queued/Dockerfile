@@ -12,7 +12,7 @@ ARG DOCKER_REGISTRY_PASS
 
 WORKDIR /app
 
-RUN echo '{ "dockerUsername":"' $DOCKER_REGISTRY_USER '", "dockerPassword":"' $DOCKER_REGISTRY_PASS '"}' > config.json
+RUN echo '{ "dockerUsername":"'$DOCKER_REGISTRY_USER'", "dockerPassword":"'$DOCKER_REGISTRY_PASS'"}' > config.json
 COPY --from=build /app/queued .
 
 ENTRYPOINT ["./queued", "-config", "config.json", "-port", "10009"]
