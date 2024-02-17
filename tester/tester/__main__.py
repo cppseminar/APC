@@ -67,7 +67,7 @@ def create_success_output(binaries, tests_result):
             'binary': binary,
             'configurations': [{
                 'name': name,
-                'result': dict(status='Success' if result.errno == 0 else 'Failure', **result.__dict__) # added status for compat with v1
+                'result': result.__dict__
             } for name, result in configurations.items()]
         } for binary, configurations in binaries.items()],
         'tests': [{
@@ -80,28 +80,42 @@ def create_success_output(binaries, tests_result):
     }
 
     with open(Config.teachers_json(), 'w') as f:
-        json.dump(teachers, f, indent=4)
+        json.dump(teachers, f, indent=2)
+
+    def test_result_students(result):
+        # do not propagate this verbose status
+        status = result.get_status()
+        if status != tester.tests.TestResultStatus.SUCCESS:
+            status = tester.tests.TestResultStatus.FAILED
+
+        result = dict(status=status, **result.__dict__)
+
+        filtered_items = ['status']
+        if Config.show_results_to_students():
+            filtered_items.append('stdout')
+            filtered_items.append('returncode')
+
+        return {key: value for key, value in result.items() if key in filtered_items}
 
     students = {
         'compilation': [{
             'binary': binary,
             'configurations': [{
                 'name': name,
-                'result': result.compiler_output if result.errno != 0 else ''
+                'result': {key: value for key, value in result.__dict__.items() if key in ['errno', 'compiler_output']}
             } for name, result in configurations.items()]
         } for binary, configurations in binaries.items()],
         'tests': [{
             'configuration': configuration,
             'cases': [{
                 'name': name,
-                'status': result.get_status() == tester.tests.TestResultStatus.SUCCESS,
-                'result': result.stdout if Config.show_results_to_students() else ''
+                'result': test_result_students(result)
             } for name, result in cases.items()]
         } for configuration, cases in tests_result.items()]
     }
 
     with open(Config.students_json(), 'w') as f:
-        json.dump(students, f, indent=4)
+        json.dump(students, f, indent=2)
 
 def main():
     """

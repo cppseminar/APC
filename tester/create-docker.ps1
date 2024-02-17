@@ -44,9 +44,11 @@ try {
   try {
     Set-Location -Path $tempFolder
 
+    $ShowTestsToStudentsInt = (&{If($ShowTestsToStudents) {1} Else {0}})
+
     $dockerParams = @(
       '--build-arg', "TEST_MODE_ARG=$Mode",
-      '--build-arg', "SHOW_RESULTS_TO_STUDENTS_ARG=$ShowTestsToStudents",
+      '--build-arg', "SHOW_RESULTS_TO_STUDENTS_ARG=$ShowTestsToStudentsInt",
       '--tag', $ContainerName
     )
     & docker build @dockerParams .

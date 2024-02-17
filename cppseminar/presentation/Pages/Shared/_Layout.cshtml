@@ -180,9 +180,13 @@
                             '<>': 'ul', html: [
                                 {
                                     '<>': 'li', obj: obj => obj.configurations, 'html': [
-                                        { '<>': 'span', text: obj => String.fromCharCode(obj.result ? 0x274C : 0x2714) },
-                                        { '<>': 'span', text: '${name}', class: obj => obj.result ? 'text-danger' : 'text-success' },
-                                        { '<>': 'pre', class: obj => obj.result ? 'd-block' : 'd-none', 'text': '${result}' },
+                                        { '<>': 'span', text: obj => String.fromCharCode(obj.result.errno === 0 ? 0x2714 : 0x274C) },
+                                        { '<>': 'span', text: '${name}', class: obj => obj.result.errno === 0 ? 'text-success' : 'text-danger' },
+                                        {
+                                            '<>': 'div', obj: obj => obj.result, html: [
+                                                { '<>': 'pre', text: '${compiler_output}' }
+                                            ]
+                                        }
                                     ]
                                 }
                             ]
@@ -196,9 +200,14 @@
                             '<>': 'ul', html: [
                                 {
                                     '<>': 'li', obj: obj => obj.cases, 'html': [
-                                        { '<>': 'span', text: obj => String.fromCharCode(obj.status ? 0x2714 : 0x274C) },
-                                        { '<>': 'span', text: '${name}', class: obj => obj.status ? 'text-success' : 'text-danger' },
-                                        { '<>': 'pre', class: obj => obj.result ? 'd-block' : 'd-none', 'text': '${result}' },
+                                        { '<>': 'span', text: obj => String.fromCharCode(obj.result.status === 'Success' ? 0x2714 : 0x274C) },
+                                        { '<>': 'span', text: '${name}', class: obj => obj.result.status === 'Success' ? 'text-success' : 'text-danger' },
+                                        {
+                                            '<>': 'div', obj: obj => obj.result, html: [
+                                                { '<>': 'div', class: obj => obj.returncode ? 'd-block' : 'd-none', text: 'returncode: ${returncode}' },
+                                                { '<>': 'pre', class: obj => obj.stdout ? 'd-block' : 'd-none', text: '${stdout}' }
+                                            ]
+                                        }
                                     ]
                                 }
                             ]
