@@ -14,6 +14,7 @@ import (
 	"time"
 
 	cliconfig "github.com/docker/cli/cli/config"
+	clitypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -157,7 +158,7 @@ func PullImage(ctx context.Context, config DockerConfig) {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(10)*time.Minute)
 	defer cancel()
 
-	var authConfig types.AuthConfig
+	var authConfig clitypes.AuthConfig
 	if config.Username == "" {
 		cfg, err := cliconfig.Load("")
 		if err == nil {
@@ -166,13 +167,13 @@ func PullImage(ctx context.Context, config DockerConfig) {
 			if err != nil {
 				log.Printf("<4>Cannot get auth for %s from default cred store: %v\n", config.DockerImage, err)
 			} else {
-				authConfig = types.AuthConfig(auth)
+				authConfig = clitypes.AuthConfig(auth)
 			}
 		} else {
 			log.Printf("<4>Cannot open default cred store: %v\n", err)
 		}
 	} else {
-		authConfig = types.AuthConfig{
+		authConfig = clitypes.AuthConfig{
 			Username: config.Username,
 			Password: config.Password,
 		}
