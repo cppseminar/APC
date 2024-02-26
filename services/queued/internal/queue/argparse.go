@@ -3,7 +3,6 @@ package queue
 import (
 	"encoding/json"
 	"flag"
-	"io/ioutil"
 	"log"
 	"os"
 	"sync"
@@ -33,7 +32,7 @@ func parseArgs() Arguments {
 	var result Arguments
 
 	if *configFile != "" {
-		content, err := ioutil.ReadFile(*configFile)
+		content, err := os.ReadFile(*configFile)
 		if err != nil {
 			log.Println("<3>Cannot read file, error:", err)
 		}

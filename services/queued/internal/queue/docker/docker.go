@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -202,7 +201,7 @@ func PullImage(ctx context.Context, config DockerConfig) {
 	}
 
 	defer reader.Close()
-	_, err = io.Copy(ioutil.Discard, reader)
+	_, err = io.Copy(io.Discard, reader)
 	if err != nil {
 		log.Println("<3>Unable to pull image:", err)
 		return

@@ -15,13 +15,28 @@ TEMP_DIR = tempfile.mkdtemp(prefix='upload')
 
 logger = logging.getLogger(__name__)
 
-def process_results(data):
-    data = json.loads(data)
+def _publish_to_queue(data):
+    try:
+        with contextlib.closing(pika.BlockingConnection(
+            pika.ConnectionParameters(host=os.getenv('RABBIT_MQ')))) as connection:
+            channel = connection.channel()
 
+            # No queue declare here, we expect that queue will be declared by
+            # tester service.
+            channel.basic_publish(exchange='', routing_key=os.getenv('RESULTS_QUEUE_NAME'), body=json.dumps(data))
+    
+    except Exception as e:
+        logger.error("Encountered exception while publishing results", exc_info=e)
+        raise
+
+
+def _process_results_success(data):
     result_zip = base64.b64decode(data['data'])
+    
     zip_file_path = os.path.join(TEMP_DIR, str(uuid.uuid4())) + '.zip'
     students_file_path = os.path.join(TEMP_DIR, str(uuid.uuid4())) + '.zip'
     teachers_file_path = os.path.join(TEMP_DIR, str(uuid.uuid4())) + '.zip'
+
     try:
         with open(zip_file_path, 'wb') as f:
             f.write(result_zip)
@@ -41,22 +56,45 @@ def process_results(data):
             'metaData': data['metaData'], # forward metadata
         }
 
-        with contextlib.closing(pika.BlockingConnection(
-            pika.ConnectionParameters(host=os.getenv('RABBIT_MQ')))) as connection:
-            channel = connection.channel()
+        _publish_to_queue(req)
 
-            # No queue declare here, we expect that queue will be declared by
-            # tester service.
-            channel.basic_publish(exchange='', routing_key=os.getenv('RESULTS_QUEUE_NAME'), body=json.dumps(req))
 
     except Exception as e:
-        logger.error("Encountered exception while processing results.", exc_info=e)
+        logger.error("Encountered exception while processing results", exc_info=e)
         raise
     finally:
         with contextlib.suppress(FileNotFoundError):
             os.remove(zip_file_path)
             os.remove(students_file_path)
             os.remove(teachers_file_path)
+
+def _process_results_failure(data):
+    logger.error('Test failed with error: %s', data['error'])
+
+    req = {
+        'error': data['error'],
+        'metaData': data['metaData'], # forward metadata
+    }
+
+    if 'data' in data:
+        # let's try to save the data if it's present
+        # we may have some useful insights from the failed test
+        result_zip = base64.b64decode(data['data'])
+        zip_file_path = os.path.join(TEMP_DIR, str(uuid.uuid4())) + '.zip'
+        connection_string = os.getenv('RESULTS_BLOB_CONN_STR')
+        
+        req['data'] = upload_file_and_get_token(zip_file_path, 'vm-test-results', connection_string)
+
+    _publish_to_queue(req)
+
+def process_results(data):
+    data = json.loads(data)
+
+    if not data.get('error', False):
+        _process_results_success(data)
+    else:
+        _process_results_failure(data)
+
 
 def send_request_to_vm(data):
     vm_addr = os.getenv('VM_TEST_ADDR')

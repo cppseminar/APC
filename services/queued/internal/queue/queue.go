@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -141,12 +140,46 @@ func readJsonData(path string) (map[string]interface{}, error) {
 	// defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
 
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue, _ := io.ReadAll(jsonFile)
 
 	var result map[string]interface{}
 	err = json.Unmarshal([]byte(byteValue), &result)
 
 	return result, err
+}
+
+func writeJsonData(file *os.File, data any) error {
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		log.Println("<3>Cannot format json", err)
+		return err
+	}
+
+	_, err = file.Write(jsonData)
+	if err != nil {
+		log.Println("<3>Cannot write json", err)
+		return err
+	}
+
+	return nil
+}
+
+func writeJsonDataToTemp(path string, pattern string, data any) (string, error) {
+	tmp, err := os.CreateTemp(path, pattern)
+	if err != nil {
+		log.Println("<3>Cannot create temp file", err)
+		return "", err
+	}
+
+	defer tmp.Close()
+
+	err = writeJsonData(tmp, data)
+	if err != nil {
+		os.Remove(tmp.Name())
+		return "", err
+	}
+
+	return tmp.Name(), nil
 }
 
 func zipOutputToBase64(output_path string) (string, error) {
@@ -156,7 +189,7 @@ func zipOutputToBase64(output_path string) (string, error) {
 		return "", err
 	}
 
-	f, err := ioutil.TempFile("", "output*")
+	f, err := os.CreateTemp("", "output*")
 	if err != nil {
 		log.Println("<3>Cannot create temp file", err)
 		return "", err
@@ -219,7 +252,7 @@ func zipOutputToBase64(output_path string) (string, error) {
 		return "", err
 	}
 
-	data, err := ioutil.ReadFile(f.Name())
+	data, err := os.ReadFile(f.Name())
 	if err != nil {
 		log.Println("<3>Reading of file failed", err)
 		return "", err
@@ -258,7 +291,7 @@ func processMessages(wg *sync.WaitGroup) {
 			// called, so it will call Cleanup on empty path :(
 			//defer outputVolume.Cleanup()
 
-			result := func() string {
+			result, err := func() (string, error) {
 				ctx := context.Background()
 
 				config := docker.DockerConfig{
@@ -274,7 +307,7 @@ func processMessages(wg *sync.WaitGroup) {
 
 				env, err := docker.GetDockerEnv(ctx, msg.DockerImage)
 				if err != nil {
-					return err.Error()
+					return "", err
 				}
 
 				outputVolume = getVolume(strings.TrimSpace(env["OUTPUT_PATH"]), false)
@@ -285,10 +318,10 @@ func processMessages(wg *sync.WaitGroup) {
 				for file, content := range msg.Files {
 					path := filepath.Join(submissionVolume.HostPath, file)
 
-					err := ioutil.WriteFile(path, []byte(content), 0644)
+					err := os.WriteFile(path, []byte(content), 0644)
 					if err != nil {
 						log.Println("<3>Cannot write submission file", err)
-						return err.Error()
+						return "", err
 					}
 				}
 
@@ -305,56 +338,68 @@ func processMessages(wg *sync.WaitGroup) {
 					}
 
 					log.Println("<3>Error while running docker image on message", string(msgJson))
-					return err.Error()
+					return "", err
 				}
 
-				return result
+				return result, nil
 			}()
+
+			// error may be replaced later, se we always get the last
+			// error, but it seems to be OK, since we get the info
+			// that something is wrong
+			output := map[string]interface{}{
+				"result": result,
+				"error":  func() any { if err != nil { return err.Error() }; return nil }(),
+			}
 
 			// this is path for output from our container (very not standard, but whatever)
 			outputPath := outputVolume.HostPath
 
 			// save whole message there so it will be available in the zip file
-			msgJson, err := json.MarshalIndent(msg, "", " ")
+			path, err := writeJsonDataToTemp(outputPath, "__msg__*.json", msg)
 			if err != nil {
-				log.Println("<4>Cannot save msg to json", err)
-				msgJson = []byte(err.Error())
-			}
+				log.Println("<4>Cannot save input msg to file", err)
 
-			tmp, err := ioutil.TempFile(outputPath, "__msg__*.json")
-			if err == nil {
-				_, err = tmp.Write(msgJson)
-				tmp.Close()
-				defer os.Remove(tmp.Name())
-			}
+				// let try at least something
+				msg := map[string]any{
+					"status": "cannot save input msg",
+					"error":  err.Error(),
+				}
 
-			if err != nil {
-				log.Println("<4>Cannot write json", err)
+				path, err := writeJsonDataToTemp(outputPath, "__msg__*.json", msg)
+				if err != nil {
+					log.Println("<4>Cannot save error msg to file", err)
+				} else {
+					defer os.Remove(path)
+				}
+			} else {
+				defer os.Remove(path)
 			}
-
-			output := map[string]interface{}{"result": result}
 
 			if outputPath != "" {
 				data, err := readJsonData(filepath.Join(outputPath, "students.json"))
 				if err != nil {
-					output["students"] = err.Error()
+					log.Println("<4>Cannot read students.json", err)
+					output["error"] = fmt.Sprintf("Cannot read students.json %v", err)
 				} else {
 					output["students"] = data
 				}
 
 				data, err = readJsonData(filepath.Join(outputPath, "teachers.json"))
 				if err != nil {
-					output["teachers"] = err.Error()
+					log.Println("<4>Cannot read teachers.json", err)
+					output["error"] = fmt.Sprintf("Cannot read teachers.json %v", err)
 				} else {
 					output["teachers"] = data
 				}
-			}
 
-			zipdata, err := zipOutputToBase64(outputPath)
-			if err != nil {
-				output["data"] = err
-			} else {
-				output["data"] = zipdata
+				zipdata, err := zipOutputToBase64(outputPath)
+				if err != nil {
+					log.Println("<4>Cannot create output zip", err)
+					output["error"] = fmt.Sprintf("Cannot create output zip %v", err)
+				} else {
+					output["data"] = zipdata
+				}
 			}
 
 			// copy meta from input
@@ -399,7 +444,7 @@ var tr = &http.Transport{
 var httpClient = &http.Client{Transport: tr}
 
 func processTestRequestInternal(r *http.Request) int {
-	req, err := ioutil.ReadAll(r.Body)
+	req, err := io.ReadAll(r.Body)
 	if err != nil {
 		return http.StatusInternalServerError
 	}
