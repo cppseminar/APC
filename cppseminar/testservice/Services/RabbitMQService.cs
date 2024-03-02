@@ -73,15 +73,15 @@ public sealed class RabbitMQService : IDisposable
             string message = Encoding.UTF8.GetString(args.Body.ToArray());
             _logger.LogTrace("Got result {msg}", message);
 
-            TestResultMessage testMessage = JsonSerializer.Deserialize<TestResultMessage>(
-                message, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            TestResultMessage testMessage = JsonSerializer.Deserialize<TestResultMessage>(message);
+            testMessage.Validate(); // throws on error
 
             await ProcessResultMessageInsecure(testMessage);
         }
         catch (Exception e)
         {
-            _logger.LogError("Error during handling received message {message} {e}", args.Body.ToArray(), e);
-            _logger.LogTrace("Decoded {message}", Encoding.UTF8.GetString(args.Body.ToArray()));
+            _logger.LogError("Error during handling received message {e}", e);
+            _logger.LogTrace("Decoded message {message}", Encoding.UTF8.GetString(args.Body.ToArray()));
         }
         finally
         {
@@ -95,8 +95,24 @@ public sealed class RabbitMQService : IDisposable
 
         try
         {
+            testRun.FinishedAt = DateTime.UtcNow;
+
+            if (!string.IsNullOrEmpty(message.Error))
+            {
+                _logger.LogError("Error in test run {metadata}: {error}", testRun.Id, message.Error);
+                
+                testRun.Status = TestStatus.Failed;
+                testRun.Message = TestRunConstants.TestMessageFailed;
+                
+                await _testRuns.UpdateAsync(testRun);
+                _logger.LogTrace("Failed test updated in database.");
+                
+                return;
+            }
+
             using (var client = new HttpClient())
             {
+                _logger.LogTrace("Processing students");
                 var studentData = await client.GetByteArrayAsync(message.Students);
                 await _storageService.UploadResultAsync(
                     CreateBlobName(testRun.CreatedBy, testRun.Id, TestRunConstants.FileStudents), studentData);
@@ -112,16 +128,18 @@ public sealed class RabbitMQService : IDisposable
                     CreateBlobName(testRun.CreatedBy, testRun.Id, TestRunConstants.FileZip), zipData);
             }
             testRun.Status = TestStatus.Finished;
-            testRun.FinishedAt = DateTime.UtcNow;
             testRun.Message = TestRunConstants.TestMessageFinished;
+
             await _testRuns.UpdateAsync(testRun);
+            _logger.LogTrace("Test updated in database.");
         }
         catch (Exception e)
         {
-            _logger.LogError("Error during processing result message contents (updating db) {e}", e);
+            _logger.LogError("Error during processing result message contents (updating db)");
+            
             testRun.Status = TestStatus.Failed;
             testRun.Message = TestRunConstants.TestMessageFailed;
-            testRun.FinishedAt = DateTime.UtcNow;
+            
             await _testRuns.UpdateAsync(testRun);
             _logger.LogTrace("Failed test updated in database.");
 

@@ -5,19 +5,41 @@ namespace testservice.Models;
 
 public class TestResultMessage
 {
-    [JsonConstructor]
-    public TestResultMessage(string MetaData, string Students, string Teachers, string Data)
+    // allow json deserialization
+    public TestResultMessage()
     {
-        this.MetaData = MetaData ?? throw new ArgumentNullException(nameof(MetaData));
-        this.Students = Students ?? throw new ArgumentNullException(nameof(Students));
-        this.Teachers = Teachers ?? throw new ArgumentNullException(nameof(Teachers));
-        this.Data = Data ?? throw new ArgumentNullException(nameof(Data));
     }
+
+    public void Validate()
+    {
+        if (!string.IsNullOrEmpty(Error))
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(Teachers) 
+            && !string.IsNullOrEmpty(Students)
+            && !string.IsNullOrEmpty(Data))
+        {
+            return;
+        }
+
+        throw new ArgumentException("Either error or (students, teachers, data) must be set.");
+    }
+
+    [JsonPropertyName("metaData")]
+    [JsonRequired] // we can use required keyword from C#11
     public string MetaData { get; set; }
-    // Link to json with stripped down content for students
+
+    [JsonPropertyName("students")]
     public string Students { get; set; }
-    // Link to json with full content for teachers
+
+    [JsonPropertyName("teachers")]
     public string Teachers { get; set; }
-    // Link to zip with dumped debug data
+
+    [JsonPropertyName("data")]
     public string Data { get; set; }
+
+    [JsonPropertyName("error")]
+    public string Error { get; set; }
 }
