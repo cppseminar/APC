@@ -55,7 +55,7 @@
     <script src="https://cdn.jsdelivr.net/npm/highlightjs@9.16.2/highlight.pack.min.js" integrity="sha256-yeMmUlHbk3Q2fuSCxKTJOAcO+KSYnzaHv/phSqz4NLo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha256-YMa+wAM6QkVyz999odX7lPRxkoYAan8suedu4k2Zur8=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/json2html/2.2.3/json2html.min.js" integrity="sha512-zhWwASt1FySoQCUbnZQune6UVg2EXMLDJtyDPGybmJH/kZ3cuAorXZyiV2pHCl9AZRQLGLRV9Z0/3LzEP463XA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/json2html/3.0.0/json2html.min.js" integrity="sha512-K1RsDAwFDCOkR1IGfo16gEdXo3NHou6+SyPAqiRwJ+mmk2rQ7OvPxIUZGkCZu2scPlq02GMY1/ltTrbyPnZHmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.min.js" integrity="sha512-kiECX53fzPhY5cnGzxTUZUOefsjR7gY3SD2OOgcsxZ0nAMZ3e+lkqxhXzGAFm05KjIaQ49/OyNryGTcbLb2V9w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/theme-monokai.js" integrity="sha512-Sdw8bUflcjHyNw2HABuSBSjs7tFUhcra6MMT5n5GUQrol2j6vUSRjnrn8MQZmKSL+aL2KKTE5aziFNUPFdsX9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/mode-c_cpp.min.js" integrity="sha512-caUbWe+l7h52Yfiut+hnk+W8LT4v3OlrvqVK7AUE7HKhMcFI86cmrD0cshe98P1UpfpsK30mQDzRhkzYwZHzQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -79,13 +79,13 @@
                         {
                             '<>': 'div', html: [
                                 { '<>': 'h2', text: 'Compilation' },
-                                { '<>': 'ul', html: obj => $.json2html(obj.compilation, templates.compilation) }
+                                { '<>': 'ul', html: obj => json2html.render(obj.compilation, templates.compilation) }
                             ]
                         },
                         {
                             '<>': 'div', html: [
                                 { '<>': 'h2', text: 'Tests' },
-                                { '<>': 'ul', html: obj => $.json2html(obj.tests, templates.tests) }
+                                { '<>': 'ul', html: obj => json2html.render(obj.tests, templates.tests) }
                             ]
                         }
                     ]
@@ -96,11 +96,11 @@
                         {
                             '<>': 'ul', html: [
                                 {
-                                    '<>': 'li', obj: obj => obj.configurations, 'html': [
+                                    '<>': 'li', '{}': obj => obj.configurations, 'html': [
                                         { '<>': 'span', text: obj => String.fromCharCode(obj.result.errno === 0 ? 0x2714 : 0x274C) },
                                         { '<>': 'span', text: '${name}', class: obj => obj.result.errno === 0 ? 'text-success' : 'text-danger' },
                                         {
-                                            '<>': 'div', obj: obj => obj.result, html: [
+                                            '<>': 'div', '{}': obj => obj.result, html: [
                                                 { '<>': 'div', text: 'errno: ${errno}' },
                                                 { '<>': 'div', text: 'output_path: ${output_path}' },
                                                 { '<>': 'pre', text: '${compiler_output}' }
@@ -118,11 +118,11 @@
                         {
                             '<>': 'ul', html: [
                                 {
-                                    '<>': 'li', obj: obj => obj.cases, 'html': [
+                                    '<>': 'li', '{}': obj => obj.cases, 'html': [
                                         { '<>': 'span', text: obj => String.fromCharCode(obj.result.status === 'Success' ? 0x2714 : 0x274C) },
                                         { '<>': 'span', text: '${name}', class: obj => obj.result.status === 'Success' ? 'text-success' : 'text-danger' },
                                         {
-                                            '<>': 'div', obj: obj => obj.result, html: [
+                                            '<>': 'div', '{}': obj => obj.result, html: [
                                                 { '<>': 'div', text: 'status: ${status}' },
                                                 { '<>': 'div', text: 'returncode: ${returncode}' },
                                                 { '<>': 'pre', text: 'stdout: ${stdout}' },
@@ -144,7 +144,8 @@
                 json = $(selector).text()
                 if (!json)
                     return
-                $(selector).json2html(JSON.parse(json), templates.parent, { method: 'replace' })
+
+                $(selector).json2html(json, templates.parent, { method: 'replace' })
             }
             catch (e) {
                 console.log(e)
@@ -162,13 +163,13 @@
                         {
                             '<>': 'div', html: [
                                 { '<>': 'h2', text: 'Compilation' },
-                                { '<>': 'ul', html: obj => $.json2html(obj.compilation, templates.compilation) }
+                                { '<>': 'ul', html: obj => json2html.render(obj.compilation, templates.compilation) }
                             ]
                         },
                         {
                             '<>': 'div', html: [
                                 { '<>': 'h2', text: 'Tests' },
-                                { '<>': 'ul', html: obj => $.json2html(obj.tests, templates.tests) }
+                                { '<>': 'ul', html: obj => json2html.render(obj.tests, templates.tests) }
                             ]
                         }
                     ]
@@ -179,11 +180,11 @@
                         {
                             '<>': 'ul', html: [
                                 {
-                                    '<>': 'li', obj: obj => obj.configurations, 'html': [
+                                    '<>': 'li', '{}': obj => obj.configurations, 'html': [
                                         { '<>': 'span', text: obj => String.fromCharCode(obj.result.errno === 0 ? 0x2714 : 0x274C) },
                                         { '<>': 'span', text: '${name}', class: obj => obj.result.errno === 0 ? 'text-success' : 'text-danger' },
                                         {
-                                            '<>': 'div', obj: obj => obj.result, html: [
+                                            '<>': 'div', '{}': obj => obj.result, html: [
                                                 { '<>': 'pre', text: '${compiler_output}' }
                                             ]
                                         }
@@ -199,11 +200,11 @@
                         {
                             '<>': 'ul', html: [
                                 {
-                                    '<>': 'li', obj: obj => obj.cases, 'html': [
+                                    '<>': 'li', '{}': obj => obj.cases, 'html': [
                                         { '<>': 'span', text: obj => String.fromCharCode(obj.result.status === 'Success' ? 0x2714 : 0x274C) },
                                         { '<>': 'span', text: '${name}', class: obj => obj.result.status === 'Success' ? 'text-success' : 'text-danger' },
                                         {
-                                            '<>': 'div', obj: obj => obj.result, html: [
+                                            '<>': 'div', '{}': obj => obj.result, html: [
                                                 { '<>': 'div', class: obj => obj.returncode ? 'd-block' : 'd-none', text: 'returncode: ${returncode}' },
                                                 { '<>': 'pre', class: obj => obj.stdout ? 'd-block' : 'd-none', text: '${stdout}' }
                                             ]
@@ -223,7 +224,7 @@
                 json = $(selector).text()
                 if (!json)
                     return
-                $(selector).json2html(JSON.parse(json), templates.parent, { method: 'replace' })
+                $(selector).json2html(json, templates.parent, { method: 'replace' })
             }
             catch (e) {
                 console.log(e)
