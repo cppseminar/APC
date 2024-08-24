@@ -1,6 +1,6 @@
 module services
 
-go 1.22
+go 1.22.6
 
 require (
 	github.com/docker/cli v27.1.2+incompatible
