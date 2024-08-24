@@ -116,7 +116,7 @@ services:
           timeout: 10s
 
     azurite:
-        image: mcr.microsoft.com/azure-storage/azurite:3.29.0 
+        image: mcr.microsoft.com/azure-storage/azurite:3.32.0
         volumes:
             - azurite_data:/data
         ports:
@@ -199,7 +199,7 @@ services:
             - worker_shared:/data  
 
     mongo.local:
-        image: mongo:6.0.1
+        image: mongo:6.0.17-jammy
         restart: always
         ports:
             - 27017:27017
@@ -235,9 +235,9 @@ services:
         environment:
             - MONGO_CONN_STR=mongodb://admin:password@mongo.local:27017/
             - RCLONE_CONFIG_MONGO_BACKUPS_TYPE=azureblob
-            - RCLONE_CONFIG_MONGO_BACKUPS_ACCOUNT=${STORAGE_AZUREBLOB_ACCOUNT}
-            - RCLONE_CONFIG_MONGO_BACKUPS_KEY=${STORAGE_AZUREBLOB_KEY}
-            - RCLONE_CONFIG_MONGO_BACKUPS_ENDPOINT=
+            - RCLONE_CONFIG_MONGO_BACKUPS_ACCOUNT=azuriteuser
+            - RCLONE_CONFIG_MONGO_BACKUPS_KEY=UGFzc3dvcmQxMjMhfg==
+            - RCLONE_CONFIG_MONGO_BACKUPS_ENDPOINT=http://azurite:10000/azuriteuser
         restart: unless-stopped
         networks:
             - sharednet
@@ -263,7 +263,7 @@ services:
             - worker_shared:/data
 
     gateway.local:
-        image: envoyproxy/envoy:v1.22-latest
+        image: envoyproxy/envoy:v1.31-latest
         ports:
             - 5000:5000
             - 9901:9901

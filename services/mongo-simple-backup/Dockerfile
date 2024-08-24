@@ -1,4 +1,4 @@
-FROM alpine:3.18 AS get_rclone
+FROM alpine:3.20 AS get_rclone
 
 RUN apk add curl \
     && curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip \
@@ -7,7 +7,7 @@ RUN apk add curl \
     && cp rclone /usr/bin/ \
     && chmod 755 /usr/bin/rclone
 
-FROM golang:1.20-alpine3.18 AS build_mongodump
+FROM golang:1.23.0-alpine3.20 AS build_mongodump
 
 WORKDIR /build
 
@@ -20,7 +20,7 @@ RUN apk update \
     && cd mongo-tools \
     && ./make build -pkgs=mongodump
 
-FROM alpine:3.18 AS build
+FROM alpine:3.20 AS build
 
 WORKDIR /tools
 
@@ -31,7 +31,7 @@ COPY --from=build_mongodump /build/mongo-tools/bin/mongodump /usr/bin/mongodump
 RUN mkdir /var/dumps \
     && echo "#!/bin/sh" > ./dump.sh \
     && echo "/tools/backup.sh --url \${MONGO_CONN_STR} --output /var/dumps" >> ./dump.sh \
-    && echo "rclone move /var/dumps MONGO_BACKUPS:/mongo-db-dumps --use-json-log" >> ./dump.sh \
+    && echo "rclone move /var/dumps MONGO_BACKUPS:/mongo-db-dumps -v --use-json-log" >> ./dump.sh \
     && chmod 0766 ./dump.sh \
     && chmod 0766 ./backup.sh \
     && mkdir -p /root/.config/rclone \
