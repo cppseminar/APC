@@ -23,6 +23,14 @@ Keep the client id and secret you will need them.
    * `DOCKER_REGISTRY_USER` and `DOCKER_REGISTRY_PASS` are credential for login to docker repository, this is the repository where test images are present
 2. After everything has started go to <http://localhost:8080/> and you are good to go.
 
+### Usefull URLs
+
+* <http://localhost:8080/> - main page
+* <http://localhost:9090> - mongo express, user `mexpress`, password `mexpress`
+* <http://localhost:9901/> - envoy proxy admin page
+* <http://azurite:10000/azuriteuser> - azurite blob storage, `AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==`, you can use [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/) to connect to it
+
+
 ## Deployment
 
 We have production Kubernetes [deployment](./cppseminar/apchelm/README.md) in folder `cppseminar/apchelm`.
