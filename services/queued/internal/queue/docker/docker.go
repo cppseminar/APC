@@ -14,8 +14,8 @@ import (
 
 	cliconfig "github.com/docker/cli/cli/config"
 	clitypes "github.com/docker/cli/cli/config/types"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 )
@@ -121,7 +121,7 @@ func runDocker(ctx context.Context, dockerCli *client.Client, containerID string
 	var containerWaitC <-chan bool = waitExit(ctx, dockerCli, containerID)
 
 	response, err := dockerCli.ContainerAttach(ctx, containerID,
-		types.ContainerAttachOptions{
+		container.AttachOptions{
 			Stream: true,
 			Stdout: true,
 			Stderr: true,
@@ -131,7 +131,7 @@ func runDocker(ctx context.Context, dockerCli *client.Client, containerID string
 		return "", "", fmt.Errorf("error on docker attach: %v", err.Error())
 	}
 
-	err = dockerCli.ContainerStart(ctx, containerID, types.ContainerStartOptions{})
+	err = dockerCli.ContainerStart(ctx, containerID, container.StartOptions{})
 	if err != nil {
 		return "", "", fmt.Errorf("error on docker containerstart: %v", err.Error())
 	}
@@ -192,7 +192,7 @@ func PullImage(ctx context.Context, config DockerConfig) {
 
 	defer cli.Close()
 
-	reader, err := cli.ImagePull(ctx, config.DockerImage, types.ImagePullOptions{
+	reader, err := cli.ImagePull(ctx, config.DockerImage, image.PullOptions{
 		RegistryAuth: base64.URLEncoding.EncodeToString(encodedJSON),
 	})
 	if err != nil {
