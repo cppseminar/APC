@@ -38,21 +38,21 @@ jobs:
           registry: ${{ secrets.PRODUCTION_DOCKER_URL }}
 
       - name: Build docker image presenation
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: ./cppseminar/presentation
           push: true
           tags: ${{ env.DOCKER_URL }}/services/presentation:${{ github.sha }}
 
       - name: Build docker image userservice
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: ./cppseminar/userservice
           push: true
           tags: ${{ env.DOCKER_URL }}/services/userservice:${{ github.sha }}
 
       - name: Build docker image submissions
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: ./cppseminar/submissions
           push: true
@@ -94,28 +94,28 @@ jobs:
 
 
       - name: Build docker image test service
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: ./cppseminar/testservice
           push: true
           tags: ${{ env.DOCKER_URL }}/services/testservice:${{ github.sha }}
 
       - name: Build docker image vm-test-server
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: ./cppseminar/vm-test-server
           push: true
           tags: ${{ env.DOCKER_URL }}/services/vm-test-server:${{ github.sha }}
 
       - name: Build docker image vm-test-queue
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: ./cppseminar/vm-test-queue
           push: true
           tags: ${{ env.DOCKER_URL }}/services/vm-test-queue:${{ github.sha }}
 
       - name: Build docker image mongo-backup
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: ./services/mongo-simple-backup
           push: true
