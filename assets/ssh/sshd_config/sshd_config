@@ -1,9 +1,0 @@
-# ListenAddress 9988
-LogLevel VERBOSE
-HostKey /home/user/sshd_config/ssh-key
-# PasswordAuthentication no
-PidFile /home/user/sshd_config/ssh.pid
-Port 9988
-Protocol 2
-StrictModes no
-UseDNS no
