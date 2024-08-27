@@ -42,14 +42,14 @@ resource loadBalancer 'Microsoft.Network/loadBalancers@2021-05-01' = {
           frontendPort: 80
           backendPort: 10009
           probe: {
-            id: '${resourceId( 'Microsoft.Network/loadBalancers', '${prefix}-scaleset-load-balancer')}/probes/${prefix}-lb-probe'
+            id: resourceId( 'Microsoft.Network/loadBalancers/probes', '${prefix}-scaleset-load-balancer', '${prefix}-lb-probe')
           }
           protocol: 'Tcp'
           backendAddressPool: {
             id: resourceId( 'Microsoft.Network/loadBalancers/backendAddressPools', '${prefix}-scaleset-load-balancer', '${prefix}-lb-backend-pool')
           }
           frontendIPConfiguration: {
-            id: '${resourceId( 'Microsoft.Network/loadBalancers', '${prefix}-scaleset-load-balancer')}/frontendIPConfigurations/${prefix}-scaleset-lb-ip'
+            id: resourceId( 'Microsoft.Network/loadBalancers/frontendIPConfigurations', '${prefix}-scaleset-load-balancer', '${prefix}-scaleset-lb-ip')
           }
         }
       }
@@ -110,7 +110,7 @@ resource scaleSet 'Microsoft.Compute/virtualMachineScaleSets@2021-11-01' = {
                }
              ]
            }
-         } // linuxConnfig
+         } // linuxConfig
          customData: base64(format(loadTextContent('cloud-init.yaml'), acrIdentity, containerRegistry))
       } // osprofile
       networkProfile: {
