@@ -233,11 +233,8 @@ services:
             context: ../services/mongo-simple-backup
             target: dev
         environment:
-            - MONGO_CONN_STR=mongodb://admin:password@mongo.local:27017/
-            - RCLONE_CONFIG_MONGO_BACKUPS_TYPE=azureblob
-            - RCLONE_CONFIG_MONGO_BACKUPS_ACCOUNT=azuriteuser
-            - RCLONE_CONFIG_MONGO_BACKUPS_KEY=UGFzc3dvcmQxMjMhfg==
-            - RCLONE_CONFIG_MONGO_BACKUPS_ENDPOINT=http://azurite:10000/azuriteuser
+            MONGO_CONN_STR: mongodb://admin:password@mongo.local:27017/
+            DUMPS_BLOB_CONN_STR: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite:10000/azuriteuser;
         restart: unless-stopped
         networks:
             - sharednet

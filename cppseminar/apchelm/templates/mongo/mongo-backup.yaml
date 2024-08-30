@@ -27,18 +27,10 @@ spec:
                   name: mongodb-admin-admin
                   key: connectionString.standardSrv
                   optional: false
-            - name: RCLONE_CONFIG_MONGO_BACKUPS_TYPE
-              value: azureblob
-            - name: RCLONE_CONFIG_MONGO_BACKUPS_ACCOUNT
+            - name: DUMPS_BLOB_CONN_STR
               valueFrom:
                 secretKeyRef:
                   name: general-secrets
-                  key: blobAccountName
-                  optional: false
-            - name: RCLONE_CONFIG_MONGO_BACKUPS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: general-secrets
-                  key: blobAccountKey
+                  key: blobConnectionString
                   optional: false
           restartPolicy: OnFailure

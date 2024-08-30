@@ -1,12 +1,3 @@
-FROM alpine:3.20 AS get_rclone
-
-RUN apk add curl \
-    && curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip \
-    && unzip rclone-current-linux-amd64.zip \
-    && cd rclone-*-linux-amd64 \
-    && cp rclone /usr/bin/ \
-    && chmod 755 /usr/bin/rclone
-
 FROM golang:1.23.0-alpine3.20 AS build_mongodump
 
 WORKDIR /build
@@ -20,29 +11,25 @@ RUN apk update \
     && cd mongo-tools \
     && ./make build -pkgs=mongodump
 
-FROM alpine:3.20 AS build
+FROM python:3.12-alpine3.20 AS build
 
 WORKDIR /tools
 
 COPY . .
-COPY --from=get_rclone /usr/bin/rclone /usr/bin/rclone
 COPY --from=build_mongodump /build/mongo-tools/bin/mongodump /usr/bin/mongodump
 
 RUN mkdir /var/dumps \
-    && echo "#!/bin/sh" > ./dump.sh \
-    && echo "/tools/backup.sh --url \${MONGO_CONN_STR} --output /var/dumps" >> ./dump.sh \
-    && echo "rclone move /var/dumps MONGO_BACKUPS:/mongo-db-dumps -v --use-json-log" >> ./dump.sh \
-    && chmod 0766 ./dump.sh \
     && chmod 0766 ./backup.sh \
-    && mkdir -p /root/.config/rclone \
-    && touch /root/.config/rclone/rclone.conf \
-    && apk add krb5-libs
+    && chmod 0766 ./run.sh \
+    && apk add krb5-libs \
+    && apk add curl \
+    && pip install azure-storage-blob
 
 FROM build AS dev
 
-RUN mv ./dump.sh /etc/periodic/15min/dump.sh
+RUN mv ./run.sh /etc/periodic/15min/run.sh
 CMD crond -f -l 8
 
 FROM build AS final
 
-CMD ./dump.sh
+CMD ./run.sh
