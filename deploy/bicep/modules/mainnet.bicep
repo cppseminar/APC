@@ -50,7 +50,7 @@ resource apcVnet 'Microsoft.Network/virtualNetworks@2021-02-01' = {
         }
       }
       {
-        name: 'reserverd2'
+        name: 'reserved2'
         properties: {
           addressPrefix: '10.15.0.0/16'
         }
