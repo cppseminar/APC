@@ -14,12 +14,6 @@ Make sure config map in `./mongo/mongo-config.yaml` contain the same init script
 4. Go into `k8s` directory and fill in the secrets.
 5. `kubectl apply -f .\k8s\apc-secrets.yaml -n apc`
 
-## dockerconfigjson
-
-`kubectl create secret docker-registry container-registry --docker-server=<your-registry-server> --docker-username=<your-username> --docker-password=<your-password> -n apc`
-
-`<your-registry-server>` should be the same as `dockerRepository` in `values.yaml`.
-
 ## Run db backup task
 
 We have cron job for periodic backup task, so it may be a good idea to create initial db backup to see if it is working. 
@@ -72,6 +66,12 @@ The same should be done for mongo replica set, by adding following to `./templat
               runAsGroup: 0
             name: change-dir-permissions
 ```
+
+## dockerconfigjson
+
+`kubectl create secret docker-registry container-registry --docker-server=<your-registry-server> --docker-username=<your-username> --docker-password=<your-password> -n apc`
+
+`<your-registry-server>` should be the same as `dockerRepository` in `values.yaml`.
 
 # Updating operators
 

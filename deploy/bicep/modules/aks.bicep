@@ -1,16 +1,13 @@
 param prefix string
 param location string
 param aksSubnet string
-param userId string
+param registryName string
 
-resource apcAks 'Microsoft.ContainerService/managedClusters@2022-01-01' = {
+resource apcAks 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
   name: '${prefix}-aks'
   location: location
   identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${userId}' : {}
-    }
+    type: 'SystemAssigned'
   }
   properties: {
     kubernetesVersion: '1.28.12'
@@ -43,5 +40,14 @@ resource apcAks 'Microsoft.ContainerService/managedClusters@2022-01-01' = {
       loadBalancerSku: 'standard' // Basic throws error for some reason
       outboundType: 'loadBalancer'
     }
+  }
+}
+
+module aksKubeletRole 'aks-role.bicep' = {
+  name: '${prefix}-aks-kubelet-role'
+  scope: resourceGroup('${prefix}-data')
+  params: {
+    registryName: registryName
+    kubeletPrincipalId: apcAks.properties.identityProfile.kubeletidentity.objectId
   }
 }
