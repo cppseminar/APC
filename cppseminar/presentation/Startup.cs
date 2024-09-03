@@ -71,8 +71,6 @@ namespace presentation
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("cookiekeys");
             containerClient.CreateIfNotExists();
 
-            Console.WriteLine("before PersistKeysToAzureBlobStorage");
-
             services.AddDataProtection().PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("keys.xml"));
             
             services.AddAuthorization(options => {
