@@ -43,7 +43,7 @@ spec:
             - name: VM_TEST_RETURN_ADDR
               value: {{ required "No lb ip specified" .Values.LBinternal }}:80
             - name: RESULTS_QUEUE_NAME
-              value: {{ required "Test output queue missing" .Values.testResultsQueue }}
+              value: testOutput1
             - name: RESULTS_BLOB_CONN_STR
               valueFrom:
                 secretKeyRef:
@@ -67,7 +67,7 @@ spec:
             - name: VM_TEST_SERVER
               value: localhost:80
             - name: SUBMISSION_QUEUE_NAME
-              value: {{ required "Request queue not defined" .Values.testRequestQueue }}
+              value: testInput1
           resources:
             requests:
               memory: 100Mi

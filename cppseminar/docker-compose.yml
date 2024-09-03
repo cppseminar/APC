@@ -169,7 +169,7 @@ services:
         restart: always
 
     rabbitmq.local:
-        image: rabbitmq:3-management-alpine
+        image: rabbitmq:3.13-alpine
         container_name: rabbitmq
         ports:
             - 5672:5672
@@ -180,14 +180,8 @@ services:
         healthcheck:
             test: rabbitmq-diagnostics -q ping
 
-
-    # docker in docker is needed for test-worker.local
-    # it seems like they decided to drop not tls connections
-    # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/27300
-    # and they even make the startup slower... stange but whatever
-    # we will do anything to not be required to mess with certs ;)
     docker-in-docker.local:
-        image: docker:20-dind
+        image: docker:27.2-dind
         networks:
             - sharednet
         privileged: true
@@ -196,7 +190,9 @@ services:
         environment:
             DOCKER_TLS_CERTDIR: ""
         volumes:
-            - worker_shared:/data  
+            - worker_shared:/data
+        # do not use tls https://github.com/docker/for-linux/issues/1313
+        command: [ "dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false" ]
 
     mongo.local:
         image: mongo:6.0.17-jammy

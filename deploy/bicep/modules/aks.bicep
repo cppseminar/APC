@@ -16,11 +16,13 @@ resource apcAks 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
       {
         name: '${prefix}akspool'
         count: 4
-        vmSize: 'Standard_B2s'
+        vmSize: 'Standard_B2als_v2'
         osDiskSizeGB: 32
         osDiskType: 'Managed'
         type: 'VirtualMachineScaleSets'
-        enableAutoScaling: false
+        enableAutoScaling: true
+        minCount: 3
+        maxCount: 6
         mode: 'System'
         osSKU: 'Ubuntu'
         osType: 'Linux'
