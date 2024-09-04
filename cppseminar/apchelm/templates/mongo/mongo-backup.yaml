@@ -11,8 +11,6 @@ spec:
     spec:
       template:
         spec:
-          imagePullSecrets:
-          - name: container-registry
           containers:
           - name: mongo-db-backup
             image: 

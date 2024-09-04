@@ -20,8 +20,6 @@ spec:
         app: vmservice
         category: backend
     spec:
-      imagePullSecrets:
-        - name: container-registry
       containers:
         - name: vm-test-server
           image:

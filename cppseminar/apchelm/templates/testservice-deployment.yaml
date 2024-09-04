@@ -20,8 +20,6 @@ spec:
         app: testservice
         category: backend
     spec:
-      imagePullSecrets:
-        - name: container-registry
       containers:
         - name: testservice-pod
           image:

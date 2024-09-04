@@ -23,8 +23,6 @@ spec:
         app: gateway
         category: backend
     spec:
-      imagePullSecrets:
-        - name: container-registry
       volumes:
         - name: config
           configMap:
