@@ -41,7 +41,7 @@ services:
         networks:
             - sharednet
         ports:
-            - 8080:8080
+            - 8080:80
         environment:
             DOTNET_USE_POLLING_FILE_WATCHER: 1
             DOTNET_WATCH_SUPPRESS_MSBUILD_INCREMENTALISM: 1

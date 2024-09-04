@@ -10,7 +10,8 @@ COPY . .
 RUN dotnet build "testservice.csproj" -c Release -o /app/build
 
 FROM build as dev
-CMD dotnet watch run --urls=http://0.0.0.0:80
+ENV URLS=http://0.0.0.0:80
+CMD dotnet watch run
 
 FROM build AS publish
 RUN dotnet publish "testservice.csproj" -c Release -o /app/publish
@@ -18,4 +19,5 @@ RUN dotnet publish "testservice.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+ENV URLS=http://0.0.0.0:80
 ENTRYPOINT ["dotnet", "testservice.dll"]

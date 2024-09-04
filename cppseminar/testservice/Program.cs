@@ -41,7 +41,6 @@ public class Program
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("http://*:80");
                 });
         }
         return Host.CreateDefaultBuilder(args)

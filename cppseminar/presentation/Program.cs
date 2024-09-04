@@ -35,22 +35,18 @@ namespace presentation
 
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
-            if (Environment.GetEnvironmentVariable("LOG_PRETTY") == "1")
-            {
-                return Host.CreateDefaultBuilder(args)
-                    .ConfigureWebHostDefaults(webBuilder =>
-                    {
-                        webBuilder.UseStartup<Startup>();
-                        webBuilder.UseUrls("http://*:80");
-                    });
-            }
-            return Host.CreateDefaultBuilder(args)
-                .UseSerilog()
+            var builder = Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("http://*:80");
                 });
+
+            if (Environment.GetEnvironmentVariable("LOG_PRETTY") != "1")
+            {
+                builder.UseSerilog();
+            }
+
+            return builder;
         }
     }
 }
