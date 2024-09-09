@@ -21,7 +21,8 @@ module apcCompute 'modules/aks.bicep' = {
   params: {
     location: location
     prefix: prefix
-    aksSubnet: network.outputs.aksSubnet
+    vnetName: network.outputs.vnetName
+    subnetName: network.outputs.aksSubnetName
     registryName: containerRegistry
   }
 }
@@ -34,7 +35,6 @@ module ssset 'modules/scaleset.bicep' = {
     lbSubnet: network.outputs.lbSubnet
     lbIp: network.outputs.lbIp
     ssSubnet: network.outputs.ssetSubnet
-    acrIdentity: acrIdentity.id
     containerRegistry: containerRegistry
   }
 }
@@ -57,9 +57,4 @@ module dns 'modules/dnsAdd.bicep' = {
     resourceName: 'apc.l33t.party'
     subDomain: 'netap'
   }
-}
-
-resource acrIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
-  scope: resourceGroup('apc-data')
-  name: '${containerRegistry}-user'
 }

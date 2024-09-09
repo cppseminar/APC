@@ -7,10 +7,10 @@ packages:
 
 runcmd:
   - [ sh, -c, "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash" ]
-  - [ az, login, --identity, --username, '{0}' ]
-  - [ az, acr, login, --name, '{1}' ]
+  - [ az, login, --identity ]
+  - [ az, acr, login, --name, '{0}' ]
   - [ wget, https://raw.githubusercontent.com/cppseminar/APC/master/services/queued/scripts/deploy.sh ]
   - [ chmod, '0766', ./deploy.sh ]
   - [ bash, ./deploy.sh ]
-  - [ sh, -c, "(crontab -l ; echo \"0 0 * * * az login --identity --username {0}\") | sort - | uniq - | crontab -" ]
-  - [ sh, -c, "(crontab -l ; echo \"15 * * * * az acr login --name {1}\") | sort - | uniq - | crontab -" ]
+  - [ sh, -c, "(crontab -l ; echo \"0 0 * * * az login --identity\") | sort - | uniq - | crontab -" ]
+  - [ sh, -c, "(crontab -l ; echo \"15 * * * * az acr login --name {0}\") | sort - | uniq - | crontab -" ]

@@ -5,10 +5,9 @@ metadata:
   namespace: apc
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
-    #service.beta.kubernetes.io/azure-load-balancer-internal-subnet: "aks-subnet"
+    service.beta.kubernetes.io/azure-load-balancer-ipv4: {{ required "No lb ip specified" .Values.LBinternal }}
 spec:
   type: LoadBalancer
-  loadBalancerIP:  {{ required "No lb ip specified" .Values.LBinternal }}
   ports:
   - port: 80
     targetPort: 80

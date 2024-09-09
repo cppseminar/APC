@@ -3,7 +3,6 @@ param location string
 param lbSubnet string
 param lbIp string
 param ssSubnet string
-param acrIdentity string
 param containerRegistry string
 
 param admin string = 'azureuser'
@@ -111,7 +110,7 @@ resource scaleSet 'Microsoft.Compute/virtualMachineScaleSets@2021-11-01' = {
              ]
            }
          } // linuxConfig
-         customData: base64(format(loadTextContent('cloud-init.yaml'), acrIdentity, containerRegistry))
+         customData: base64(format(loadTextContent('cloud-init.yaml'), containerRegistry))
       } // osprofile
       networkProfile: {
         // healthProbe:
@@ -159,9 +158,15 @@ resource scaleSet 'Microsoft.Compute/virtualMachineScaleSets@2021-11-01' = {
   }
 
   identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${acrIdentity}': {}
-    }
+    type: 'SystemAssigned'
+  }
+}
+
+module scaleSetRole 'acr-pull-role.bicep' = {
+  name: '${prefix}-scaleset-role'
+  scope: resourceGroup('${prefix}-data')
+  params: {
+    registryName: containerRegistry
+    principalId: scaleSet.identity.principalId
   }
 }

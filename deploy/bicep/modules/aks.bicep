@@ -1,7 +1,19 @@
 param prefix string
 param location string
-param aksSubnet string
+param vnetName string
+param subnetName string
 param registryName string
+
+// Reference the existing virtual network
+resource vnet 'Microsoft.Network/virtualNetworks@2024-01-01' existing = {
+  name: vnetName
+}
+
+// Reference the existing subnet within the virtual network
+resource aksSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-01-01' existing = {
+  name: subnetName
+  parent: vnet
+}
 
 resource apcAks 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
   name: '${prefix}-aks'
@@ -26,7 +38,7 @@ resource apcAks 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
         mode: 'System'
         osSKU: 'Ubuntu'
         osType: 'Linux'
-        vnetSubnetID: aksSubnet
+        vnetSubnetID: aksSubnet.id
       }
     ]
 
@@ -45,11 +57,20 @@ resource apcAks 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
   }
 }
 
-module aksKubeletRole 'aks-role.bicep' = {
+module aksKubeletRole 'acr-pull-role.bicep' = {
   name: '${prefix}-aks-kubelet-role'
   scope: resourceGroup('${prefix}-data')
   params: {
     registryName: registryName
-    kubeletPrincipalId: apcAks.properties.identityProfile.kubeletidentity.objectId
+    principalId: apcAks.properties.identityProfile.kubeletidentity.objectId
+  }
+}
+
+module aksRole 'network-contributor-role.bicep' = {
+  name: '${prefix}-aks-role'
+  params: {
+    vnetName: vnet.name
+    subnetName: aksSubnet.name
+    principalId: apcAks.identity.principalId
   }
 }

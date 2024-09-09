@@ -61,8 +61,8 @@ resource apcVnet 'Microsoft.Network/virtualNetworks@2021-02-01' = {
 
 output lbIp string = '10.12.0.25'
 output vmIp string = '10.12.64.5'
-output vnetId string = apcVnet.id
-output aksSubnet string = apcVnet.properties.subnets[0].id
+output vnetName string = apcVnet.name
+output aksSubnetName string = apcVnet.properties.subnets[0].name
 output ssetSubnet string = apcVnet.properties.subnets[1].id
 output lbSubnet string = apcVnet.properties.subnets[2].id
 output vmSubnet string = apcVnet.properties.subnets[3].id
