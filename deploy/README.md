@@ -1,27 +1,28 @@
 # What is this?
-This folder contains tools to deploy  information about setting up APC portal fromninfrastructure perspective.
+
+This folder contains tools to deploy information about setting up APC portal from infrastructure perspective.
 
 It contains infrastructure deployment scripts written in **bicep** and vm setup written in **ansible**.
 
-Our architecture currently only runs in Azure, but we are slowly making transition to make it cloud provider indempendent.
+Our architecture currently only runs in Azure, but we are slowly making transition to make it cloud provider independent.
 
-# How to set this up
+## How to set this up
 
 1. This folder contains automatic infrastructure deployment (bicep), but not everything. Missing parts are:
    - Azure container registry
    - Azure storage account
-   - Managed identity with network contributor role for entire subscription
-     - This account must be created in r. g. `apc-data`
-     - Name of this managed identity must be `apc-aks-user`
-   - Managed identity with acrpull role for created azure container registry
-     - This account must be created in r. g. `apc-data`
-     - Name of this managed identity must be ${REGISTRY}-user (if you called your registry `apcregistry`, than the name must be `apcregistry-user`)
-     - <https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication-managed-identity?tabs=azure-cli#example-1-access-with-a-user-assigned-identity>
+   Those are expected to be created outside of this deployment.
 2. Use ansible to set up logging and ~~management~~ servers
-3. Build and deploy containers (source code is outside this folder) to kubernetes
+3. Build containers (source code is outside this folder) for kubernetes
 4. Setup some necessary environment variables, that are outside of this overview
 
-# Networks
+## How to run it
+
+Switch to desired azure subscription and run script `./deploy-portal.ps1`. All
+parameters and usage notes are in the beginning of that file. 
+
+## Networks
+
 Due to our use of VPN tunnels and internal static ips in subnets, it is necesssary to keep these in mind:
 
 ```

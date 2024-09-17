@@ -320,6 +320,9 @@ metadata:
     app.kubernetes.io/version: 1.2.0
   name: ingress-nginx-controller
   namespace: ingress-nginx
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-resource-group: {{ required "IP reqiered" .Values.ingressIpRg }}
+    service.beta.kubernetes.io/azure-pip-name: {{ required "RG name required" .Values.ingressIpName }}
 spec:
   externalTrafficPolicy: Local
   ipFamilies:

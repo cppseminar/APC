@@ -3,6 +3,7 @@ param location string
 param lbSubnet string
 param lbIp string
 param ssSubnet string
+param dataResourceGroup string
 param containerRegistry string
 
 param admin string = 'azureuser'
@@ -162,9 +163,9 @@ resource scaleSet 'Microsoft.Compute/virtualMachineScaleSets@2021-11-01' = {
   }
 }
 
-module scaleSetRole 'acr-pull-role.bicep' = {
+module scaleSetRole 'roles/acr-pull-role.bicep' = {
   name: '${prefix}-scaleset-role'
-  scope: resourceGroup('${prefix}-data')
+  scope: resourceGroup(dataResourceGroup)
   params: {
     registryName: containerRegistry
     principalId: scaleSet.identity.principalId

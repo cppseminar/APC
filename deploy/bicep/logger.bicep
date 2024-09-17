@@ -15,7 +15,7 @@ module logging 'modules/logging.bicep' = {
   }
 }
 
-module dns 'modules/dnsAdd.bicep' = {
+module dns 'modules/dns-add.bicep' = {
   name: 'dnsUpdate'
   scope: resourceGroup('apc-dns')
   params: {

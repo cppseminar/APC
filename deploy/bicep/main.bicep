@@ -5,8 +5,11 @@ param location string = 'germanywestcentral'
 @maxLength(5)
 param prefix string
 
+param dataResourceGroup string
 param containerRegistry string
 
+param dnsResourceGroup string
+param dnsZoneName string
 
 module network 'modules/mainnet.bicep' = {
   name: '${prefix}-vnet-deploy'
@@ -16,13 +19,14 @@ module network 'modules/mainnet.bicep' = {
   }
 }
 
-module apcCompute 'modules/aks.bicep' = {
-  name: '${prefix}-apc-deploy'
+module compute 'modules/aks.bicep' = {
+  name: '${prefix}-aks-deploy'
   params: {
     location: location
     prefix: prefix
     vnetName: network.outputs.vnetName
     subnetName: network.outputs.aksSubnetName
+    dataResourceGroup: dataResourceGroup
     registryName: containerRegistry
   }
 }
@@ -35,6 +39,7 @@ module ssset 'modules/scaleset.bicep' = {
     lbSubnet: network.outputs.lbSubnet
     lbIp: network.outputs.lbIp
     ssSubnet: network.outputs.ssetSubnet
+    dataResourceGroup: dataResourceGroup
     containerRegistry: containerRegistry
   }
 }
@@ -49,12 +54,25 @@ module netAp 'modules/ap.bicep' = {
   }
 }
 
-module dns 'modules/dnsAdd.bicep' = {
-  name: 'dnsUpdate'
-  scope: resourceGroup('apc-dns')
+module dnsNetAp 'modules/dns-add.bicep' = {
+  name: '${prefix}-dns-update-netap'
+  scope: resourceGroup(dnsResourceGroup)
   params: {
     ipAddress: netAp.outputs.netApIp
-    resourceName: 'apc.l33t.party'
+    resourceName: dnsZoneName
     subDomain: 'netap'
   }
 }
+
+module dnsAks 'modules/dns-add.bicep' = {
+  name: '${prefix}-dns-update-aks'
+  scope: resourceGroup(dnsResourceGroup)
+  params: {
+    ipAddress: compute.outputs.publicIp
+    resourceName: dnsZoneName
+    subDomain: '@'
+  }
+}
+
+output portalIpName string = compute.outputs.publicIpName
+output aksName string = compute.outputs.aksName
