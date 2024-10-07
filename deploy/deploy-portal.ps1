@@ -3,7 +3,6 @@
 # tasks like cleaning up orphaned role assignments.
 
 # The script takes several parameters:
-# - WHATIF: if set, the script will only simulate the deployment of bicep
 # - PREFIX: prefix for all resources (default: apc)
 # - LOCATION: location for the resource group (default: germanywestcentral)
 # - DATA_RG: resource group where the data is stored (optional: $PREFIX-data)
@@ -12,7 +11,6 @@
 # - DNS_ZONE: name of the dns zone (optional: first found in $DNS_RG)
 
 param (
-    [switch]$WHATIF = $False,
     [string]$PREFIX = "apc",
     [string]$LOCATION = "germanywestcentral",
     [string]$DATA_RG = "",
@@ -72,15 +70,20 @@ if ($DNS_ZONE -eq "") {
 }
 
 # clean up orphaned role assignments by calling script
-if ($WHATIF -eq $False) {
-    ./bicep/cleanup-azure-roles.ps1 -ResourceGroupName $DATA_RG
-}
+./bicep/cleanup-azure-roles.ps1 -ResourceGroupName $DATA_RG
 
 # we do this mainly to run the deployment scoped in a resource group
 # this way we are at least somewhat sure that we don't accidentally 
 # break someting in another resource group
-if ($WHATIF -eq $False) {
-    az group create -n $GROUP -l $LOCATION
+$result = az group create -n $GROUP -l $LOCATION | ConvertFrom-Json
+
+# if failed to create resource group, exit
+if ($? -eq $False) {
+    Write-Output "Failed to create resource group $GROUP"
+    exit 1
+} else {
+    Write-Output "Resource group $GROUP created"
+    Write-Output $result
 }
 
 $bicepParams = @{
@@ -92,16 +95,44 @@ $bicepParams = @{
     "dataResourceGroup"=$DATA_RG
 }
 
-$bicepParamsStr = ($bicepParams.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join " "
-
-$deploymentParams = "--resource-group $GROUP --template-file ./bicep/main.bicep --parameters $bicepParamsStr --mode Complete"
-
-if ($WHATIF -eq $True) {
-    Invoke-Expression "az deployment group what-if $deploymentParams"
-    exit 0
+# create bicep parameters as json, the format for arm (bicep) templates is not
+# {"key": "value"} but {"key": {"value": "value"}} so we need to do some 
+# conversion to make it work
+foreach ($key in $($bicepParams.Keys)) {
+    $bicepParams[$key] = @{ "value" = $bicepParams[$key] }
 }
 
-$result = Invoke-Expression "az deployment group create $deploymentParams -n ""MainDeploy""" | ConvertFrom-Json
+$bicepParamsJson = $bicepParams | ConvertTo-Json -Compress
+
+# create temp file for json bicep parameters
+# for the love of god, why can't we just pass the json as string
+# to the az cli? it would be so much easier and i cannot figure out
+# how to do it in two hours of searching
+$bicepParamsFile = [System.IO.Path]::GetTempFileName()
+$bicepParamsJson | Out-File $bicepParamsFile
+
+try {
+    az account show
+
+    $result = az deployment group create `
+                --resource-group $GROUP `
+                --template-file ./bicep/main.bicep `
+                --parameters @$bicepParamsFile `
+                --mode Complete `
+                -n MainDeploy | ConvertFrom-Json
+} finally {
+    Remove-Item $bicepParamsFile
+}
+
+if ($? -eq $False) {
+    Write-Output "Failed to deploy bicep template, process exited with error code $LASTEXITCODE"
+    exit 1
+}
+
+if ($result.properties.provisioningState -ne "Succeeded") {
+    Write-Output "Deployment failed"
+    exit 1
+}
 
 $public_ip_rg = $GROUP
 $public_ip_name = $result.properties.outputs.portalIpName.value

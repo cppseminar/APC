@@ -1,10 +1,16 @@
 param location string
 param prefix string
 
-resource apcVnet 'Microsoft.Network/virtualNetworks@2021-02-01' = {
+resource apcVnet 'Microsoft.Network/virtualNetworks@2023-11-01' = {
   name: '${prefix}-vnet'
   location: location
   properties: {
+    enableDdosProtection: false
+    flowTimeoutInMinutes: 10
+    encryption: {
+      enabled: true
+      enforcement: 'AllowUnencrypted'
+    }
     addressSpace: {
       addressPrefixes: [
         '10.12.0.0/14'
