@@ -16,7 +16,8 @@ param (
     [string]$DATA_RG = "",
     [string]$REGISTRY = "",
     [string]$DNS_RG = "",
-    [string]$DNS_ZONE = ""
+    [string]$DNS_ZONE = "",
+    [string]$RELEASE_COMMIT = ""
 )
 
 $GROUP = "$PREFIX-deployment"
@@ -68,6 +69,13 @@ if ($DNS_ZONE -eq "") {
 
     Write-Output "Using dns zone $DNS_ZONE"
 }
+
+# if not set, use last commit as release commit
+if ($RELEASE_COMMIT -eq "") {
+    $RELEASE_COMMIT = git rev-parse HEAD
+}
+
+Write-Output "Using release commit $RELEASE_COMMIT as label for containers"
 
 # clean up orphaned role assignments by calling script
 ./bicep/cleanup-azure-roles.ps1 -ResourceGroupName $DATA_RG
@@ -152,7 +160,8 @@ try {
         --set websiteHost=$DNS_ZONE `
         --set LBinternal=10.14.254.254 `
         --set ingressIpName=$public_ip_name `
-        --set ingressIpRg=$public_ip_rg
+        --set ingressIpRg=$public_ip_rg `
+        --set releaseLabel=$RELEASE_COMMIT
 
     # deploy rest of secrets
     kubectl apply -f ./helm/k8s/apc-secrets.yaml -n apc --kubeconfig $kubeconfig
