@@ -1,10 +1,11 @@
 param location string
 param prefix string
+
 param vmSubnet string
 param vmIp string
 param admin string = 'azureuser'
 
-
+param testersSubnet string
 
 
 resource vmNetApInterfaceSecurityGroup 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
@@ -23,6 +24,18 @@ resource vmNetApInterfaceSecurityGroup 'Microsoft.Network/networkSecurityGroups@
           sourceAddressPrefix: '0.0.0.0/0'
           sourcePortRange: '*'
           priority: 1000
+        }
+      },{
+        name: 'allow-journal-remote'
+        properties: {
+          access: 'Allow'
+          protocol: 'Tcp'
+          direction: 'Inbound'
+          destinationPortRange: '19532'
+          destinationAddressPrefix: '0.0.0.0/0'
+          sourceAddressPrefix: testersSubnet
+          sourcePortRange: '*'
+          priority: 1010
         }
       }
     ]
@@ -47,6 +60,7 @@ resource vmNetApInterface 'Microsoft.Network/networkInterfaces@2021-05-01' = {
   name: '${prefix}-vm-netap-interface'
   location: location
   properties: {
+    enableIPForwarding: false
     enableAcceleratedNetworking: false
     networkSecurityGroup: {
       id: vmNetApInterfaceSecurityGroup.id
@@ -72,7 +86,7 @@ resource vmNetApInterface 'Microsoft.Network/networkInterfaces@2021-05-01' = {
 }
 
 
-resource vmNetAp 'Microsoft.Compute/virtualMachines@2021-11-01' = {
+resource vmNetAp 'Microsoft.Compute/virtualMachines@2024-07-01' = {
   name: '${prefix}-vm-netap'
   location: location
 
@@ -128,8 +142,10 @@ resource vmNetAp 'Microsoft.Compute/virtualMachines@2021-11-01' = {
           ]
         }
       }
+      customData: base64(format(loadTextContent('ap-init.yaml')))
     }
   }
 }
 
-output netApIp string = vmNetApIp.properties.ipAddress
+output privateIp string = vmIp
+output publicIp string = vmNetApIp.properties.ipAddress

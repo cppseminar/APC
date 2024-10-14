@@ -34,10 +34,7 @@ spec:
             - name: RABBIT_MQ
               value: rabbitmq-cluster.apc
             - name: VM_TEST_ADDR
-              valueFrom:
-                secretKeyRef:
-                  key: testVmAddress
-                  name: general-secrets
+              value: {{ required "No testers ip specified" .Values.testersIp }}:80
             - name: VM_TEST_RETURN_ADDR
               value: {{ required "No lb ip specified" .Values.LBinternal }}:80
             - name: RESULTS_QUEUE_NAME

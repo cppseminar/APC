@@ -5,6 +5,7 @@ param lbIp string
 param ssSubnet string
 param dataResourceGroup string
 param containerRegistry string
+param netApIp string
 
 param admin string = 'azureuser'
 
@@ -111,7 +112,7 @@ resource scaleSet 'Microsoft.Compute/virtualMachineScaleSets@2021-11-01' = {
              ]
            }
          } // linuxConfig
-         customData: base64(format(loadTextContent('cloud-init.yaml'), containerRegistry))
+         customData: base64(format(loadTextContent('testers-init.yaml'), containerRegistry, netApIp))
       } // osprofile
       networkProfile: {
         // healthProbe:

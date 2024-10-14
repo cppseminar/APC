@@ -4,6 +4,13 @@ package_update: true
 packages:
   - docker.io
   - git
+  - systemd-journal-remote
+
+write_files:
+  - content: |
+      [Upload]
+      URL=http://{1}:19532
+    path: /etc/systemd/journal-upload.conf.d/05-forward-logs-netap.conf
 
 runcmd:
   - [ sh, -c, "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash" ]
@@ -14,3 +21,6 @@ runcmd:
   - [ bash, ./deploy.sh ]
   - [ sh, -c, "(crontab -l ; echo \"0 0 * * * az login --identity\") | sort - | uniq - | crontab -" ]
   - [ sh, -c, "(crontab -l ; echo \"15 * * * * az acr login --name {0}\") | sort - | uniq - | crontab -" ]
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, systemd-journal-upload.service ]
+  - [ systemctl, start, --no-block, systemd-journal-upload.service ]

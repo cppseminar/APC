@@ -1,5 +1,5 @@
 
-param location string = 'germanywestcentral'
+param location string = 'westeurope'
 
 @minLength(1)
 @maxLength(5)
@@ -11,11 +11,15 @@ param containerRegistry string
 param dnsResourceGroup string
 param dnsZoneName string
 
+@description('Tags to apply to main network, in json format')
+param networkTags string
+
 module network 'modules/mainnet.bicep' = {
   name: '${prefix}-vnet-deploy'
   params: {
     location: location
     prefix: prefix
+    tags: json(networkTags)
   }
 }
 
@@ -31,16 +35,17 @@ module compute 'modules/aks.bicep' = {
   }
 }
 
-module ssset 'modules/scaleset.bicep' = {
-  name: '${prefix}-sset-deploy'
+module testers 'modules/testers.bicep' = {
+  name: '${prefix}-testers-deploy'
   params: {
     location: location
     prefix: prefix
     lbSubnet: network.outputs.lbSubnet
     lbIp: network.outputs.lbIp
-    ssSubnet: network.outputs.ssetSubnet
+    ssSubnet: network.outputs.testersSubnet
     dataResourceGroup: dataResourceGroup
     containerRegistry: containerRegistry
+    netApIp: netAp.outputs.privateIp
   }
 }
 
@@ -48,9 +53,10 @@ module netAp 'modules/ap.bicep' = {
   name: '${prefix}-netap-deploy'
   params: {
     location: location
-    vmSubnet: network.outputs.vmSubnet
     prefix: prefix
+    vmSubnet: network.outputs.vmSubnet
     vmIp: network.outputs.vmIp
+    testersSubnet: network.outputs.testersSubnetRange
   }
 }
 
@@ -58,7 +64,7 @@ module dnsNetAp 'modules/dns-add.bicep' = {
   name: '${prefix}-dns-update-netap'
   scope: resourceGroup(dnsResourceGroup)
   params: {
-    ipAddress: netAp.outputs.netApIp
+    ipAddress: netAp.outputs.publicIp
     resourceName: dnsZoneName
     subDomain: 'netap'
   }
@@ -76,3 +82,4 @@ module dnsAks 'modules/dns-add.bicep' = {
 
 output portalIpName string = compute.outputs.publicIpName
 output aksName string = compute.outputs.aksName
+output testersIp string = testers.outputs.ip

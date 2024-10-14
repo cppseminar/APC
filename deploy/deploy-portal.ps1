@@ -1,24 +1,58 @@
-# This script is responsible for deploying the whole solution. It is a wrapper 
-# around bicep and helm deployments. It also takes care of some housekeeping 
-# tasks like cleaning up orphaned role assignments.
-
-# The script takes several parameters:
-# - PREFIX: prefix for all resources (default: apc)
-# - LOCATION: location for the resource group (default: germanywestcentral)
-# - DATA_RG: resource group where the data is stored (optional: $PREFIX-data)
-# - REGISTRY: name of the container registry (optional: first found in $DATA_RG)
-# - DNS_RG: resource group where the dns zone is stored (optional: $PREFIX-dns)
-# - DNS_ZONE: name of the dns zone (optional: first found in $DNS_RG)
+<#
+.SYNOPSIS
+    Deploy the whole solution
+.DESCRIPTION
+    This script is responsible for deploying the whole solution. It is a wrapper 
+    around bicep and helm deployments. It also takes care of some housekeeping 
+    tasks like cleaning up orphaned role assignments.
+.PARAMETER PREFIX
+    Prefix for all resources (default: apc)
+.PARAMETER LOCATION
+    Location for the resource group (default: westeurope)
+.PARAMETER DATA_RG
+    Resource group where the data is stored (optional: $PREFIX-data)
+.PARAMETER REGISTRY
+    Name of the container registry (optional: first found in $DATA_RG)
+.PARAMETER DNS_RG
+    Resource group where the dns zone is stored (optional: $PREFIX-dns)
+.PARAMETER DNS_ZONE
+    Name of the dns zone (optional: first found in $DNS_RG)
+.PARAMETER RELEASE_COMMIT
+    Commit hash to use as a label for containers (optional: last commit in repo is used)
+.PARAMETER NETWORK_TAGS
+    Tags to use for network resources in format key0=value0,key1=value1... (optional: empty)
+.PARAMETER HARDEN
+    Harden the deployment by restricting access to storage, disks, etc. (optional: false)
+#>
 
 param (
     [string]$PREFIX = "apc",
-    [string]$LOCATION = "germanywestcentral",
+    [string]$LOCATION = "westeurope",
     [string]$DATA_RG = "",
     [string]$REGISTRY = "",
     [string]$DNS_RG = "",
     [string]$DNS_ZONE = "",
-    [string]$RELEASE_COMMIT = ""
+    [string]$RELEASE_COMMIT = "",
+    [string]$NETWORK_TAGS = "",
+    [switch]$HARDEN = $false
 )
+
+# input is in format key0=value0,key1=value1...
+function ConvertFrom-KeyValuePairs {
+    param (
+        [string]$data
+    )
+
+    $hash = @{
+    }
+
+    $data.Split(",") | ForEach-Object {
+        $key, $value = $_ -split "=", 2
+        $hash[$key] = $value
+    }
+
+    return $hash
+}
 
 $GROUP = "$PREFIX-deployment"
 
@@ -94,6 +128,8 @@ if ($? -eq $False) {
     Write-Output $result
 }
 
+$NETWORK_TAGS = ConvertFrom-KeyValuePairs $NETWORK_TAGS | ConvertTo-Json
+
 $bicepParams = @{
     "prefix"=$PREFIX
     "containerRegistry"=$REGISTRY
@@ -101,6 +137,7 @@ $bicepParams = @{
     "dnsResourceGroup"=$DNS_RG
     "dnsZoneName"=$DNS_ZONE
     "dataResourceGroup"=$DATA_RG
+    "networkTags"=$NETWORK_TAGS
 }
 
 # create bicep parameters as json, the format for arm (bicep) templates is not
@@ -120,8 +157,6 @@ $bicepParamsFile = [System.IO.Path]::GetTempFileName()
 $bicepParamsJson | Out-File $bicepParamsFile
 
 try {
-    az account show
-
     $result = az deployment group create `
                 --resource-group $GROUP `
                 --template-file ./bicep/main.bicep `
@@ -145,6 +180,8 @@ if ($result.properties.provisioningState -ne "Succeeded") {
 $public_ip_rg = $GROUP
 $public_ip_name = $result.properties.outputs.portalIpName.value
 
+$testersIp = $result.properties.outputs.testersIp.value
+
 $aks_name = $result.properties.outputs.aksName.value
 
 # create temp file to serve as kubeconfig
@@ -161,6 +198,7 @@ try {
         --set LBinternal=10.14.254.254 `
         --set ingressIpName=$public_ip_name `
         --set ingressIpRg=$public_ip_rg `
+        --set testersIp=$testersIp `
         --set releaseLabel=$RELEASE_COMMIT
 
     # deploy rest of secrets
@@ -168,4 +206,9 @@ try {
 } finally {
     # remove temporary kubeconfig
     Remove-Item $kubeconfig
+}
+
+if ($HARDEN) {
+    Write-Output "Harden deployment"
+    ./harden-portal.ps1
 }

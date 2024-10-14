@@ -1,0 +1,21 @@
+#cloud-config
+
+# we can use following command  
+# journalctl -me -D /var/log/journal/remote/ -u queued
+# to display logs from the remote journal (testers queued service)
+
+package_update: true
+packages:
+  - systemd-journal-remote
+
+write_files:
+  - content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/lib/systemd/systemd-journal-remote --listen-http=-3 --output=/var/log/journal/remote/
+    path: /etc/systemd/system/systemd-journal-remote.service.d/override.conf
+
+runcmd:
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, systemd-journal-remote.socket ]
+  - [ systemctl, start, --no-block, systemd-journal-remote.socket ]
