@@ -32,6 +32,7 @@ module compute 'modules/aks.bicep' = {
     subnetName: network.outputs.aksSubnetName
     dataResourceGroup: dataResourceGroup
     registryName: containerRegistry
+    podsIpRange: network.outputs.aksPodsIpRange
   }
 }
 

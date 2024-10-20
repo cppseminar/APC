@@ -2,6 +2,7 @@ param prefix string
 param location string
 param vnetName string
 param subnetName string
+param podsIpRange string
 param dataResourceGroup string
 param registryName string
 
@@ -60,13 +61,13 @@ resource apcAks 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
     networkProfile: {
       networkPlugin: 'kubenet'
       networkPolicy: 'calico'
+      podCidr: '10.244.0.0/16'
       loadBalancerProfile: {
         managedOutboundIPs: {
           count: 1
         }
       }
       loadBalancerSku: 'standard' // Basic throws error for some reason
-
       outboundType: 'loadBalancer'
     }
   }
