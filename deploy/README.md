@@ -2,7 +2,7 @@
 
 This folder contains tools to deploy information about setting up APC portal from infrastructure perspective.
 
-It contains infrastructure deployment scripts written in **bicep** and vm setup written in **ansible**.
+It contains infrastructure deployment scripts written in **bicep** and **kubernetes** helm charts.
 
 Our architecture currently only runs in Azure, but we are slowly making transition to make it cloud provider independent.
 
@@ -12,14 +12,12 @@ Our architecture currently only runs in Azure, but we are slowly making transiti
    - Azure container registry
    - Azure storage account
    Those are expected to be created outside of this deployment.
-2. Use ansible to set up logging and ~~management~~ servers
-3. Build containers (source code is outside this folder) for kubernetes
-4. Setup some necessary environment variables, that are outside of this overview
+2. Build containers (source code is outside this folder) for kubernetes
+3. Setup some necessary environment variables, that are outside of this overview, but are in `deploy-portal.ps1` script.
 
 ## How to run it
 
-Switch to desired azure subscription and run script `./deploy-portal.ps1`. All
-parameters and usage notes are in the beginning of that file. 
+Switch to desired azure subscription and run script `./deploy-portal.ps1`. All parameters and usage notes are in the beginning of that file. Most of it will be automated, if your storage account and container registry are already set up in resource group `apc-data`.
 
 ## Networks
 

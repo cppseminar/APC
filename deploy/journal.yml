@@ -1,8 +1,0 @@
----
-- name: Setup logstash server
-  hosts: journal_clients
-  become: yes
-  remote_user: root
-  roles:
-    - role: journalbeat
-

@@ -1,4 +1,0 @@
----
-cert_path: /etc/pki/nginx/private.key
-certkey_path: /etc/pki/nginx/public.cert
-certdir_path: /etc/pki/nginx

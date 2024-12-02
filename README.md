@@ -33,4 +33,4 @@ Keep the client id and secret you will need them.
 
 ## Deployment
 
-We have production Kubernetes [deployment](./cppseminar/apchelm/README.md) in folder `cppseminar/apchelm`.
+We have production Kubernetes [deployment](./deploy/README.md) in folder `deploy`.
