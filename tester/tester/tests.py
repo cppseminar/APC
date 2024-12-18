@@ -108,13 +108,14 @@ class Tests:
         user_uid = pw_record.pw_uid
         user_gid = pw_record.pw_gid
 
-        env = {}
+        env = {
+            'DATAPATH': Config.data_path(),
+        }
         if submission_binary:
             submission_path = os.path.join(temp_dir, self.SUBMISSION_EXEC_NAME)
             shutil.copy2(submission_binary, submission_path)
             env = {
                 'SUBMISSIONPATH': submission_path,
-                'DATAPATH': Config.data_path(),
             }
 
         args = [*self._options, test_case.replace(',', '\,')] # comma in test is not allowed, you need to escape it
