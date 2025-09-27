@@ -116,7 +116,7 @@ services:
           timeout: 10s
 
     azurite:
-        image: mcr.microsoft.com/azure-storage/azurite:3.32.0
+        image: mcr.microsoft.com/azure-storage/azurite:3.35.0
         volumes:
             - azurite_data:/data
         ports:
@@ -169,7 +169,7 @@ services:
         restart: always
 
     rabbitmq.local:
-        image: rabbitmq:3.13-alpine
+        image: rabbitmq:4.1-alpine
         container_name: rabbitmq
         ports:
             - 5672:5672
@@ -181,7 +181,7 @@ services:
             test: rabbitmq-diagnostics -q ping
 
     docker-in-docker.local:
-        image: docker:27.2-dind
+        image: docker:28.4-dind
         networks:
             - sharednet
         privileged: true
@@ -206,7 +206,7 @@ services:
             MONGO_INITDB_ROOT_PASSWORD: password
         volumes:
             - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-            - ./mongo/init:/data/init:ro 
+            - ./mongo/init:/data/init:ro
             - mongo_data:/data/db
 # MongoDB connection string mongodb://admin:password@mongo.local:27017/
 
@@ -256,7 +256,7 @@ services:
             - worker_shared:/data
 
     gateway.local:
-        image: envoyproxy/envoy:v1.31-latest
+        image: envoyproxy/envoy:v1.35-latest
         ports:
             - 5000:5000
             - 9901:9901
