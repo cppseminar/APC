@@ -27,9 +27,9 @@ type requestMessage struct {
 	ReturnURL   string
 	DockerImage string
 	Files       map[string]string
-	MaxRunTime  int         // in seconds
-	Memory      int         // in megabytes
-	MetaData    interface{} // pass this along
+	MaxRunTime  int // in seconds
+	Memory      int // in megabytes
+	MetaData    any // pass this along
 }
 
 var schema *gojsonschema.Schema
@@ -131,7 +131,7 @@ func getVolume(guestPath string, readOnly bool) docker.DockerVolume {
 	}
 }
 
-func readJsonData(path string) (map[string]interface{}, error) {
+func readJsonData(path string) (map[string]any, error) {
 	jsonFile, err := os.Open(path)
 	if err != nil {
 		log.Println("<3>Error opening path with json", err)
@@ -142,7 +142,7 @@ func readJsonData(path string) (map[string]interface{}, error) {
 
 	byteValue, _ := io.ReadAll(jsonFile)
 
-	var result map[string]interface{}
+	var result map[string]any
 	err = json.Unmarshal([]byte(byteValue), &result)
 
 	return result, err
@@ -347,9 +347,14 @@ func processMessages(wg *sync.WaitGroup) {
 			// error may be replaced later, se we always get the last
 			// error, but it seems to be OK, since we get the info
 			// that something is wrong
-			output := map[string]interface{}{
+			output := map[string]any{
 				"result": result,
-				"error":  func() any { if err != nil { return err.Error() }; return nil }(),
+				"error": func() any {
+					if err != nil {
+						return err.Error()
+					}
+					return nil
+				}(),
 			}
 
 			// this is path for output from our container (very not standard, but whatever)

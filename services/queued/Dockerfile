@@ -1,11 +1,11 @@
-FROM golang:1.22-alpine3.19 AS build
+FROM golang:1.25-alpine3.21 AS build
 
 WORKDIR /app
 COPY . .
 ENV CGO_ENABLED=0
 RUN go build -o queued cmd/queue/main.go
 
-FROM alpine:3.18 AS dev
+FROM alpine:3.21 AS dev
 
 ARG DOCKER_REGISTRY_USER
 ARG DOCKER_REGISTRY_PASS
