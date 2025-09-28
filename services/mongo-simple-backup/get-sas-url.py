@@ -5,8 +5,22 @@ import sys
 import os
 from urllib.parse import urlparse
 
+def container_exists(blob_service_client, container_name):
+    """Check if a container exists in Azure Blob Storage."""
+    try:
+        container_client = blob_service_client.get_container_client(container_name)
+        container_client.get_container_properties()
+        return True
+    except Exception:
+        return False
+
 def generate_sas_url(connection_string, container_name, file_name):
     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+
+    # Check if container exists, create it if it doesn't
+    if not container_exists(blob_service_client, container_name):
+        print(f"Container '{container_name}' does not exist. Creating it...")
+        container_client = blob_service_client.create_container(container_name)
 
     sas_token = generate_blob_sas(
         account_name=blob_service_client.account_name,

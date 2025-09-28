@@ -1,4 +1,4 @@
-FROM golang:1.23.0-alpine3.20 AS build_mongodump
+FROM golang:1.25-alpine3.21 AS build_mongodump
 
 WORKDIR /build
 
@@ -11,7 +11,7 @@ RUN apk update \
     && cd mongo-tools \
     && ./make build -pkgs=mongodump
 
-FROM python:3.12-alpine3.20 AS build
+FROM python:3.13-alpine3.21 AS build
 
 WORKDIR /tools
 
