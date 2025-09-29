@@ -48,7 +48,6 @@ services:
             DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER: 1
             DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: 1
             ASPNETCORE_ENVIRONMENT: Development
-            LINKS_CURRENT_DOCS: https://example.com/
             API_GATEWAY: http://gateway.local:5000/
             STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=azuriteuser;AccountKey=UGFzc3dvcmQxMjMhfg==;BlobEndpoint=http://azurite:10000/azuriteuser;
             GoogleOid__ClientId: ${GOOGLE_CLIENT_ID}

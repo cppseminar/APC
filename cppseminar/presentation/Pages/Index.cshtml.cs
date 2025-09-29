@@ -7,6 +7,6 @@ namespace presentation.Pages
     [AllowAnonymous]
     public class IndexModel : PageModel
     {
-        public string DocsLink = Environment.GetEnvironmentVariable("LINKS_CURRENT_DOCS");
+        
     }
 }

@@ -54,5 +54,4 @@ spec:
                 secretKeyRef:
                   key: blobConnectionString
                   name: general-secrets
-            - name: LINKS_CURRENT_DOCS
-              value: https://cppseminar.atlassian.net/wiki/spaces/APC2022/overview
+
