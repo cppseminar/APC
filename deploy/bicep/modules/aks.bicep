@@ -2,7 +2,6 @@ param prefix string
 param location string
 param vnetName string
 param subnetName string
-param podsIpRange string
 param dataResourceGroup string
 param registryName string
 
@@ -37,7 +36,7 @@ resource apcAks 'Microsoft.ContainerService/managedClusters@2024-02-01' = {
     type: 'SystemAssigned'
   }
   properties: {
-    kubernetesVersion: '1.28.12'
+    kubernetesVersion: '1.33.3'
     dnsPrefix: '${prefix}-aks-dns-prefix'
     agentPoolProfiles: [
       {
