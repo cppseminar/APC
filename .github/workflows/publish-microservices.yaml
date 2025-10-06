@@ -19,7 +19,7 @@ jobs:
           echo "DOCKER_URL=${{ secrets.STAGING_DOCKER_URL }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Login docker dev
         if: endsWith(github.ref, '/master')
@@ -74,7 +74,7 @@ jobs:
           echo "DOCKER_URL=${{ secrets.STAGING_DOCKER_URL }}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Login docker dev
         if: endsWith(github.ref, '/master')
@@ -128,7 +128,7 @@ jobs:
     if: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Deliverybot Helm Action dev
         if: endsWith(github.ref, '/master')
