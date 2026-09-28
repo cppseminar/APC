@@ -20,6 +20,9 @@ ENV SUBMISSION_PATH=/app/submission
 ENV TESTS_PATH=/app/tests
 ENV DATA_PATH=/app/data
 ENV SUBMISSION_PROJECT=/app/submission-cmake
+ENV CC=clang-22
+ENV CXX=clang++-22
+ENV CXXFLAGS=-stdlib=libc++
 
 RUN useradd -ms /bin/bash apc-test
 
@@ -30,7 +33,12 @@ RUN apt-get update \
     python-is-python3 \
     cmake \
     git \
-    build-essential \
+    clang-22 \
+    libclang-rt-22-dev \
+    libc++-22-dev \
+    libc++abi-22-dev \
+    libc6-dev \
+    ninja-build \
     pkg-config \
     curl \
     zip \
@@ -66,8 +74,8 @@ RUN python ./fold2lf.py --folder $DATA_PATH -vv \
 
 # create makefiles for tests
 WORKDIR $TESTS_PATH
-RUN cmake -B ./build-debug -S . -DCMAKE_TOOLCHAIN_FILE=/app/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Debug \
-    && cmake -B ./build-release -S . -DCMAKE_TOOLCHAIN_FILE=/app/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release
+RUN cmake -G Ninja -B ./build-debug -S . -DCMAKE_TOOLCHAIN_FILE=/app/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Debug \
+    && cmake -G Ninja -B ./build-release -S . -DCMAKE_TOOLCHAIN_FILE=/app/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release
 
 WORKDIR /app
 ENTRYPOINT ["python", "-m", "tester"]
