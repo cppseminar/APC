@@ -1,7 +1,7 @@
 # do not build this file directly, use create-docker.ps1, it will set up
 # all the required paths and copy whatever is needed
 
-FROM gcc:13.2-bookworm
+FROM ubuntu:26.04
 WORKDIR /
 
 # set to 1 if results should be visible to students
@@ -21,19 +21,29 @@ ENV TESTS_PATH=/app/tests
 ENV DATA_PATH=/app/data
 ENV SUBMISSION_PROJECT=/app/submission-cmake
 
-# install dependencies, create folders
+RUN useradd -ms /bin/bash apc-test
+
+# install dependencies
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
-    && apt-get -y install python3 \
-    && apt-get -y install python-is-python3 \
-    && apt-get -y install cmake \
-    && apt-get -y install git \
-    && apt-get -y install curl zip unzip tar \
-    && mkdir -p /app/tester \
+    && apt-get -y install --no-install-recommends python3 \
+    python-is-python3 \
+    cmake \
+    git \
+    build-essential \
+    pkg-config \
+    curl \
+    zip \
+    unzip \
+    ca-certificates \
+    tar
+
+# create folders
+RUN mkdir -p /app/tester \
     && mkdir -p $TESTS_PATH \
     && mkdir -p $SUBMISSION_PATH \
     && mkdir -p $OUTPUT_PATH \
-    && mkdir -p $SUBMISSION_PROJECT \
-    && useradd -ms /bin/bash apc-test
+    && mkdir -p $SUBMISSION_PROJECT
 
 # install vckpg, catch2
 WORKDIR /app
