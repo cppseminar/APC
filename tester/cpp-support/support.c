@@ -62,7 +62,7 @@ static int destroy_pipes_for_process(int inpipe[2], int outpipe[2], int syncpipe
     return 0;
 }
 
-static long get_millis() {
+static long get_millis(void) {
     struct timespec spec;
     if (clock_gettime(CLOCK_MONOTONIC, &spec) < 0) {
         perror("Cannot get monotonic clock");
@@ -306,7 +306,7 @@ char *process_read_line(process_t *process, int timeout)
 
             if (!buffer_append(&process->stdout_buffer, "\n", 1)) {
                 fputs("Cannot allocate memory for output buffer", stderr);
-                return NULL;  
+                return NULL;
             }
             continue; // extract this last bit
         }
@@ -476,7 +476,7 @@ char* create_tmp_file(const char* data, size_t length, enum tmp_file_mode mode) 
 
         off += count;
     }
-    
+
     close(fd);
 
     switch (mode)
@@ -496,7 +496,7 @@ char* create_tmp_file(const char* data, size_t length, enum tmp_file_mode mode) 
             return NULL;
         }
         break;
-    
+
     case TFM_RW:
     default:
         break;

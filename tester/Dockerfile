@@ -55,7 +55,7 @@ RUN mkdir -p /app/tester \
 
 # install vckpg, catch2
 WORKDIR /app
-RUN git clone --depth 1 --branch 2024.01.12 https://github.com/Microsoft/vcpkg.git \
+RUN git clone --depth 1 --branch 2026.07.29 https://github.com/Microsoft/vcpkg.git \
     && ./vcpkg/bootstrap-vcpkg.sh \
     && ./vcpkg/vcpkg install catch2
 
